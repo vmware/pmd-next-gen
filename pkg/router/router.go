@@ -69,7 +69,7 @@ func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) 
 			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 		}
 
-		log.Info("Starting pm-webd in TLS mode")
+		log.Infof("Starting pm-webd server at %s:%s in TLS mode", ip, port)
 
 		log.Fatal(srv.ListenAndServeTLS(tlsCertPath, tlsKeyPath))
 	} else {
@@ -78,7 +78,7 @@ func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) 
 			Handler: r,
 		}
 
-		log.Info("Starting pm-webd in plain text mode")
+		log.Infof("Starting pm-webd server at %s:%s in plain text mode", ip, port)
 
 		log.Fatal(srv.ListenAndServe())
 	}
