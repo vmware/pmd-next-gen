@@ -29,11 +29,11 @@ func getProperty(property string) (dbus.Variant, error) {
 	p, perr := c.GetProperty(dbusInterface + ".Manager." + property)
 	if perr != nil {
 		log.Errorf("Failed to get property '%s' from systemd: %v ", property, perr)
-		return dbus.Variant{}, fmt.Errorf("Failed to get dbus property: %v", perr)
+		return dbus.Variant{}, fmt.Errorf("failed to get dbus property: %v", perr)
 	}
 
 	if p.Value() == nil {
-		return dbus.Variant{}, fmt.Errorf("Unexpected value received: %s", property)
+		return dbus.Variant{}, fmt.Errorf("unexpected value received: %s", property)
 	}
 
 	return p, nil
