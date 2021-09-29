@@ -1,3 +1,7 @@
+[System]
+LogLevel="info"
+LogFormat="text"
+
 [Network]
 IPAddress="0.0.0.0"
 Port="8080"
