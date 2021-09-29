@@ -13,7 +13,7 @@ import (
 	"github.com/go-ini/ini"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd/pkg/share"
+	"github.com/pmd/pkg/web"
 )
 
 const (
@@ -62,12 +62,11 @@ func readSystemConf() error {
 
 // GetSystemConf read system.conf
 func GetSystemConf(rw http.ResponseWriter) error {
-	err := readSystemConf()
-	if err != nil {
+	if err := readSystemConf();err != nil {
 		return err
 	}
 
-	return share.JSONResponse(systemConfig, rw)
+	return web.JSONResponse(systemConfig, rw)
 }
 
 // UpdateSystemConf update the system.conf
@@ -85,8 +84,7 @@ func UpdateSystemConf(rw http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = readSystemConf()
-	if err != nil {
+	if err = readSystemConf();err != nil {
 		return err
 	}
 
@@ -97,13 +95,12 @@ func UpdateSystemConf(rw http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	err = writeSystemConfig()
-	if err != nil {
+	if err = writeSystemConfig();err != nil {
 		log.Errorf("Failed Write to system conf: %v", err)
 		return err
 	}
 
-	return share.JSONResponse(systemConfig, rw)
+	return web.JSONResponse(systemConfig, rw)
 }
 
 // InitSystemd Init systemd conf

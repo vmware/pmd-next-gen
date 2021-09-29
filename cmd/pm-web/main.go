@@ -20,11 +20,11 @@ func main() {
 	}
 
 	log.Infof("pm-webd: v%s (built %s)", conf.Version, runtime.Version())
-	log.Infof("Start Server at %s:%s", c.Network.IPAddress, c.Network.Port)
+	log.Infof("Starting Server at %s:%s", c.Network.IPAddress, c.Network.Port)
 
 	err = router.StartRouter(c.Network.IPAddress, c.Network.Port, path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey))
 	if err != nil {
-		log.Fatalf("Failed to init pm-webd: %v", err)
+		log.Fatalf("Failed to start pm-webd: %v", err)
 		os.Exit(1)
 	}
 }

@@ -11,7 +11,7 @@ import (
 	sd "github.com/coreos/go-systemd/v22/dbus"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd/pkg/share"
+	"github.com/pmd/pkg/web"
 )
 
 // Unit JSON message
@@ -47,7 +47,7 @@ func State(w http.ResponseWriter) error {
 		Value:    v.Value().(string),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // Version systemd version
@@ -62,7 +62,7 @@ func Version(w http.ResponseWriter) error {
 		Value:    v.Value().(string),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // Virtualization systemd virt
@@ -77,7 +77,7 @@ func Virtualization(w http.ResponseWriter) error {
 		Value:    v.Value().(string),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // Architecture arch of the system
@@ -92,7 +92,7 @@ func Architecture(w http.ResponseWriter) error {
 		Value:    v.Value().(string),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // Features systemd features
@@ -107,7 +107,7 @@ func Features(w http.ResponseWriter) error {
 		Value:    v.Value().(string),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // NFailedUnits how many uniuts failed
@@ -122,7 +122,7 @@ func NFailedUnits(w http.ResponseWriter) error {
 		Value:    fmt.Sprint(v.Value().(uint32)),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // NNames number of names
@@ -137,7 +137,7 @@ func NNames(w http.ResponseWriter) error {
 		Value:    fmt.Sprint(v.Value().(uint32)),
 	}
 
-	return share.JSONResponse(prop, w)
+	return web.JSONResponse(prop, w)
 }
 
 // ListUnits list all units
@@ -155,7 +155,7 @@ func ListUnits(w http.ResponseWriter) error {
 		return err
 	}
 
-	return share.JSONResponse(units, w)
+	return web.JSONResponse(units, w)
 }
 
 // StartUnit start a unit
@@ -299,7 +299,7 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 			cpu := strconv.FormatUint(p.Value.Value().(uint64), 10)
 			prop := Property{Property: p.Name, Value: cpu}
 
-			return share.JSONResponse(prop, w)
+			return web.JSONResponse(prop, w)
 		}
 	}
 
@@ -309,7 +309,7 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 		return err
 	}
 
-	return share.JSONResponse(p, w)
+	return web.JSONResponse(p, w)
 }
 
 // GetUnitTypeProperty get unit type property
@@ -327,5 +327,5 @@ func (u *Unit) GetUnitTypeProperty(w http.ResponseWriter) error {
 		return err
 	}
 
-	return share.JSONResponse(p, w)
+	return web.JSONResponse(p, w)
 }

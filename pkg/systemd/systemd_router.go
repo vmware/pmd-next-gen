@@ -12,95 +12,77 @@ import (
 func routerGetSystemdState(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := State(rw)
-		if err != nil {
+		if err := State(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
 func routerGetSystemdVersion(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := Version(rw)
-		if err != nil {
+		if err := Version(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
 func routerGetSystemdFeatures(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := Features(rw)
-		if err != nil {
+		if err := Features(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
 func routerGetSystemdVirtualization(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := Virtualization(rw)
-		if err != nil {
+		if err := Virtualization(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
 func routerGetSystemdNFailedUnits(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := NFailedUnits(rw)
-		if err != nil {
+		if err := NFailedUnits(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
 func routerGetSystemdNNames(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := NNames(rw)
-		if err != nil {
+		if err := NNames(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
+
 	}
 }
 
 func routerGetSystemdArchitecture(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := Architecture(rw)
-		if err != nil {
+		if err := Architecture(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
 func routerConfigureSystemdConf(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := GetSystemConf(rw)
-		if err != nil {
+		if err := GetSystemConf(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
-
 	case "POST":
-		err := UpdateSystemConf(rw, r)
-		if err != nil {
+		if err := UpdateSystemConf(rw, r); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		break
 	}
 }
 
@@ -120,21 +102,20 @@ func routerConfigureUnit(rw http.ResponseWriter, r *http.Request) {
 		switch unit.Action {
 		case "start":
 			err = unit.StartUnit()
-			break
+
 		case "stop":
 			err = unit.StopUnit()
-			break
+
 		case "restart":
 			err = unit.RestartUnit()
-			break
+
 		case "reload":
 			err = unit.ReloadUnit()
-			break
+
 		case "kill":
 			err = unit.KillUnit()
-			break
+
 		}
-		break
 	}
 
 	if err != nil {
@@ -145,12 +126,9 @@ func routerConfigureUnit(rw http.ResponseWriter, r *http.Request) {
 func routerGetAllSystemdUnits(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		err := ListUnits(rw)
-		if err != nil {
+		if err := ListUnits(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-
-		break
 	}
 }
 
@@ -164,12 +142,9 @@ func routerGetUnitStatus(rw http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		err := u.GetUnitStatus(rw)
-		if err != nil {
+		if err := u.GetUnitStatus(rw); err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-
-		break
 	}
 }
 
@@ -186,10 +161,8 @@ func routerGetUnitProperty(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		u.GetUnitProperty(rw)
-		break
 	}
 }
-
 
 func routerGetUnitTypeProperty(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -206,7 +179,6 @@ func routerGetUnitTypeProperty(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		u.GetUnitTypeProperty(rw)
-		break
 	}
 }
 

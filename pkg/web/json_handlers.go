@@ -1,4 +1,4 @@
-package share
+package web
 
 import (
 	"encoding/json"
