@@ -32,8 +32,18 @@ type Property struct {
 
 // UnitStatus unit status
 type UnitStatus struct {
-	Status string `json:"property"`
-	Unit   string `json:"unit"`
+	Status      string `json:"property"`
+	Unit        string `json:"unit"`
+	Name        string `json:"Name"`
+	Description string `json:"Description"`
+	LoadState   string `json:"LoadState"`
+	ActiveState string `json:"pActiveState"`
+	SubState    string `json:"SubState"`
+	Followed    string `json:"Followed"`
+	Path        string `json:"Path"`
+	JobId       uint32 `json:"JobId"`
+	JobType     string `json:"JobType"`
+	JobPath     string `json:"JobPath"`
 }
 
 // State sytemd state
@@ -225,7 +235,7 @@ func (u *Unit) ReloadUnit() error {
 	}
 	defer conn.Close()
 
-	err = conn.Reload()
+	err = conn.ReloadContext(context.Background())
 	if err != nil {
 		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
 		return err
@@ -270,8 +280,17 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 	}
 
 	status := UnitStatus{
-		Status: units[0].ActiveState,
-		Unit:   u.Unit,
+		Unit:        u.Unit,
+		Status:      units[0].ActiveState,
+		LoadState:   units[0].LoadState,
+		Name:        units[0].Name,
+		Description: units[0].Description,
+		ActiveState: units[0].ActiveState,
+		SubState:    units[0].SubState,
+		Followed:    units[0].Followed,
+		Path:        string(units[0].Path),
+		JobType:     units[0].JobType,
+		JobPath:     string(units[0].JobPath),
 	}
 
 	json.NewEncoder(w).Encode(status)
