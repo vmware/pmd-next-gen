@@ -5,7 +5,6 @@ package systemd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -46,109 +45,31 @@ type UnitStatus struct {
 	JobPath     string `json:"JobPath"`
 }
 
-// State sytemd state
-func State(w http.ResponseWriter) error {
-	v, err := getProperty("SystemState")
+func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
+	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
+		log.Errorf("Failed to get systemd bus connection: %s", err)
+		return err
+	}
+	defer conn.Close()
+
+	v, err := conn.GetManagerProperty(property)
+	if err != nil {
+		log.Errorf("Failed get  %s: %v", property, err)
 		return err
 	}
 
-	prop := Property{
-		Property: "SystemState",
-		Value:    v.Value().(string),
-	}
-
-	return web.JSONResponse(prop, w)
-}
-
-// Version systemd version
-func Version(w http.ResponseWriter) error {
-	v, err := getProperty("Version")
+	s, err := strconv.Unquote(string(v))
 	if err != nil {
+		log.Errorf("Failed  unquote property  %s: %v", property, err)
 		return err
 	}
 
-	prop := Property{
-		Property: "Version",
-		Value:    v.Value().(string),
+	p := Property{
+		Property: property,
+		Value:    s,
 	}
-
-	return web.JSONResponse(prop, w)
-}
-
-// Virtualization systemd virt
-func Virtualization(w http.ResponseWriter) error {
-	v, err := getProperty("Virtualization")
-	if err != nil {
-		return err
-	}
-
-	prop := Property{
-		Property: "Virtualization",
-		Value:    v.Value().(string),
-	}
-
-	return web.JSONResponse(prop, w)
-}
-
-// Architecture arch of the system
-func Architecture(w http.ResponseWriter) error {
-	v, err := getProperty("Architecture")
-	if err != nil {
-		return err
-	}
-
-	prop := Property{
-		Property: "Architecture",
-		Value:    v.Value().(string),
-	}
-
-	return web.JSONResponse(prop, w)
-}
-
-// Features systemd features
-func Features(w http.ResponseWriter) error {
-	v, err := getProperty("Features")
-	if err != nil {
-		return err
-	}
-
-	prop := Property{
-		Property: "Features",
-		Value:    v.Value().(string),
-	}
-
-	return web.JSONResponse(prop, w)
-}
-
-// NFailedUnits how many uniuts failed
-func NFailedUnits(w http.ResponseWriter) error {
-	v, err := getProperty("NFailedUnits")
-	if err != nil {
-		return err
-	}
-
-	prop := Property{
-		Property: "NFailedUnits",
-		Value:    fmt.Sprint(v.Value().(uint32)),
-	}
-
-	return web.JSONResponse(prop, w)
-}
-
-// NNames number of names
-func NNames(w http.ResponseWriter) error {
-	v, err := getProperty("NNames")
-	if err != nil {
-		return err
-	}
-
-	prop := Property{
-		Property: "NNames",
-		Value:    fmt.Sprint(v.Value().(uint32)),
-	}
-
-	return web.JSONResponse(prop, w)
+	return web.JSONResponse(p, w)
 }
 
 // ListUnits list all units
