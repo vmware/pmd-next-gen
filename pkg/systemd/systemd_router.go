@@ -15,7 +15,9 @@ func routerGetSystemdManagerProperty(rw http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		ManagerFetchSystemProperty(rw, property)
+		if err := ManagerFetchSystemProperty(rw, property); err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
 
