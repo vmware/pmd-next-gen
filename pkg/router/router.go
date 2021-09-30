@@ -5,7 +5,6 @@ package router
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,15 +17,13 @@ import (
 	"github.com/pmd/pkg/systemd"
 )
 
-// StartRouter Init and start Gorilla mux router
 func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) error {
 	var srv http.Server
 
 	r := mux.NewRouter()
-	s := r.PathPrefix("/api").Subrouter()
+	s := r.PathPrefix("/api/v1").Subrouter()
 
 	// Register services
-
 	systemd.InitSystemd()
 	systemd.RegisterRouterSystemd(s)
 
@@ -34,7 +31,7 @@ func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) 
 	amw, err := InitAuthMiddleware()
 	if err != nil {
 		log.Fatalf("Failed to init auth DB existing: %s", err)
-		return fmt.Errorf("Failed to init Auth DB: %s", err)
+		return err
 	}
 
 	r.Use(amw.AuthMiddleware)

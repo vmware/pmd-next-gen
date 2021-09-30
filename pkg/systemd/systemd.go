@@ -178,8 +178,8 @@ func (u *Unit) StartUnit() error {
 	}
 	defer conn.Close()
 
-	reschan := make(chan string)
-	_, err = conn.StartUnitContext(context.Background(), u.Unit, "replace", reschan)
+	c := make(chan string)
+	_, err = conn.StartUnitContext(context.Background(), u.Unit, "replace", c)
 	if err != nil {
 		log.Errorf("Failed to start unit %s: %v", u.Unit, err)
 		return err
@@ -197,8 +197,8 @@ func (u *Unit) StopUnit() error {
 	}
 	defer conn.Close()
 
-	reschan := make(chan string)
-	_, err = conn.StopUnitContext(context.Background(), u.Unit, "fail", reschan)
+	c := make(chan string)
+	_, err = conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
 	if err != nil {
 		log.Errorf("Failed to stop unit %s: %v", u.Unit, err)
 		return err
@@ -216,8 +216,8 @@ func (u *Unit) RestartUnit() error {
 	}
 	defer conn.Close()
 
-	reschan := make(chan string)
-	_, err = conn.RestartUnitContext(context.Background(), u.Unit, "replace", reschan)
+	c := make(chan string)
+	_, err = conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
 	if err != nil {
 		log.Errorf("Failed to restart unit %s: %v", u.Unit, err)
 		return err
@@ -226,7 +226,42 @@ func (u *Unit) RestartUnit() error {
 	return nil
 }
 
-// ReloadUnit reload daemon
+func (u *Unit) TryRestartUnit() error {
+	conn, err := sd.NewSystemdConnectionContext(context.Background())
+	if err != nil {
+		log.Errorf("Failed to get systemd bus connection: %s", err)
+		return err
+	}
+	defer conn.Close()
+
+	c := make(chan string)
+	_, err = conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
+	if err != nil {
+		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
+		return err
+	}
+
+	return nil
+}
+
+func (u *Unit) ReloadOrRestartUnit() error {
+	conn, err := sd.NewSystemdConnectionContext(context.Background())
+	if err != nil {
+		log.Errorf("Failed to get systemd bus connection: %s", err)
+		return err
+	}
+	defer conn.Close()
+
+	c := make(chan string)
+	_, err = conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
+	if err != nil {
+		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
+		return err
+	}
+
+	return nil
+}
+
 func (u *Unit) ReloadUnit() error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
@@ -235,7 +270,8 @@ func (u *Unit) ReloadUnit() error {
 	}
 	defer conn.Close()
 
-	err = conn.ReloadContext(context.Background())
+	c := make(chan string)
+	_, err = conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
 	if err != nil {
 		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
 		return err
@@ -307,25 +343,9 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 	}
 	defer conn.Close()
 
-	if u.Property != "" {
-		p, err := conn.GetServicePropertyContext(context.Background(), u.Unit, u.Property)
-		if err != nil {
-			log.Errorf("Failed to get service property: %v", err)
-			return err
-		}
-
-		switch u.Property {
-		case "CPUShares", "LimitNOFILE", "LimitNOFILESoft":
-			cpu := strconv.FormatUint(p.Value.Value().(uint64), 10)
-			prop := Property{Property: p.Name, Value: cpu}
-
-			return web.JSONResponse(prop, w)
-		}
-	}
-
 	p, err := conn.GetUnitPropertiesContext(context.Background(), u.Unit)
 	if err != nil {
-		log.Errorf("Failed to get service properties: %v", err)
+		log.Errorf("Failed to get unit properties: %v", err)
 		return err
 	}
 

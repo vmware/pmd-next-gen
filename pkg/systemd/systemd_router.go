@@ -199,9 +199,9 @@ func RegisterRouterSystemd(router *mux.Router) {
 	// unit
 	n.HandleFunc("/systemd", routerConfigureUnit)
 	n.HandleFunc("/systemd/{unit}/status", routerGetUnitStatus)
-	n.HandleFunc("/systemd/{unit}/get", routerGetUnitProperty)
-	n.HandleFunc("/systemd/{unit}/get/{property}", routerGetUnitProperty)
-	n.HandleFunc("/systemd/{unit}/gettype/{unittype}", routerGetUnitTypeProperty)
+	n.HandleFunc("/systemd/{unit}/property", routerGetUnitProperty)
+	n.HandleFunc("/systemd/{unit}/property/{property}", routerGetUnitProperty)
+	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerGetUnitTypeProperty)
 
 	// conf
 	n.HandleFunc("/systemd/conf", routerConfigureSystemdConf)
