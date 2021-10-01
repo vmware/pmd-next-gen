@@ -34,40 +34,26 @@ func routerConfigureSystemdConf(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerConfigureUnit(rw http.ResponseWriter, r *http.Request) {
+func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	switch r.Method {
 	case "POST":
-		unit := new(Unit)
+		u := new(Unit)
 
-		err = json.NewDecoder(r.Body).Decode(&unit)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
+		if err = json.NewDecoder(r.Body).Decode(&u); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		switch unit.Action {
-		case "start":
-			err = unit.StartUnit()
-
-		case "stop":
-			err = unit.StopUnit()
-
-		case "restart":
-			err = unit.RestartUnit()
-
-		case "reload":
-			err = unit.ReloadUnit()
-
-		case "kill":
-			err = unit.KillUnit()
+		if err = u.UnitActions(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error":"` + err.Error() + `"}`))
+			return
 		}
 	}
 
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-	}
+	_, _ = w.Write([]byte(`{"message":"success"}`))
 }
 
 func routerGetAllSystemdUnits(rw http.ResponseWriter, r *http.Request) {

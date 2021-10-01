@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package share
+package system
 
 import (
 	"bufio"
@@ -12,11 +12,7 @@ import (
 // PathExists test if path exists
 func PathExists(path string) bool {
 	_, r := os.Stat(path)
-	if os.IsNotExist(r) {
-		return false
-	}
-
-	return true
+	return !os.IsNotExist(r) 
 }
 
 // ReadFullFile read a file and store in string array
@@ -38,6 +34,9 @@ func ReadFullFile(path string) ([]string, error) {
 		lines = append(lines, line)
 	}
 	err = scanner.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	return lines, nil
 }
@@ -74,6 +73,9 @@ func ReadOneLineFile(path string) (string, error) {
 	line := scanner.Text()
 
 	err = scanner.Err()
+	if err != nil {
+		return "", err
+	}
 
 	return line, nil
 }

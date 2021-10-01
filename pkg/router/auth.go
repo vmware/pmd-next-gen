@@ -9,7 +9,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd/pkg/share"
+	"github.com/pmd/pkg/system"
 )
 
 const (
@@ -41,7 +41,7 @@ func (db *TokenDB) AuthMiddleware(next http.Handler) http.Handler {
 func InitAuthMiddleware() (TokenDB, error) {
 	db := TokenDB{make(map[string]string)}
 
-	lines, r := share.ReadFullFile(authConfPath)
+	lines, r := system.ReadFullFile(authConfPath)
 	if r != nil {
 		log.Fatal("Failed to read auth config file")
 		return db, errors.New("Failed to read auth config file")

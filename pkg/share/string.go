@@ -12,11 +12,7 @@ func StringContains(list []string, s string) bool {
 		set[v] = k
 	}
 
-	if set[s] != 0 {
-		return true
-	}
-
-	return false
+	return set[s] != 0 
 }
 
 // StringDeleteSlice removes a slice from string array
@@ -33,5 +29,5 @@ func StringDeleteSlice(list []string, s string) ([]string, error) {
 		return list, nil
 	}
 
-	return nil, errors.New("Slice not found")
+	return nil, errors.New("slice not found")
 }

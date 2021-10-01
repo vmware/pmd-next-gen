@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd/pkg/share"
+	"github.com/pmd/pkg/system"
 	"github.com/pmd/pkg/systemd"
 )
 
@@ -53,7 +53,7 @@ func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) 
 		os.Exit(0)
 	}()
 
-	if share.PathExists(tlsCertPath) && share.PathExists(tlsKeyPath) {
+	if system.PathExists(tlsCertPath) && system.PathExists(tlsKeyPath) {
 		cfg := &tls.Config{
 			MinVersion:               tls.VersionTLS12,
 			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -66,7 +66,7 @@ func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) 
 			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 		}
 
-		log.Infof("Starting pm-webd server at %s:%s in TLS mode", ip, port)
+		log.Infof("Starting pm-webd server at %s:%s in HTTPS mode", ip, port)
 
 		log.Fatal(srv.ListenAndServeTLS(tlsCertPath, tlsKeyPath))
 	} else {
@@ -75,7 +75,7 @@ func StartRouter(ip string, port string, tlsCertPath string, tlsKeyPath string) 
 			Handler: r,
 		}
 
-		log.Infof("Starting pm-webd server at %s:%s in plain text mode", ip, port)
+		log.Infof("Starting pm-webd server at %s:%s in HTTP mode", ip, port)
 
 		log.Fatal(srv.ListenAndServe())
 	}

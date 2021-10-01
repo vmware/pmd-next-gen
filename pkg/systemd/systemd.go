@@ -48,20 +48,20 @@ type UnitStatus struct {
 func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %s", err)
+		log.Errorf("Failed to establishes connection to the system bus: %s", err)
 		return err
 	}
 	defer conn.Close()
 
 	v, err := conn.GetManagerProperty(property)
 	if err != nil {
-		log.Errorf("Failed get  %s: %v", property, err)
+		log.Errorf("Failed fetch systemd manager property='%s': %v", property, err)
 		return err
 	}
 
 	s, err := strconv.Unquote(string(v))
 	if err != nil {
-		log.Errorf("Failed  unquote property  %s: %v", property, err)
+		log.Errorf("Failed to unquote systemd manager property='%s`: %v", property, err)
 		return err
 	}
 
@@ -76,147 +76,79 @@ func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
 func ListUnits(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %s", err)
+		log.Errorf("Failed to establishes connection to the system bus: %s", err)
 		return err
 	}
 	defer conn.Close()
 
 	units, err := conn.ListUnitsContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed ListUnits: %v", err)
+		log.Errorf("Failed list units: %v", err)
 		return err
 	}
 
 	return web.JSONResponse(units, w)
 }
 
-// StartUnit start a unit
-func (u *Unit) StartUnit() error {
+func (u *Unit) UnitActions() error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %v", err)
+		log.Errorf("Failed to establishes connection to the system bus: %v", err)
 		return err
 	}
 	defer conn.Close()
 
 	c := make(chan string)
-	_, err = conn.StartUnitContext(context.Background(), u.Unit, "replace", c)
-	if err != nil {
-		log.Errorf("Failed to start unit %s: %v", u.Unit, err)
-		return err
+	switch u.Action {
+	case "start":
+		_, err = conn.StartUnitContext(context.Background(), u.Unit, "replace", c)
+		if err != nil {
+			log.Errorf("Failed to start unit '%s': %v", u.Unit, err)
+			return err
+		}
+	case "stop":
+		_, err = conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
+		if err != nil {
+			log.Errorf("Failed to stop unit '%s': %v", u.Unit, err)
+			return err
+		}
+	case "restart":
+		_, err = conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
+		if err != nil {
+			log.Errorf("Failed to restart unit '%s': %v", u.Unit, err)
+			return err
+		}
+
+	case "try-restart":
+		_, err = conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
+		if err != nil {
+			log.Errorf("Failed to try restart unit '%s': %v", u.Unit, err)
+			return err
+		}
+
+	case "reload-or-restart":
+		_, err = conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
+		if err != nil {
+			log.Errorf("Failed to reload or restart unit '%s': %v", u.Unit, err)
+			return err
+		}
+
+	case "reload":
+		_, err = conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
+		if err != nil {
+			log.Errorf("Failed to reload unit '%s': %v", u.Unit, err)
+			return err
+		}
+
+	case "kill":
+		signal, err := strconv.ParseInt(u.Value, 10, 64)
+		if err != nil {
+			log.Errorf("Failed to parse signal number '%s': %s", u.Value, err)
+			return err
+		}
+
+		conn.KillUnitContext(context.Background(), u.Unit, int32(signal))
 	}
-
-	return nil
-}
-
-// StopUnit stop a unit
-func (u *Unit) StopUnit() error {
-	conn, err := sd.NewSystemdConnectionContext(context.Background())
-	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %s", err)
-		return err
-	}
-	defer conn.Close()
-
-	c := make(chan string)
-	_, err = conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
-	if err != nil {
-		log.Errorf("Failed to stop unit %s: %v", u.Unit, err)
-		return err
-	}
-
-	return nil
-}
-
-// RestartUnit restart a unit
-func (u *Unit) RestartUnit() error {
-	conn, err := sd.NewSystemdConnectionContext(context.Background())
-	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %v", err)
-		return err
-	}
-	defer conn.Close()
-
-	c := make(chan string)
-	_, err = conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
-	if err != nil {
-		log.Errorf("Failed to restart unit %s: %v", u.Unit, err)
-		return err
-	}
-
-	return nil
-}
-
-func (u *Unit) TryRestartUnit() error {
-	conn, err := sd.NewSystemdConnectionContext(context.Background())
-	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %s", err)
-		return err
-	}
-	defer conn.Close()
-
-	c := make(chan string)
-	_, err = conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
-	if err != nil {
-		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
-		return err
-	}
-
-	return nil
-}
-
-func (u *Unit) ReloadOrRestartUnit() error {
-	conn, err := sd.NewSystemdConnectionContext(context.Background())
-	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %s", err)
-		return err
-	}
-	defer conn.Close()
-
-	c := make(chan string)
-	_, err = conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
-	if err != nil {
-		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
-		return err
-	}
-
-	return nil
-}
-
-func (u *Unit) ReloadUnit() error {
-	conn, err := sd.NewSystemdConnectionContext(context.Background())
-	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %s", err)
-		return err
-	}
-	defer conn.Close()
-
-	c := make(chan string)
-	_, err = conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
-	if err != nil {
-		log.Errorf("Failed to reload unit %s: %v", u.Unit, err)
-		return err
-	}
-
-	return nil
-}
-
-// KillUnit send a signal to a unit
-func (u *Unit) KillUnit() error {
-	conn, err := sd.NewSystemdConnectionContext(context.Background())
-	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %v", err)
-		return err
-	}
-	defer conn.Close()
-
-	signal, err := strconv.ParseInt(u.Value, 10, 64)
-	if err != nil {
-		log.Errorf("Failed to parse signal number '%s': %s", u.Value, err)
-		return err
-	}
-
-	conn.KillUnitContext(context.Background(), u.Unit, int32(signal))
 
 	return nil
 }
@@ -225,7 +157,7 @@ func (u *Unit) KillUnit() error {
 func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %v", err)
+		log.Errorf("Failed to establishes connection to the system bus:: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -259,7 +191,7 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %v", err)
+		log.Errorf("Failed to establishes connection to the system bus: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -277,7 +209,7 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 func (u *Unit) GetUnitTypeProperty(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed to get systemd bus connection: %v", err)
+		log.Errorf("Failed to establishes connection to the system bus:: %v", err)
 		return err
 	}
 	defer conn.Close()

@@ -22,19 +22,19 @@ func ParseBool(str string) (bool, error) {
 		return false, nil
 	}
 
-	return false, fmt.Errorf("ParseBool")
+	return false, fmt.Errorf("failed to parse")
 }
 
 // ParseIP parse a IP
 func ParseIP(ip string) (net.IP, error) {
 	if len(ip) == 0 {
-		return nil, fmt.Errorf("ParseIP")
+		return nil, fmt.Errorf("failed to parse ip")
 	}
 
 	a := net.ParseIP(ip)
 
 	if a.To4() == nil || a.To16() == nil {
-		return nil, fmt.Errorf("ParseIP")
+		return nil, fmt.Errorf("failed to parse ip")
 	}
 
 	return a, nil
