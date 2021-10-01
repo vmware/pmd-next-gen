@@ -115,21 +115,17 @@ func routerGetUnitTypeProperty(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RegisterRouterSystemd register with mux
 func RegisterRouterSystemd(router *mux.Router) {
 	n := router.PathPrefix("/service").Subrouter()
 
-	// property
 	n.HandleFunc("/systemd/manager/{property}", routerGetSystemdManagerProperty)
 
-	// unit
 	n.HandleFunc("/systemd/units", routerGetAllSystemdUnits)
 	n.HandleFunc("/systemd", routerConfigureUnit)
 	n.HandleFunc("/systemd/{unit}/status", routerGetUnitStatus)
 	n.HandleFunc("/systemd/{unit}/property", routerGetUnitProperty)
 	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerGetUnitTypeProperty)
 
-	// conf
 	n.HandleFunc("/systemd/conf", routerConfigureSystemdConf)
 	n.HandleFunc("/systemd/conf/update", routerConfigureSystemdConf)
 }

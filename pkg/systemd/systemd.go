@@ -23,13 +23,11 @@ type Unit struct {
 	Value    string `json:"value"`
 }
 
-// Property generic property and value
 type Property struct {
 	Property string `json:"property"`
 	Value    string `json:"value"`
 }
 
-// UnitStatus unit status
 type UnitStatus struct {
 	Status      string `json:"property"`
 	Unit        string `json:"unit"`
@@ -72,7 +70,6 @@ func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
 	return web.JSONResponse(p, w)
 }
 
-// ListUnits list all units
 func ListUnits(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
@@ -101,44 +98,90 @@ func (u *Unit) UnitActions() error {
 	c := make(chan string)
 	switch u.Action {
 	case "start":
-		_, err = conn.StartUnitContext(context.Background(), u.Unit, "replace", c)
+		jid, err := conn.StartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
 			log.Errorf("Failed to start unit '%s': %v", u.Unit, err)
 			return err
 		}
+
+		log.Debugf("Successfully started systemd unit='%s' job_id='%d'", u.Unit, jid)
+
 	case "stop":
-		_, err = conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
+		jid, err := conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
 		if err != nil {
 			log.Errorf("Failed to stop unit '%s': %v", u.Unit, err)
 			return err
 		}
+
+		log.Debugf("Successfully stopped systemd unit='%s' job_id='%d'", u.Unit, jid)
+
 	case "restart":
-		_, err = conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
+		jid, err := conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
 			log.Errorf("Failed to restart unit '%s': %v", u.Unit, err)
 			return err
 		}
 
+		log.Debugf("Successfully restared systemd unit='%s' job_id='%d'", u.Unit, jid)
+
 	case "try-restart":
-		_, err = conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
+		jid, err := conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
 			log.Errorf("Failed to try restart unit '%s': %v", u.Unit, err)
 			return err
 		}
 
+		log.Debugf("Successfully try-restart systemd unit='%s' job_id='%d'", u.Unit, jid)
+
 	case "reload-or-restart":
-		_, err = conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
+		jid, err := conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
 			log.Errorf("Failed to reload or restart unit '%s': %v", u.Unit, err)
 			return err
 		}
 
+		log.Debugf("Successfully reload-or-restart systemd unit='%s' job_id='%d'", u.Unit, jid)
+
 	case "reload":
-		_, err = conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
+		jid, err := conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
 			log.Errorf("Failed to reload unit '%s': %v", u.Unit, err)
 			return err
 		}
+
+		log.Debugf("Successfully reload systemd unit='%s' job_id='%d'", u.Unit, jid)
+
+	case "enable":
+		install, changes, err := conn.EnableUnitFilesContext(context.Background(), []string{u.Unit}, false, true)
+		if err != nil {
+			return err
+		}
+
+		log.Debugf("Successfully enabled systemd unit='%s' install='%s' changes='%s'", u.Unit, install, changes)
+
+	case "disable":
+		changes, err := conn.DisableUnitFilesContext(context.Background(), []string{u.Unit}, false)
+		if err != nil {
+			return err
+		}
+
+		log.Debugf("Successfully disabled systemd unit='%s' changes='%s'", u.Unit, changes)
+
+	case "mask":
+		changes, err := conn.MaskUnitFilesContext(context.Background(), []string{u.Unit}, false, true)
+		if err != nil {
+			return err
+		}
+
+		log.Debugf("Successfully masked systemd unit='%s' changes='%s'", u.Unit, changes)
+
+	case "unmask":
+		changes, err := conn.UnmaskUnitFilesContext(context.Background(), []string{u.Unit}, false)
+		if err != nil {
+			return err
+		}
+
+		log.Debugf("Successfully unmasked systemd unit='%s' changes='%s'", u.Unit, changes)
 
 	case "kill":
 		signal, err := strconv.ParseInt(u.Value, 10, 64)
@@ -153,7 +196,6 @@ func (u *Unit) UnitActions() error {
 	return nil
 }
 
-// GetUnitStatus get unit status
 func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
@@ -164,11 +206,11 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 
 	units, err := conn.ListUnitsByNamesContext(context.Background(), []string{u.Unit})
 	if err != nil {
-		log.Errorf("Failed get unit '%s' status: %v", u.Unit, err)
+		log.Errorf("Failed fetch unit '%s' status: %v", u.Unit, err)
 		return err
 	}
 
-	status := UnitStatus{
+	s := UnitStatus{
 		Unit:        u.Unit,
 		Status:      units[0].ActiveState,
 		LoadState:   units[0].LoadState,
@@ -182,12 +224,9 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		JobPath:     string(units[0].JobPath),
 	}
 
-	json.NewEncoder(w).Encode(status)
-
-	return nil
+	return json.NewEncoder(w).Encode(s)
 }
 
-// GetUnitProperty get unit property
 func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
@@ -198,14 +237,13 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 
 	p, err := conn.GetUnitPropertiesContext(context.Background(), u.Unit)
 	if err != nil {
-		log.Errorf("Failed to get unit properties: %v", err)
+		log.Errorf("Failed to fetch unit properties: %v", err)
 		return err
 	}
 
 	return web.JSONResponse(p, w)
 }
 
-// GetUnitTypeProperty get unit type property
 func (u *Unit) GetUnitTypeProperty(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
@@ -216,7 +254,7 @@ func (u *Unit) GetUnitTypeProperty(w http.ResponseWriter) error {
 
 	p, err := conn.GetUnitTypePropertiesContext(context.Background(), u.Unit, u.UnitType)
 	if err != nil {
-		log.Errorf("Failed to get unit type properties: %v", err)
+		log.Errorf("Failed to fetch unit type properties: %v", err)
 		return err
 	}
 
