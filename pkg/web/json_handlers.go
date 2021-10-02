@@ -12,7 +12,12 @@ type JSONResponseMessage struct {
 }
 
 func JSONResponse(response interface{}, w http.ResponseWriter) error {
-	j, err := json.Marshal(response)
+	m := JSONResponseMessage{
+		Success: true,
+		Message: response,
+	}
+
+	j, err := json.Marshal(m)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return err
