@@ -4,7 +4,6 @@ package systemd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -35,7 +34,7 @@ type UnitStatus struct {
 	Name        string `json:"Name"`
 	Description string `json:"Description"`
 	LoadState   string `json:"LoadState"`
-	ActiveState string `json:"pActiveState"`
+	ActiveState string `json:"ActiveState"`
 	SubState    string `json:"SubState"`
 	Followed    string `json:"Followed"`
 	Path        string `json:"Path"`
@@ -105,7 +104,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully started systemd unit='%s' job_id='%d'", u.Unit, jid)
+		log.Debugf("Successfully executed 'start' on systemd unit='%s' job_id='%d'", u.Unit, jid)
 
 	case "stop":
 		jid, err := conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
@@ -114,7 +113,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully stopped systemd unit='%s' job_id='%d'", u.Unit, jid)
+		log.Debugf("Successfully executed 'stop' on systemd unit='%s' job_id='%d'", u.Unit, jid)
 
 	case "restart":
 		jid, err := conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
@@ -123,7 +122,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully restared systemd unit='%s' job_id='%d'", u.Unit, jid)
+		log.Debugf("Successfully executed 'restart' on systemd unit='%s' job_id='%d'", u.Unit, jid)
 
 	case "try-restart":
 		jid, err := conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
@@ -132,7 +131,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully try-restart systemd unit='%s' job_id='%d'", u.Unit, jid)
+		log.Debugf("Successfully executed 'try-restart' on systemd unit='%s' job_id='%d'", u.Unit, jid)
 
 	case "reload-or-restart":
 		jid, err := conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
@@ -141,7 +140,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully reload-or-restart systemd unit='%s' job_id='%d'", u.Unit, jid)
+		log.Debugf("Successfully executed 'reload-or-restart' on systemd unit='%s' job_id='%d'", u.Unit, jid)
 
 	case "reload":
 		jid, err := conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
@@ -150,7 +149,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully reload systemd unit='%s' job_id='%d'", u.Unit, jid)
+		log.Debugf("Successfully executed 'reload' on systemd unit='%s' job_id='%d'", u.Unit, jid)
 
 	case "enable":
 		install, changes, err := conn.EnableUnitFilesContext(context.Background(), []string{u.Unit}, false, true)
@@ -159,7 +158,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully enabled systemd unit='%s' install='%t' changes='%s'", u.Unit, install, changes)
+		log.Debugf("Successfully executed 'enable' on systemd unit='%s' install='%t' changes='%s'", u.Unit, install, changes)
 
 	case "disable":
 		changes, err := conn.DisableUnitFilesContext(context.Background(), []string{u.Unit}, false)
@@ -168,7 +167,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully disabled systemd unit='%s' changes='%s'", u.Unit, changes)
+		log.Debugf("Successfully executed 'disable' on systemd unit='%s' changes='%s'", u.Unit, changes)
 
 	case "mask":
 		changes, err := conn.MaskUnitFilesContext(context.Background(), []string{u.Unit}, false, true)
@@ -177,7 +176,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully masked systemd unit='%s' changes='%s'", u.Unit, changes)
+		log.Debugf("Successfully executed 'mask' on systemd unit='%s' changes='%s'", u.Unit, changes)
 
 	case "unmask":
 		changes, err := conn.UnmaskUnitFilesContext(context.Background(), []string{u.Unit}, false)
@@ -186,7 +185,7 @@ func (u *Unit) UnitActions() error {
 			return err
 		}
 
-		log.Debugf("Successfully unmasked systemd unit='%s' changes='%s'", u.Unit, changes)
+		log.Debugf("Successfully executed 'unmask' on systemd unit='%s' changes='%s'", u.Unit, changes)
 
 	case "kill":
 		signal, err := strconv.ParseInt(u.Value, 10, 64)
@@ -233,7 +232,7 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		JobPath:     string(units[0].JobPath),
 	}
 
-	return json.NewEncoder(w).Encode(s)
+	return web.JSONResponse(s, w)
 }
 
 func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {

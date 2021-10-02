@@ -52,7 +52,7 @@ func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, _ = w.Write([]byte(`{"success":"true"}`))
+	web.JSONResponse("", w)
 }
 
 func routerGetAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
