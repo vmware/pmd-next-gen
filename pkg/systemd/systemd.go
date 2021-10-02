@@ -5,6 +5,7 @@ package systemd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -80,7 +81,7 @@ func ListUnits(w http.ResponseWriter) error {
 
 	units, err := conn.ListUnitsContext(context.Background())
 	if err != nil {
-		log.Errorf("Failed list units: %v", err)
+		log.Errorf("Failed list systemd units: %v", err)
 		return err
 	}
 
@@ -100,7 +101,7 @@ func (u *Unit) UnitActions() error {
 	case "start":
 		jid, err := conn.StartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
-			log.Errorf("Failed to start unit '%s': %v", u.Unit, err)
+			log.Errorf("Failed to start systemd unit='%s': %v", u.Unit, err)
 			return err
 		}
 
@@ -109,7 +110,7 @@ func (u *Unit) UnitActions() error {
 	case "stop":
 		jid, err := conn.StopUnitContext(context.Background(), u.Unit, "fail", c)
 		if err != nil {
-			log.Errorf("Failed to stop unit '%s': %v", u.Unit, err)
+			log.Errorf("Failed to stop systemd unit='%s': %v", u.Unit, err)
 			return err
 		}
 
@@ -118,7 +119,7 @@ func (u *Unit) UnitActions() error {
 	case "restart":
 		jid, err := conn.RestartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
-			log.Errorf("Failed to restart unit '%s': %v", u.Unit, err)
+			log.Errorf("Failed to restart systemd unit='%s': %v", u.Unit, err)
 			return err
 		}
 
@@ -127,7 +128,7 @@ func (u *Unit) UnitActions() error {
 	case "try-restart":
 		jid, err := conn.TryRestartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
-			log.Errorf("Failed to try restart unit '%s': %v", u.Unit, err)
+			log.Errorf("Failed to try restart systemd unit='%s': %v", u.Unit, err)
 			return err
 		}
 
@@ -136,7 +137,7 @@ func (u *Unit) UnitActions() error {
 	case "reload-or-restart":
 		jid, err := conn.ReloadOrRestartUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
-			log.Errorf("Failed to reload or restart unit '%s': %v", u.Unit, err)
+			log.Errorf("Failed to reload or restart systemd unit='%s': %v", u.Unit, err)
 			return err
 		}
 
@@ -145,7 +146,7 @@ func (u *Unit) UnitActions() error {
 	case "reload":
 		jid, err := conn.ReloadUnitContext(context.Background(), u.Unit, "replace", c)
 		if err != nil {
-			log.Errorf("Failed to reload unit '%s': %v", u.Unit, err)
+			log.Errorf("Failed to reload systemd unit='%s': %v", u.Unit, err)
 			return err
 		}
 
@@ -154,14 +155,16 @@ func (u *Unit) UnitActions() error {
 	case "enable":
 		install, changes, err := conn.EnableUnitFilesContext(context.Background(), []string{u.Unit}, false, true)
 		if err != nil {
+			log.Errorf("Failed to enable systemd unit='%s': %v", u.Value, err)
 			return err
 		}
 
-		log.Debugf("Successfully enabled systemd unit='%s' install='%s' changes='%s'", u.Unit, install, changes)
+		log.Debugf("Successfully enabled systemd unit='%s' install='%t' changes='%s'", u.Unit, install, changes)
 
 	case "disable":
 		changes, err := conn.DisableUnitFilesContext(context.Background(), []string{u.Unit}, false)
 		if err != nil {
+			log.Errorf("Failed to disable systemd unit='%s': %v", u.Value, err)
 			return err
 		}
 
@@ -170,6 +173,7 @@ func (u *Unit) UnitActions() error {
 	case "mask":
 		changes, err := conn.MaskUnitFilesContext(context.Background(), []string{u.Unit}, false, true)
 		if err != nil {
+			log.Errorf("Failed to mask systemd unit='%s': %v", u.Value, err)
 			return err
 		}
 
@@ -178,6 +182,7 @@ func (u *Unit) UnitActions() error {
 	case "unmask":
 		changes, err := conn.UnmaskUnitFilesContext(context.Background(), []string{u.Unit}, false)
 		if err != nil {
+			log.Errorf("Failed to unmask systemd unit='%s': %v", u.Value, err)
 			return err
 		}
 
@@ -186,11 +191,15 @@ func (u *Unit) UnitActions() error {
 	case "kill":
 		signal, err := strconv.ParseInt(u.Value, 10, 64)
 		if err != nil {
-			log.Errorf("Failed to parse signal number '%s': %s", u.Value, err)
+			log.Errorf("Failed to parse signal number='%s': %s", u.Value, err)
 			return err
 		}
 
 		conn.KillUnitContext(context.Background(), u.Unit, int32(signal))
+
+	default:
+		log.Errorf("Unknown action='%s' for systemd unit='%s'", u.Action, u.Unit)
+		return errors.New("unknown action")
 	}
 
 	return nil
@@ -206,7 +215,7 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 
 	units, err := conn.ListUnitsByNamesContext(context.Background(), []string{u.Unit})
 	if err != nil {
-		log.Errorf("Failed fetch unit '%s' status: %v", u.Unit, err)
+		log.Errorf("Failed fetch systemd unit='%s' status: %v", u.Unit, err)
 		return err
 	}
 
@@ -237,7 +246,7 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 
 	p, err := conn.GetUnitPropertiesContext(context.Background(), u.Unit)
 	if err != nil {
-		log.Errorf("Failed to fetch unit properties: %v", err)
+		log.Errorf("Failed to fetch systemd unit='%s' properties: %v", u.Unit, err)
 		return err
 	}
 
@@ -254,7 +263,7 @@ func (u *Unit) GetUnitTypeProperty(w http.ResponseWriter) error {
 
 	p, err := conn.GetUnitTypePropertiesContext(context.Background(), u.Unit, u.UnitType)
 	if err != nil {
-		log.Errorf("Failed to fetch unit type properties: %v", err)
+		log.Errorf("Failed to fetch unit type properties unit='%s': %v", u.Unit, err)
 		return err
 	}
 
