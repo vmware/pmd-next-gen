@@ -60,16 +60,14 @@ func readSystemConf() error {
 	return nil
 }
 
-// GetSystemConf read system.conf
 func GetSystemConf(rw http.ResponseWriter) error {
-	if err := readSystemConf();err != nil {
+	if err := readSystemConf(); err != nil {
 		return err
 	}
 
 	return web.JSONResponse(systemConfig, rw)
 }
 
-// UpdateSystemConf update the system.conf
 func UpdateSystemConf(rw http.ResponseWriter, r *http.Request) error {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -78,13 +76,12 @@ func UpdateSystemConf(rw http.ResponseWriter, r *http.Request) error {
 	}
 
 	conf := make(map[string]string)
-	err = json.Unmarshal([]byte(body), &conf)
-	if err != nil {
+	if err = json.Unmarshal([]byte(body), &conf); err != nil {
 		log.Errorf("Failed to Decode HTTP request to json: %v", err)
 		return err
 	}
 
-	if err = readSystemConf();err != nil {
+	if err := readSystemConf(); err != nil {
 		return err
 	}
 
@@ -95,7 +92,7 @@ func UpdateSystemConf(rw http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	if err = writeSystemConfig();err != nil {
+	if err = writeSystemConfig(); err != nil {
 		log.Errorf("Failed Write to system conf: %v", err)
 		return err
 	}
@@ -103,7 +100,6 @@ func UpdateSystemConf(rw http.ResponseWriter, r *http.Request) error {
 	return web.JSONResponse(systemConfig, rw)
 }
 
-// InitSystemd Init systemd conf
 func InitSystemd() {
 	systemConfig["LogLevel"] = ""
 	systemConfig["LogTarget"] = ""

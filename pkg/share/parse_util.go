@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-// ParseBool extends ParseBool
 func ParseBool(str string) (bool, error) {
 	b, err := strconv.ParseBool(str)
 	if err == nil {
@@ -25,7 +24,6 @@ func ParseBool(str string) (bool, error) {
 	return false, fmt.Errorf("failed to parse")
 }
 
-// ParseIP parse a IP
 func ParseIP(ip string) (net.IP, error) {
 	if len(ip) == 0 {
 		return nil, fmt.Errorf("failed to parse ip")
@@ -40,7 +38,6 @@ func ParseIP(ip string) (net.IP, error) {
 	return a, nil
 }
 
-// ParsePort parse a port
 func ParsePort(port string) (uint16, error) {
 	if len(port) == 0 {
 		return 0, nil

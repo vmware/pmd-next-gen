@@ -9,13 +9,11 @@ import (
 	"strings"
 )
 
-// PathExists test if path exists
 func PathExists(path string) bool {
 	_, r := os.Stat(path)
-	return !os.IsNotExist(r) 
+	return !os.IsNotExist(r)
 }
 
-// ReadFullFile read a file and store in string array
 func ReadFullFile(path string) ([]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -33,15 +31,14 @@ func ReadFullFile(path string) ([]string, error) {
 
 		lines = append(lines, line)
 	}
-	err = scanner.Err()
-	if err != nil {
+
+	if err = scanner.Err(); err != nil {
 		return nil, err
 	}
 
 	return lines, nil
 }
 
-// WriteFullFile write a string arrray to a file
 func WriteFullFile(path string, lines []string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -59,7 +56,6 @@ func WriteFullFile(path string, lines []string) error {
 	return nil
 }
 
-// ReadOneLineFile read one line from a file
 func ReadOneLineFile(path string) (string, error) {
 	f, err := os.Create(path)
 	if err != nil {
@@ -72,15 +68,13 @@ func ReadOneLineFile(path string) (string, error) {
 	scanner.Scan()
 	line := scanner.Text()
 
-	err = scanner.Err()
-	if err != nil {
+	if err := scanner.Err(); err != nil {
 		return "", err
 	}
 
 	return line, nil
 }
 
-// WriteOneLineFile write oneline to a file
 func WriteOneLineFile(path string, line string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -94,11 +88,9 @@ func WriteOneLineFile(path string, line string) error {
 	return w.Flush()
 }
 
-// CreateDirectory creates a dir
 func CreateDirectory(directoryPath string, perm os.FileMode) error {
 	if !PathExists(directoryPath) {
-		err := os.Mkdir(directoryPath, perm)
-		if err != nil {
+		if err := os.Mkdir(directoryPath, perm); err != nil {
 			return err
 		}
 	}
@@ -106,11 +98,9 @@ func CreateDirectory(directoryPath string, perm os.FileMode) error {
 	return nil
 }
 
-// CreateDirectoryNested recursively creates all dir
 func CreateDirectoryNested(directoryPath string, perm os.FileMode) error {
 	if !PathExists(directoryPath) {
-		err := os.MkdirAll(directoryPath, perm)
-		if err != nil {
+		if err := os.MkdirAll(directoryPath, perm); err != nil {
 			return err
 		}
 	}

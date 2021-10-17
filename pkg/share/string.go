@@ -4,7 +4,6 @@ import (
 	"errors"
 )
 
-// StringContains looks for a string in a string array
 func StringContains(list []string, s string) bool {
 	set := make(map[string]int)
 
@@ -15,7 +14,6 @@ func StringContains(list []string, s string) bool {
 	return set[s] != 0 
 }
 
-// StringDeleteSlice removes a slice from string array
 func StringDeleteSlice(list []string, s string) ([]string, error) {
 	set := make(map[string]int)
 
