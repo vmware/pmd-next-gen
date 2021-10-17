@@ -22,17 +22,11 @@ const (
 	DefaultLogLevel  = "info"
 	DefaultLogFormat = "text"
 
-	DefaultIP   = "0.0.0.0"
-	DefaultPort = "8080"
+	DefaultIP        = "0.0.0.0"
+	DefaultPort      = "8080"
+	ListenUnixSocket = "true"
 )
 
-// flag
-var (
-	IPFlag   string
-	PortFlag string
-)
-
-//Config config file key value
 type Config struct {
 	System  System  `mapstructure:"System"`
 	Network Network `mapstructure:"Network"`
@@ -43,8 +37,9 @@ type System struct {
 	LogFormat string `mapstructure:"LogFormat"`
 }
 type Network struct {
-	IPAddress string
-	Port      string
+	IPAddress        string
+	Port             string
+	ListenUnixSocket bool
 }
 
 func SetLogLevel(level string) error {
@@ -91,14 +86,12 @@ func Parse() (*Config, error) {
 	viper.SetConfigName(ConfFile)
 	viper.AddConfigPath(ConfPath)
 
-	if err := viper.ReadInConfig(); err != nil {
-		logrus.Errorf("Failed to parse  config file, %v", err)
-	}
-
 	viper.SetDefault("System.LogFormat", DefaultLogLevel)
 	viper.SetDefault("System.LogLevel", DefaultLogFormat)
-	viper.SetDefault("Network.IPAddress", DefaultIP)
-	viper.SetDefault("Network.Port", DefaultPort)
+
+	if err := viper.ReadInConfig(); err != nil {
+		logrus.Errorf("Failed to parse config file. Using defaults: %v", err)
+	}
 
 	c := Config{}
 	if err := viper.Unmarshal(&c); err != nil {
@@ -119,19 +112,21 @@ func Parse() (*Config, error) {
 		}
 	}
 
-	_, err := share.ParseIP(c.Network.IPAddress)
-	if err != nil {
-		logrus.Errorf("Failed to parse IPAddress=%s, %s", c.Network.IPAddress, c.Network.Port)
-		return nil, err
+	if c.Network.IPAddress != "" {
+		if _, err := share.ParseIP(c.Network.IPAddress); err != nil {
+			logrus.Errorf("Failed to parse IPAddress=%s, %s", c.Network.IPAddress, c.Network.Port)
+		}
 	}
 
-	_, err = share.ParsePort(c.Network.Port)
-	if err != nil {
-		logrus.Errorf("Failed to parse conf file Port=%s", c.Network.Port)
-		return nil, err
+	if c.Network.Port != "" {
+		if _, err := share.ParsePort(c.Network.Port); err != nil {
+			logrus.Errorf("Failed to parse conf file Port=%s", c.Network.Port)
+		}
 	}
 
-	logrus.Debugf("Parsed IPAddress=%s and Port=%s", c.Network.IPAddress, c.Network.Port)
+	if c.Network.IPAddress != "" && c.Network.Port != "" {
+		logrus.Debugf("Parsed IPAddress=%s and Port=%s", c.Network.IPAddress, c.Network.Port)
+	}
 
 	return &c, nil
 }

@@ -4,7 +4,6 @@ package main
 
 import (
 	"os"
-	"path"
 	"runtime"
 
 	log "github.com/sirupsen/logrus"
@@ -21,8 +20,7 @@ func main() {
 
 	log.Infof("pm-webd: v%s (built %s)", conf.Version, runtime.Version())
 
-	err = router.StartRouter(c.Network.IPAddress, c.Network.Port, path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey))
-	if err != nil {
+	if err := router.StartRouter(c); err != nil {
 		log.Fatalf("Failed to start pm-webd: %v", err)
 		os.Exit(1)
 	}
