@@ -94,6 +94,21 @@ func routerGetUnitProperty(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routerGetUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
+	v := mux.Vars(r)
+	u := Unit{
+		Unit:     v["unit"],
+		Property: v["property"],
+	}
+
+	switch r.Method {
+	case "GET":
+		if err := u.GetAllUnitProperty(w); err != nil {
+			web.JSONResponseError(err, w)
+		}
+	}
+}
+
 func routerGetUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := Unit{
@@ -117,6 +132,7 @@ func RegisterRouterSystemd(router *mux.Router) {
 	n.HandleFunc("/systemd", routerConfigureUnit)
 	n.HandleFunc("/systemd/{unit}/status", routerGetUnitStatus)
 	n.HandleFunc("/systemd/{unit}/property", routerGetUnitProperty)
+	n.HandleFunc("/systemd/{unit}/propertyall", routerGetUnitPropertyAll)
 	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerGetUnitTypeProperty)
 
 	n.HandleFunc("/systemd/conf", routerConfigureSystemdConf)

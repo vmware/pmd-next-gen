@@ -291,6 +291,24 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 	return web.JSONResponse(p, w)
 }
 
+
+func (u *Unit) GetAllUnitProperty(w http.ResponseWriter) error {
+	conn, err := sd.NewSystemdConnectionContext(context.Background())
+	if err != nil {
+		log.Errorf("Failed to establishes connection to the system bus: %v", err)
+		return err
+	}
+	defer conn.Close()
+
+	p, err := conn.GetAllPropertiesContext(context.Background(), u.Unit)
+	if err != nil {
+		log.Errorf("Failed to fetch systemd unit='%s' properties: %v", u.Unit, err)
+		return err
+	}
+
+	return web.JSONResponse(p, w)
+}
+
 func (u *Unit) GetUnitTypeProperty(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
 	if err != nil {
