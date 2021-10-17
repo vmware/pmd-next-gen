@@ -74,7 +74,6 @@ func routerGetUnitStatus(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		if err := u.GetUnitStatus(w); err != nil {
 			web.JSONResponseError(err, w)
-			return
 		}
 	}
 }
@@ -97,8 +96,7 @@ func routerGetUnitProperty(w http.ResponseWriter, r *http.Request) {
 func routerGetUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := Unit{
-		Unit:     v["unit"],
-		Property: v["property"],
+		Unit: v["unit"],
 	}
 
 	switch r.Method {

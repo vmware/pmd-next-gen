@@ -42,7 +42,7 @@ type UnitStatus struct {
 	JobId                uint32 `json:"JobId"`
 	JobType              string `json:"JobType"`
 	JobPath              string `json:"JobPath"`
-	IsEnabled            string `json:"IsEnabled"`
+	UnitFileState        string `json:"UnitFileState"`
 	StateChangeTimestamp uint64 `json:"StateChangeTimestamp"`
 	NRestarts            uint32 `json:"NRestarts"`
 }
@@ -266,7 +266,7 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		Path:                 string(units[0].Path),
 		JobType:              units[0].JobType,
 		JobPath:              string(units[0].JobPath),
-		IsEnabled:            s,
+		UnitFileState:        s,
 		StateChangeTimestamp: n,
 		NRestarts:            restarts.Value.Value().(uint32),
 	}
@@ -290,7 +290,6 @@ func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
 
 	return web.JSONResponse(p, w)
 }
-
 
 func (u *Unit) GetAllUnitProperty(w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(context.Background())
