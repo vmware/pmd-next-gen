@@ -29,13 +29,15 @@ func StartRouter(c *conf.Config) error {
 	systemd.InitSystemd()
 	systemd.RegisterRouterSystemd(s)
 
-	amw, err := InitAuthMiddleware()
-	if err != nil {
-		log.Fatalf("Failed to init auth DB existing: %s", err)
-		return err
-	}
+	if c.System.UseAuthentication {
+		amw, err := InitAuthMiddleware()
+		if err != nil {
+			log.Fatalf("Failed to init auth DB existing: %s", err)
+			return err
+		}
 
-	r.Use(amw.AuthMiddleware)
+		r.Use(amw.AuthMiddleware)
+	}
 
 	var gracefulStop = make(chan os.Signal)
 	signal.Notify(gracefulStop, syscall.SIGTERM)
@@ -46,8 +48,7 @@ func StartRouter(c *conf.Config) error {
 		log.Printf("Received signal: %+v", sig)
 		log.Println("Shutting down pm-webd ...")
 
-		err := srv.Shutdown(context.Background())
-		if err != nil {
+		if err := srv.Shutdown(context.Background()); err != nil {
 			log.Errorf("Failed to shutdown server gracefully: %s", err)
 		}
 
@@ -64,6 +65,7 @@ func StartRouter(c *conf.Config) error {
 		log.Infof("Starting pm-webd server at unix domain socket '/run/pmwebd/pmwebd.sock' in HTTP mode")
 
 		os.Remove("/run/pmwebd/pmwebd.sock")
+
 		unixListener, err := net.Listen("unix", "/run/pmwebd/pmwebd.sock")
 		if err != nil {
 			log.Fatalf("Failed to start web server: %v", err)

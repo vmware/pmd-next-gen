@@ -16,12 +16,10 @@ const (
 	authConfPath = "/etc/pm-web/pmweb-auth.conf"
 )
 
-// TokenDB token DB
 type TokenDB struct {
 	tokenUsers map[string]string
 }
 
-// AuthMiddleware Authenticate the User
 func (db *TokenDB) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -37,7 +35,6 @@ func (db *TokenDB) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// InitAuthMiddleware init middleware
 func InitAuthMiddleware() (TokenDB, error) {
 	db := TokenDB{make(map[string]string)}
 

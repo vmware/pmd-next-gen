@@ -11,7 +11,6 @@ import (
 	"github.com/pmd/pkg/share"
 )
 
-// App Version
 const (
 	Version  = "0.1"
 	ConfPath = "/etc/pm-web"
@@ -21,6 +20,7 @@ const (
 
 	DefaultLogLevel  = "info"
 	DefaultLogFormat = "text"
+	UseAuthentication = "true"
 
 	DefaultIP        = "0.0.0.0"
 	DefaultPort      = "8080"
@@ -35,6 +35,7 @@ type Config struct {
 type System struct {
 	LogLevel  string `mapstructure:"LogLevel"`
 	LogFormat string `mapstructure:"LogFormat"`
+	UseAuthentication bool `mapstructure:"UseAuthentication"`
 }
 type Network struct {
 	IPAddress        string

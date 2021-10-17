@@ -1,6 +1,7 @@
 [System]
 LogLevel="info"
 LogFormat="text"
+UseAuthentication="true"
 
 [Network]
 IPAddress="0.0.0.0"

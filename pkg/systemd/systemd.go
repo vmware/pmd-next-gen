@@ -44,6 +44,7 @@ type UnitStatus struct {
 	JobPath              string `json:"JobPath"`
 	IsEnabled            string `json:"IsEnabled"`
 	StateChangeTimestamp uint64 `json:"StateChangeTimestamp"`
+	NRestarts            uint32 `json:"NRestarts"`
 }
 
 func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
@@ -246,6 +247,12 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 
 	s, _ := strconv.Unquote(state.Value.String())
 
+	restarts, err := conn.GetServicePropertyContext(context.Background(), u.Unit, "NRestarts")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' NRestarts: %v", u.Unit, err)
+		return err
+	}
+
 	unit := UnitStatus{
 		Unit:                 u.Unit,
 		Status:               units[0].ActiveState,
@@ -261,6 +268,7 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		JobPath:              string(units[0].JobPath),
 		IsEnabled:            s,
 		StateChangeTimestamp: n,
+		NRestarts:            restarts.Value.Value().(uint32),
 	}
 
 	return web.JSONResponse(unit, w)
