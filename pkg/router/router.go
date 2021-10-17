@@ -55,7 +55,7 @@ func StartRouter(c *conf.Config) error {
 		os.Exit(0)
 	}()
 
-	if c.Network.IPAddress == "" && c.Network.Port == "" {
+	if c.Network.ListenUnixSocket {
 		system.CreateDirectory("/run/pmwebd/", 0755)
 
 		server := http.Server{
