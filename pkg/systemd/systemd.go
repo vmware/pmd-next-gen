@@ -29,18 +29,21 @@ type Property struct {
 }
 
 type UnitStatus struct {
-	Status      string `json:"property"`
-	Unit        string `json:"unit"`
-	Name        string `json:"Name"`
-	Description string `json:"Description"`
-	LoadState   string `json:"LoadState"`
-	ActiveState string `json:"ActiveState"`
-	SubState    string `json:"SubState"`
-	Followed    string `json:"Followed"`
-	Path        string `json:"Path"`
-	JobId       uint32 `json:"JobId"`
-	JobType     string `json:"JobType"`
-	JobPath     string `json:"JobPath"`
+	Status               string `json:"property"`
+	Unit                 string `json:"unit"`
+	Name                 string `json:"Name"`
+	Description          string `json:"Description"`
+	MainPid              uint32 `json:"MainPid"`
+	LoadState            string `json:"LoadState"`
+	ActiveState          string `json:"ActiveState"`
+	SubState             string `json:"SubState"`
+	Followed             string `json:"Followed"`
+	Path                 string `json:"Path"`
+	JobId                uint32 `json:"JobId"`
+	JobType              string `json:"JobType"`
+	JobPath              string `json:"JobPath"`
+	IsEnabled            string `json:"IsEnabled"`
+	StateChangeTimestamp uint64 `json:"StateChangeTimestamp"`
 }
 
 func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
@@ -218,21 +221,49 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		return err
 	}
 
-	s := UnitStatus{
-		Unit:        u.Unit,
-		Status:      units[0].ActiveState,
-		LoadState:   units[0].LoadState,
-		Name:        units[0].Name,
-		Description: units[0].Description,
-		ActiveState: units[0].ActiveState,
-		SubState:    units[0].SubState,
-		Followed:    units[0].Followed,
-		Path:        string(units[0].Path),
-		JobType:     units[0].JobType,
-		JobPath:     string(units[0].JobPath),
+	pid, err := conn.GetServicePropertyContext(context.Background(), u.Unit, "MainPID")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' MainPID: %v", u.Unit, err)
+		return err
 	}
 
-	return web.JSONResponse(s, w)
+	t, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "StateChangeTimestamp")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' StateChangeTimestamp: %v", u.Unit, err)
+		return err
+	}
+
+	n, ok := t.Value.Value().(uint64)
+	if !ok {
+		log.Errorf("Failed fetch systemd unit='%s' StateChangeTimestamp: %v", u.Unit, err)
+	}
+
+	state, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "UnitFileState")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' UnitFileState: %v", u.Unit, err)
+		return err
+	}
+
+	s, _ := strconv.Unquote(state.Value.String())
+
+	unit := UnitStatus{
+		Unit:                 u.Unit,
+		Status:               units[0].ActiveState,
+		LoadState:            units[0].LoadState,
+		Name:                 units[0].Name,
+		Description:          units[0].Description,
+		MainPid:              pid.Value.Value().(uint32),
+		ActiveState:          units[0].ActiveState,
+		SubState:             units[0].SubState,
+		Followed:             units[0].Followed,
+		Path:                 string(units[0].Path),
+		JobType:              units[0].JobType,
+		JobPath:              string(units[0].JobPath),
+		IsEnabled:            s,
+		StateChangeTimestamp: n,
+	}
+
+	return web.JSONResponse(unit, w)
 }
 
 func (u *Unit) GetUnitProperty(w http.ResponseWriter) error {
