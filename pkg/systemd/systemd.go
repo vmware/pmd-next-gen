@@ -29,22 +29,25 @@ type Property struct {
 }
 
 type UnitStatus struct {
-	Status               string `json:"property"`
-	Unit                 string `json:"unit"`
-	Name                 string `json:"Name"`
-	Description          string `json:"Description"`
-	MainPid              uint32 `json:"MainPid"`
-	LoadState            string `json:"LoadState"`
-	ActiveState          string `json:"ActiveState"`
-	SubState             string `json:"SubState"`
-	Followed             string `json:"Followed"`
-	Path                 string `json:"Path"`
-	JobId                uint32 `json:"JobId"`
-	JobType              string `json:"JobType"`
-	JobPath              string `json:"JobPath"`
-	UnitFileState        string `json:"UnitFileState"`
-	StateChangeTimestamp uint64 `json:"StateChangeTimestamp"`
-	NRestarts            uint32 `json:"NRestarts"`
+	Status                 string `json:"property"`
+	Unit                   string `json:"unit"`
+	Name                   string `json:"Name"`
+	Description            string `json:"Description"`
+	MainPid                uint32 `json:"MainPid"`
+	LoadState              string `json:"LoadState"`
+	ActiveState            string `json:"ActiveState"`
+	SubState               string `json:"SubState"`
+	Followed               string `json:"Followed"`
+	Path                   string `json:"Path"`
+	JobId                  uint32 `json:"JobId"`
+	JobType                string `json:"JobType"`
+	JobPath                string `json:"JobPath"`
+	UnitFileState          string `json:"UnitFileState"`
+	StateChangeTimestamp   uint64 `json:"StateChangeTimestamp"`
+	InactiveExitTimestamp  uint64 `json:"InactiveExitTimestamp"`
+	ActiveEnterTimestamp   uint64 `json:"ActiveEnterTimestamp"`
+	ActiveExitTimestamp    uint64 `json:"ActiveExitTimestamp"`
+	InactiveEnterTimestamp uint64 `json:"InactiveEnterTimestamp"`
 }
 
 func ManagerFetchSystemProperty(w http.ResponseWriter, property string) error {
@@ -228,15 +231,59 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		return err
 	}
 
-	t, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "StateChangeTimestamp")
+	propStateChange, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "StateChangeTimestamp")
 	if err != nil {
 		log.Errorf("Failed fetch systemd unit='%s' StateChangeTimestamp: %v", u.Unit, err)
 		return err
 	}
 
-	n, ok := t.Value.Value().(uint64)
+	stateChangeTimestamp, ok := propStateChange.Value.Value().(uint64)
 	if !ok {
 		log.Errorf("Failed fetch systemd unit='%s' StateChangeTimestamp: %v", u.Unit, err)
+	}
+
+	propInActiveExit, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "InactiveExitTimestamp")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' InactiveExitTimestamp: %v", u.Unit, err)
+		return err
+	}
+
+	inActiveExitTimestamp, ok := propInActiveExit.Value.Value().(uint64)
+	if !ok {
+		log.Errorf("Failed fetch systemd unit='%s' InactiveExitTimestamp: %v", u.Unit, err)
+	}
+
+	propActiveEnter, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "ActiveEnterTimestamp")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' ActiveEnterTimestamp: %v", u.Unit, err)
+		return err
+	}
+
+	activeEnterTimestamp, ok := propActiveEnter.Value.Value().(uint64)
+	if !ok {
+		log.Errorf("Failed fetch systemd unit='%s' ActiveEnterTimestamp: %v", u.Unit, err)
+	}
+
+	propActiveExit, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "ActiveExitTimestamp")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' ActiveExitTimestamp: %v", u.Unit, err)
+		return err
+	}
+
+	activeExitTimestamp, ok := propActiveExit.Value.Value().(uint64)
+	if !ok {
+		log.Errorf("Failed fetch systemd unit='%s' ActiveExitTimestamp: %v", u.Unit, err)
+	}
+
+	propInActiveEnter, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "InactiveEnterTimestamp")
+	if err != nil {
+		log.Errorf("Failed fetch systemd unit='%s' InactiveEnterTimestamp: %v", u.Unit, err)
+		return err
+	}
+
+	inactiveEnterTimestamp, ok := propInActiveEnter.Value.Value().(uint64)
+	if !ok {
+		log.Errorf("Failed fetch systemd unit='%s' InactiveEnterTimestamp: %v", u.Unit, err)
 	}
 
 	state, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "UnitFileState")
@@ -247,28 +294,25 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 
 	s, _ := strconv.Unquote(state.Value.String())
 
-	restarts, err := conn.GetServicePropertyContext(context.Background(), u.Unit, "NRestarts")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' NRestarts: %v", u.Unit, err)
-		return err
-	}
-
 	unit := UnitStatus{
-		Unit:                 u.Unit,
-		Status:               units[0].ActiveState,
-		LoadState:            units[0].LoadState,
-		Name:                 units[0].Name,
-		Description:          units[0].Description,
-		MainPid:              pid.Value.Value().(uint32),
-		ActiveState:          units[0].ActiveState,
-		SubState:             units[0].SubState,
-		Followed:             units[0].Followed,
-		Path:                 string(units[0].Path),
-		JobType:              units[0].JobType,
-		JobPath:              string(units[0].JobPath),
-		UnitFileState:        s,
-		StateChangeTimestamp: n,
-		NRestarts:            restarts.Value.Value().(uint32),
+		Unit:                   u.Unit,
+		Status:                 units[0].ActiveState,
+		LoadState:              units[0].LoadState,
+		Name:                   units[0].Name,
+		Description:            units[0].Description,
+		MainPid:                pid.Value.Value().(uint32),
+		ActiveState:            units[0].ActiveState,
+		SubState:               units[0].SubState,
+		Followed:               units[0].Followed,
+		Path:                   string(units[0].Path),
+		JobType:                units[0].JobType,
+		JobPath:                string(units[0].JobPath),
+		UnitFileState:          s,
+		StateChangeTimestamp:   stateChangeTimestamp,
+		InactiveExitTimestamp:  inActiveExitTimestamp,
+		ActiveEnterTimestamp:   activeEnterTimestamp,
+		ActiveExitTimestamp:    activeExitTimestamp,
+		InactiveEnterTimestamp: inactiveEnterTimestamp,
 	}
 
 	return web.JSONResponse(unit, w)
