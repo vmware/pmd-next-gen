@@ -160,8 +160,6 @@ func routerGetProcAvgStat(w http.ResponseWriter, r *http.Request) {
 }
 
 func configureProcSysVM(w http.ResponseWriter, r *http.Request) {
-	var err error
-
 	vars := mux.Vars(r)
 	vm := VM{
 		Property: vars["path"],
@@ -169,22 +167,22 @@ func configureProcSysVM(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		err = vm.GetVM(w)
+		if err := vm.GetVM(w); err != nil {
+			web.JSONResponseError(err, w)
+		}
 	case "PUT":
 
 		v := new(Info)
 
-		if err = json.NewDecoder(r.Body).Decode(&v); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 			web.JSONResponseError(err, w)
 			return
 		}
 
 		vm.Value = v.Value
-		err = vm.SetVM(w)
-	}
-
-	if err != nil {
-		web.JSONResponseError(err, w)
+		if err := vm.SetVM(w); err != nil {
+			web.JSONResponseError(err, w)
+		}
 	}
 }
 

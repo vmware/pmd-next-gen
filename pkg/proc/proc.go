@@ -56,7 +56,7 @@ func GetVersion(w http.ResponseWriter) error {
 func GetPlatformInformation(w http.ResponseWriter) error {
 	platform, family, version, err := host.PlatformInformation()
 	if err != nil {
-		return web.JSONResponseError(err, w)
+		return err
 	}
 
 	p := struct {
@@ -197,18 +197,18 @@ func GetCPUTimeStat(w http.ResponseWriter) error {
 }
 
 func GetAvgStat(w http.ResponseWriter) error {
-	avgstat, r := load.Avg()
-	if r != nil {
-		return r
+	avgstat, err := load.Avg()
+	if err != nil {
+		return err
 	}
 
 	return web.JSONResponse(avgstat, w)
 }
 
 func GetPartitions(w http.ResponseWriter) error {
-	p, r := disk.Partitions(true)
-	if r != nil {
-		return r
+	p, err := disk.Partitions(true)
+	if err != nil {
+		return err
 	}
 
 	return web.JSONResponse(p, w)
@@ -216,9 +216,9 @@ func GetPartitions(w http.ResponseWriter) error {
 
 // GetIOCounters read IO counters
 func GetIOCounters(w http.ResponseWriter) error {
-	i, r := disk.IOCounters()
-	if r != nil {
-		return r
+	i, err := disk.IOCounters()
+	if err != nil {
+		return err
 	}
 
 	return web.JSONResponse(i, w)
@@ -226,9 +226,9 @@ func GetIOCounters(w http.ResponseWriter) error {
 
 // GetDiskUsage read disk usage
 func GetDiskUsage(w http.ResponseWriter) error {
-	u, r := disk.Usage("/")
-	if r != nil {
-		return r
+	u, err := disk.Usage("/")
+	if err != nil {
+		return err
 	}
 
 	return web.JSONResponse(u, w)
@@ -315,7 +315,6 @@ func GetModules(w http.ResponseWriter) error {
 
 			case 4:
 				module.State = field
-
 			}
 		}
 
