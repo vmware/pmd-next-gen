@@ -16,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pmd/pkg/conf"
+	"github.com/pmd/pkg/proc"
 	"github.com/pmd/pkg/system"
 	"github.com/pmd/pkg/systemd"
 )
@@ -28,6 +29,7 @@ func StartRouter(c *conf.Config) error {
 
 	systemd.InitSystemd()
 	systemd.RegisterRouterSystemd(s)
+	proc.RegisterRouterProc(s)
 
 	if c.System.UseAuthentication {
 		amw, err := InitAuthMiddleware()
