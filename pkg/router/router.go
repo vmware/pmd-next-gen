@@ -32,7 +32,7 @@ func StartRouter(c *conf.Config) error {
 	if c.System.UseAuthentication {
 		amw, err := InitAuthMiddleware()
 		if err != nil {
-			log.Fatalf("Failed to init auth DB existing: %s", err)
+			log.Fatalf("Failed to init auth DB existing: %v", err)
 			return err
 		}
 
@@ -49,7 +49,7 @@ func StartRouter(c *conf.Config) error {
 		log.Println("Shutting down pm-webd ...")
 
 		if err := srv.Shutdown(context.Background()); err != nil {
-			log.Errorf("Failed to shutdown server gracefully: %s", err)
+			log.Errorf("Failed to shutdown server gracefully: %v", err)
 		}
 
 		os.Exit(0)
@@ -68,8 +68,10 @@ func StartRouter(c *conf.Config) error {
 
 		unixListener, err := net.Listen("unix", "/run/pmwebd/pmwebd.sock")
 		if err != nil {
-			log.Fatalf("Failed to start web server: %v", err)
+			log.Fatalf("Unable to listen on unix domain socket file '/run/pmwebd/pmwebd.sock': %v", err)
 		}
+
+		defer unixListener.Close()
 
 		log.Fatal(server.Serve(unixListener))
 

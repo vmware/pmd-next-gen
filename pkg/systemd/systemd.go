@@ -205,7 +205,7 @@ func (u *Unit) UnitActions() error {
 
 	default:
 		log.Errorf("Unknown action='%s' for systemd unit='%s'", u.Action, u.Unit)
-		return errors.New("unknown action")
+		return errors.New("unknown unit command")
 	}
 
 	return nil
@@ -225,94 +225,59 @@ func (u *Unit) GetUnitStatus(w http.ResponseWriter) error {
 		return err
 	}
 
-	pid, err := conn.GetServicePropertyContext(context.Background(), u.Unit, "MainPID")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' MainPID: %v", u.Unit, err)
-		return err
-	}
-
-	propStateChange, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "StateChangeTimestamp")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' StateChangeTimestamp: %v", u.Unit, err)
-		return err
-	}
-
-	stateChangeTimestamp, ok := propStateChange.Value.Value().(uint64)
-	if !ok {
-		log.Errorf("Failed fetch systemd unit='%s' StateChangeTimestamp: %v", u.Unit, err)
-	}
-
-	propInActiveExit, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "InactiveExitTimestamp")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' InactiveExitTimestamp: %v", u.Unit, err)
-		return err
-	}
-
-	inActiveExitTimestamp, ok := propInActiveExit.Value.Value().(uint64)
-	if !ok {
-		log.Errorf("Failed fetch systemd unit='%s' InactiveExitTimestamp: %v", u.Unit, err)
-	}
-
-	propActiveEnter, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "ActiveEnterTimestamp")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' ActiveEnterTimestamp: %v", u.Unit, err)
-		return err
-	}
-
-	activeEnterTimestamp, ok := propActiveEnter.Value.Value().(uint64)
-	if !ok {
-		log.Errorf("Failed fetch systemd unit='%s' ActiveEnterTimestamp: %v", u.Unit, err)
-	}
-
-	propActiveExit, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "ActiveExitTimestamp")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' ActiveExitTimestamp: %v", u.Unit, err)
-		return err
-	}
-
-	activeExitTimestamp, ok := propActiveExit.Value.Value().(uint64)
-	if !ok {
-		log.Errorf("Failed fetch systemd unit='%s' ActiveExitTimestamp: %v", u.Unit, err)
-	}
-
-	propInActiveEnter, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "InactiveEnterTimestamp")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' InactiveEnterTimestamp: %v", u.Unit, err)
-		return err
-	}
-
-	inactiveEnterTimestamp, ok := propInActiveEnter.Value.Value().(uint64)
-	if !ok {
-		log.Errorf("Failed fetch systemd unit='%s' InactiveEnterTimestamp: %v", u.Unit, err)
-	}
-
-	state, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "UnitFileState")
-	if err != nil {
-		log.Errorf("Failed fetch systemd unit='%s' UnitFileState: %v", u.Unit, err)
-		return err
-	}
-
-	s, _ := strconv.Unquote(state.Value.String())
-
 	unit := UnitStatus{
-		Unit:                   u.Unit,
-		Status:                 units[0].ActiveState,
-		LoadState:              units[0].LoadState,
-		Name:                   units[0].Name,
-		Description:            units[0].Description,
-		MainPid:                pid.Value.Value().(uint32),
-		ActiveState:            units[0].ActiveState,
-		SubState:               units[0].SubState,
-		Followed:               units[0].Followed,
-		Path:                   string(units[0].Path),
-		JobType:                units[0].JobType,
-		JobPath:                string(units[0].JobPath),
-		UnitFileState:          s,
-		StateChangeTimestamp:   stateChangeTimestamp,
-		InactiveExitTimestamp:  inActiveExitTimestamp,
-		ActiveEnterTimestamp:   activeEnterTimestamp,
-		ActiveExitTimestamp:    activeExitTimestamp,
-		InactiveEnterTimestamp: inactiveEnterTimestamp,
+		Unit:        u.Unit,
+		Status:      units[0].ActiveState,
+		LoadState:   units[0].LoadState,
+		Name:        units[0].Name,
+		Description: units[0].Description,
+		ActiveState: units[0].ActiveState,
+		SubState:    units[0].SubState,
+		Followed:    units[0].Followed,
+		Path:        string(units[0].Path),
+		JobType:     units[0].JobType,
+		JobPath:     string(units[0].JobPath),
+	}
+
+	if pid, err := conn.GetServicePropertyContext(context.Background(), u.Unit, "MainPID"); err == nil {
+		if n, ok := pid.Value.Value().(uint32); ok {
+			unit.MainPid = n
+		}
+	}
+
+	if ts, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "StateChangeTimestamp"); err == nil {
+		if t, ok := ts.Value.Value().(uint64); ok {
+			unit.StateChangeTimestamp = t
+		}
+	}
+
+	if ts, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "InactiveExitTimestamp"); err == nil {
+		if t, ok := ts.Value.Value().(uint64); ok {
+			unit.InactiveExitTimestamp = t
+		}
+	}
+
+	if ts, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "ActiveEnterTimestamp"); err == nil {
+		if t, ok := ts.Value.Value().(uint64); ok {
+			unit.ActiveEnterTimestamp = t
+		}
+	}
+
+	if ts, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "ActiveExitTimestamp"); err == nil {
+		if t, ok := ts.Value.Value().(uint64); ok {
+			unit.ActiveExitTimestamp = t
+		}
+	}
+
+	if ts, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "InactiveEnterTimestamp"); err == nil {
+		if t, ok := ts.Value.Value().(uint64); ok {
+			unit.InactiveEnterTimestamp = t
+		}
+	}
+
+	if st, err := conn.GetUnitPropertyContext(context.Background(), u.Unit, "UnitFileState"); err == nil {
+		s, _ := strconv.Unquote(st.Value.String())
+		unit.UnitFileState = s
 	}
 
 	return web.JSONResponse(unit, w)
