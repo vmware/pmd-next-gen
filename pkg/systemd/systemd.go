@@ -14,7 +14,7 @@ import (
 	"github.com/pmd/pkg/web"
 )
 
-// Unit JSON message
+
 type Unit struct {
 	Action   string `json:"action"`
 	Unit     string `json:"unit"`

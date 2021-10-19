@@ -1,6 +1,5 @@
 [System]
 LogLevel="info"
-LogFormat="text"
 UseAuthentication="true"
 
 [Network]

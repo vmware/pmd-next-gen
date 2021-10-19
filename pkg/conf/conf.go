@@ -3,8 +3,6 @@
 package conf
 
 import (
-	"errors"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -18,8 +16,7 @@ const (
 	TLSCert  = "cert/server.crt"
 	TLSKey   = "cert/server.key"
 
-	DefaultLogLevel  = "info"
-	DefaultLogFormat = "text"
+	DefaultLogLevel   = "info"
 	UseAuthentication = "true"
 
 	DefaultIP        = "0.0.0.0"
@@ -33,9 +30,8 @@ type Config struct {
 }
 
 type System struct {
-	LogLevel  string `mapstructure:"LogLevel"`
-	LogFormat string `mapstructure:"LogFormat"`
-	UseAuthentication bool `mapstructure:"UseAuthentication"`
+	LogLevel          string `mapstructure:"LogLevel"`
+	UseAuthentication bool   `mapstructure:"UseAuthentication"`
 }
 type Network struct {
 	IPAddress        string
@@ -43,52 +39,11 @@ type Network struct {
 	ListenUnixSocket bool
 }
 
-func SetLogLevel(level string) error {
-	if level == "" {
-		return errors.New("unsupported")
-	}
-
-	l, err := logrus.ParseLevel(level)
-	if err != nil {
-		logrus.Warn("Failed to parse log level, falling back to 'info'")
-		return errors.New("unsupported")
-	} else {
-		logrus.SetLevel(l)
-	}
-
-	return nil
-}
-
-func SetLogFormat(format string) error {
-	if format == "" {
-		return errors.New("unsupported")
-	}
-
-	switch format {
-	case "json":
-		logrus.SetFormatter(&logrus.JSONFormatter{
-			DisableTimestamp: true,
-		})
-
-	case "text":
-		logrus.SetFormatter(&logrus.TextFormatter{
-			DisableTimestamp: true,
-		})
-
-	default:
-		logrus.Warn("Failed to parse log format, falling back to 'text'")
-		return errors.New("unsupported")
-	}
-
-	return nil
-}
-
 func Parse() (*Config, error) {
 	viper.SetConfigName(ConfFile)
 	viper.AddConfigPath(ConfPath)
 
-	viper.SetDefault("System.LogFormat", DefaultLogLevel)
-	viper.SetDefault("System.LogLevel", DefaultLogFormat)
+	viper.SetDefault("System.LogLevel", DefaultLogLevel)
 
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.Errorf("Failed to parse config file. Using defaults: %v", err)
@@ -99,19 +54,14 @@ func Parse() (*Config, error) {
 		logrus.Errorf("Failed to decode config into struct, %v", err)
 	}
 
-	if err := SetLogLevel(viper.GetString("PM_WEBD_LOG_LEVEL")); err != nil {
-		if err := SetLogLevel(c.System.LogLevel); err != nil {
-			c.System.LogLevel = DefaultLogLevel
-		}
+	if l, err := logrus.ParseLevel(c.System.LogLevel); err != nil {
+		logrus.Warn("Failed to parse log level='%s', falling back to 'info': %v", c.System.LogLevel, err)
+		c.System.LogLevel = DefaultLogLevel
+	} else {
+		logrus.SetLevel(l)
 	}
 
 	logrus.Debugf("Log level set to '%+v'", logrus.GetLevel().String())
-
-	if err := SetLogFormat(viper.GetString("PM_WEBD_LOG_FORMAT")); err != nil {
-		if err = SetLogFormat(c.System.LogFormat); err != nil {
-			c.System.LogLevel = DefaultLogFormat
-		}
-	}
 
 	if c.Network.IPAddress != "" {
 		if _, err := share.ParseIP(c.Network.IPAddress); err != nil {
