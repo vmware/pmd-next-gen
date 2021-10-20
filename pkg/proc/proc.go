@@ -30,7 +30,7 @@ const (
 type NetARP struct {
 	IPAddress string `json:"IPAddress"`
 	HWType    string `json:"HWType"`
-	Flags     string `json:"flags"`
+	Flags     string `json:"Flags"`
 	HWAddress string `json:"HWAddress"`
 	Mask      string `json:"Mask"`
 	Device    string `json:"Device"`
@@ -90,21 +90,21 @@ func FetchVirtualization(w http.ResponseWriter) error {
 }
 
 func FetchUserStat(w http.ResponseWriter) error {
-	userstat, err := host.Users()
+	userStat, err := host.Users()
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(userstat, w)
+	return web.JSONResponse(userStat, w)
 }
 
 func FetchTemperatureStat(w http.ResponseWriter) error {
-	tempstat, err := host.SensorsTemperatures()
+	tempStat, err := host.SensorsTemperatures()
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(tempstat, w)
+	return web.JSONResponse(tempStat, w)
 }
 
 // read netstat from proc tcp/udp/sctp
@@ -143,12 +143,12 @@ func FetchProtoCountersStat(w http.ResponseWriter) error {
 }
 
 func FetchNetDev(w http.ResponseWriter) error {
-	netdev, err := net.IOCounters(true)
+	netDev, err := net.IOCounters(true)
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(netdev, w)
+	return web.JSONResponse(netDev, w)
 }
 
 func FetchInterfaceStat(w http.ResponseWriter) error {
@@ -179,48 +179,48 @@ func FetchVirtualMemoryStat(w http.ResponseWriter) error {
 }
 
 func FetchCPUInfo(w http.ResponseWriter) error {
-	cpus, err := cpu.Info()
+	cpuInfo, err := cpu.Info()
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(cpus, w)
+	return web.JSONResponse(cpuInfo, w)
 }
 
 func FetchCPUTimeStat(w http.ResponseWriter) error {
-	cpus, err := cpu.Times(true)
+	cpuTime, err := cpu.Times(true)
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(cpus, w)
+	return web.JSONResponse(cpuTime, w)
 }
 
 func FetchAvgStat(w http.ResponseWriter) error {
-	avgstat, err := load.Avg()
+	avgStat, err := load.Avg()
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(avgstat, w)
+	return web.JSONResponse(avgStat, w)
 }
 
 func FetchPartitions(w http.ResponseWriter) error {
-	p, err := disk.Partitions(true)
+	part, err := disk.Partitions(true)
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(p, w)
+	return web.JSONResponse(part, w)
 }
 
 func FetchIOCounters(w http.ResponseWriter) error {
-	i, err := disk.IOCounters()
+	ioCounters, err := disk.IOCounters()
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(i, w)
+	return web.JSONResponse(ioCounters, w)
 }
 
 func FetchDiskUsage(w http.ResponseWriter) error {
@@ -260,7 +260,7 @@ func FetchNetArp(w http.ResponseWriter) error {
 		return err
 	}
 
-	netarp := make([]NetARP, len(lines)-1)
+	netARP := make([]NetARP, len(lines)-1)
 	for i, line := range lines {
 		if i == 0 {
 			continue
@@ -275,10 +275,10 @@ func FetchNetArp(w http.ResponseWriter) error {
 		arp.HWAddress = fields[3]
 		arp.Mask = fields[4]
 		arp.Device = fields[5]
-		netarp[i-1] = arp
+		netARP[i-1] = arp
 	}
 
-	return web.JSONResponse(netarp, w)
+	return web.JSONResponse(netARP, w)
 }
 
 func FetchModules(w http.ResponseWriter) error {

@@ -35,7 +35,6 @@ func (r *SysNet) getPath() (string, error) {
 		procPath = path.Join(path.Join(sysNetPath, sysNetPathCore), r.Property)
 
 	case sysNetPathIPv4:
-
 		if r.Link != "" {
 			procPath = path.Join(path.Join(path.Join(path.Join(sysNetPath, sysNetPathIPv4), "conf"), r.Link), r.Property)
 		} else {
@@ -43,7 +42,6 @@ func (r *SysNet) getPath() (string, error) {
 		}
 
 	case sysNetPathIPv6:
-
 		if r.Link != "" {
 			procPath = path.Join(path.Join(path.Join(path.Join(sysNetPath, sysNetPathIPv6), "conf"), r.Link), r.Property)
 		} else {

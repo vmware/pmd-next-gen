@@ -115,30 +115,42 @@ func routerFetchProcAvgStat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func configureProcSysVM(w http.ResponseWriter, r *http.Request) {
+func routerFetchProcSysVM(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	vm := VM{
 		Property: vars["path"],
 	}
 
-	switch r.Method {
-	case "Fetch":
-		if err := vm.GetVM(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
-	case "PUT":
+	if err := vm.GetVM(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
 
-		v := new(Info)
+func routerConfigureProcSysVM(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	vm := VM{
+		Property: vars["path"],
+	}
 
-		if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-			web.JSONResponseError(err, w)
-			return
-		}
+	v := new(Info)
 
-		vm.Value = v.Value
-		if err := vm.SetVM(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		web.JSONResponseError(err, w)
+		return
+	}
+
+	vm.Value = v.Value
+	if err := vm.SetVM(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerFetchProcSysNet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	proc := SysNet{Path: vars["path"], Property: vars["conf"], Link: vars["link"]}
+
+	if err := proc.GetSysNet(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
@@ -146,33 +158,22 @@ func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	proc := SysNet{Path: vars["path"], Property: vars["conf"], Link: vars["link"]}
 
-	switch r.Method {
-	case "Get":
-		if err := proc.GetSysNet(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	v := new(Info)
 
-	case "PUT":
-		v := new(Info)
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		web.JSONResponseError(err, w)
+		return
+	}
 
-		if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-			web.JSONResponseError(err, w)
-			return
-		}
-
-		proc.Value = v.Value
-		if err := proc.SetSysNet(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	proc.Value = v.Value
+	if err := proc.SetSysNet(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
 func routerFetchProcMisc(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "Fetch":
-		if err := FetchMisc(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := FetchMisc(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
@@ -220,8 +221,11 @@ func routerFetchDiskUsage(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterProc(router *mux.Router) {
 	n := router.PathPrefix("/proc").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/sys/net/{path}/{link}/{conf}", configureProcSysNet)
-	n.HandleFunc("/sys/vm/{path}", configureProcSysVM)
+	n.HandleFunc("/sys/net/{path}/{link}/{conf}", routerFetchProcSysNet).Methods("GET")
+	n.HandleFunc("/sys/net/{path}/{link}/{conf}", configureProcSysNet).Methods("PUT")
+
+	n.HandleFunc("/sys/vm/{path}", routerFetchProcSysVM).Methods("GET")
+	n.HandleFunc("/sys/vm/{path}", routerConfigureProcSysVM).Methods("PUT")
 
 	n.HandleFunc("/avgstat", routerFetchProcAvgStat).Methods("GET")
 	n.HandleFunc("/cpuinfo", routerFetchProcCPUInfo).Methods("GET")
