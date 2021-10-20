@@ -17,145 +17,101 @@ type Info struct {
 	Value    string `json:"value"`
 }
 
-func routerGetProcNetDev(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetNetDev(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcNetDev(w http.ResponseWriter, r *http.Request) {
+	if err := FetchNetDev(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcVersion(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetVersion(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcVersion(w http.ResponseWriter, r *http.Request) {
+	if err := FetchVersion(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcPlatformInformation(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetPlatformInformation(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcPlatformInformation(w http.ResponseWriter, r *http.Request) {
+	if err := FetchPlatformInformation(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcVirtualization(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetVirtualization(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcVirtualization(w http.ResponseWriter, r *http.Request) {
+	if err := FetchVirtualization(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcUserStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetUserStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcUserStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchUserStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcTemperatureStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetTemperatureStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcTemperatureStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchTemperatureStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcNetStat(w http.ResponseWriter, r *http.Request) {
+func routerFetchProcNetStat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	protocol := vars["protocol"]
 
-	switch r.Method {
-	case "GET":
-		if err := GetNetStat(w, protocol); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := FetchNetStat(w, protocol); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcPidNetStat(w http.ResponseWriter, r *http.Request) {
+func routerFetchProcPidNetStat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	protocol := vars["protocol"]
 	pid := vars["pid"]
 
-	switch r.Method {
-	case "GET":
-		if err := GetNetStatPid(w, protocol, pid); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := FetchNetStatPid(w, protocol, pid); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcInterfaceStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetInterfaceStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcInterfaceStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchInterfaceStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcProtoCountersStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetProtoCountersStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcProtoCountersStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchProtoCountersStat(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+
+}
+
+func routerFetchProcFetchSwapMemoryStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchSwapMemoryStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcGetSwapMemoryStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetSwapMemoryStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcVirtualMemoryStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchVirtualMemoryStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcVirtualMemoryStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetVirtualMemoryStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcCPUInfo(w http.ResponseWriter, r *http.Request) {
+	if err := FetchCPUInfo(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcCPUInfo(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetCPUInfo(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcCPUTimeStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchCPUTimeStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcCPUTimeStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetCPUTimeStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
-	}
-}
-
-func routerGetProcAvgStat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetAvgStat(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcAvgStat(w http.ResponseWriter, r *http.Request) {
+	if err := FetchAvgStat(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
@@ -166,7 +122,7 @@ func configureProcSysVM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
-	case "GET":
+	case "Fetch":
 		if err := vm.GetVM(w); err != nil {
 			web.JSONResponseError(err, w)
 		}
@@ -191,7 +147,7 @@ func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 	proc := SysNet{Path: vars["path"], Property: vars["conf"], Link: vars["link"]}
 
 	switch r.Method {
-	case "GET":
+	case "Get":
 		if err := proc.GetSysNet(w); err != nil {
 			web.JSONResponseError(err, w)
 		}
@@ -211,100 +167,82 @@ func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerGetProcMisc(w http.ResponseWriter, r *http.Request) {
+func routerFetchProcMisc(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "GET":
-		if err := GetMisc(w); err != nil {
+	case "Fetch":
+		if err := FetchMisc(w); err != nil {
 			web.JSONResponseError(err, w)
 		}
 	}
 }
 
-func routerGetProcNetArp(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetNetArp(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcNetArp(w http.ResponseWriter, r *http.Request) {
+	if err := FetchNetArp(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcModules(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetModules(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchProcModules(w http.ResponseWriter, r *http.Request) {
+	if err := FetchModules(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetProcProcess(w http.ResponseWriter, r *http.Request) {
+func routerFetchProcProcess(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pid := vars["pid"]
 	property := vars["property"]
 
-	switch r.Method {
-	case "GET":
-
-		if err := GetProcessInfo(w, pid, property); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := FetchProcessInfo(w, pid, property); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetPartitions(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		err := GetPartitions(w)
-		if err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchPartitions(w http.ResponseWriter, r *http.Request) {
+	err := FetchPartitions(w)
+	if err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetIOCounters(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetIOCounters(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchIOCounters(w http.ResponseWriter, r *http.Request) {
+	if err := FetchIOCounters(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetDiskUsage(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := GetDiskUsage(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchDiskUsage(w http.ResponseWriter, r *http.Request) {
+	if err := FetchDiskUsage(w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
 func RegisterRouterProc(router *mux.Router) {
 	n := router.PathPrefix("/proc").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/avgstat", routerGetProcAvgStat)
-	n.HandleFunc("/cpuinfo", routerGetProcCPUInfo)
-	n.HandleFunc("/cputimestat", routerGetProcCPUTimeStat)
-	n.HandleFunc("/diskusage", routerGetDiskUsage)
-	n.HandleFunc("/interface-stat", routerGetProcInterfaceStat)
-	n.HandleFunc("/iocounters", routerGetIOCounters)
-	n.HandleFunc("/misc", routerGetProcMisc)
-	n.HandleFunc("/modules", routerGetProcModules)
-	n.HandleFunc("/net/arp", routerGetProcNetArp)
-	n.HandleFunc("/netdev", routerGetProcNetDev)
-	n.HandleFunc("/netstat/{protocol}", routerGetProcNetStat)
-	n.HandleFunc("/partitions", routerGetPartitions)
-	n.HandleFunc("/platform", routerGetProcPlatformInformation)
-	n.HandleFunc("/process/{pid}/{property}/", routerGetProcProcess)
-	n.HandleFunc("/proto-counter-stat", routerGetProcProtoCountersStat)
-	n.HandleFunc("/proto-pid-stat/{pid}/{protocol}", routerGetProcPidNetStat)
-	n.HandleFunc("/swap-memory", routerGetProcGetSwapMemoryStat)
 	n.HandleFunc("/sys/net/{path}/{link}/{conf}", configureProcSysNet)
 	n.HandleFunc("/sys/vm/{path}", configureProcSysVM)
-	n.HandleFunc("/temperaturestat", routerGetProcTemperatureStat)
-	n.HandleFunc("/userstat", routerGetProcUserStat)
-	n.HandleFunc("/version", routerGetProcVersion)
-	n.HandleFunc("/virtual-memory", routerGetProcVirtualMemoryStat)
-	n.HandleFunc("/virtualization", routerGetProcVirtualization)
+
+	n.HandleFunc("/avgstat", routerFetchProcAvgStat).Methods("GET")
+	n.HandleFunc("/cpuinfo", routerFetchProcCPUInfo).Methods("GET")
+	n.HandleFunc("/cputimestat", routerFetchProcCPUTimeStat).Methods("GET")
+	n.HandleFunc("/diskusage", routerFetchDiskUsage).Methods("GET")
+	n.HandleFunc("/interface-stat", routerFetchProcInterfaceStat).Methods("GET")
+	n.HandleFunc("/iocounters", routerFetchIOCounters).Methods("GET")
+	n.HandleFunc("/misc", routerFetchProcMisc).Methods("GET")
+	n.HandleFunc("/temperaturestat", routerFetchProcTemperatureStat).Methods("GET")
+	n.HandleFunc("/userstat", routerFetchProcUserStat).Methods("GET")
+	n.HandleFunc("/version", routerFetchProcVersion).Methods("GET")
+	n.HandleFunc("/virtual-memory", routerFetchProcVirtualMemoryStat).Methods("GET")
+	n.HandleFunc("/virtualization", routerFetchProcVirtualization).Methods("GET")
+	n.HandleFunc("/modules", routerFetchProcModules).Methods("GET")
+	n.HandleFunc("/net/arp", routerFetchProcNetArp).Methods("GET")
+	n.HandleFunc("/netdev", routerFetchProcNetDev).Methods("GET")
+	n.HandleFunc("/netstat/{protocol}", routerFetchProcNetStat).Methods("GET")
+	n.HandleFunc("/partitions", routerFetchPartitions).Methods("GET")
+	n.HandleFunc("/platform", routerFetchProcPlatformInformation).Methods("GET")
+	n.HandleFunc("/process/{pid}/{property}/", routerFetchProcProcess).Methods("GET")
+	n.HandleFunc("/proto-counter-stat", routerFetchProcProtoCountersStat).Methods("GET")
+	n.HandleFunc("/proto-pid-stat/{pid}/{protocol}", routerFetchProcPidNetStat).Methods("GET")
+	n.HandleFunc("/swap-memory", routerFetchProcFetchSwapMemoryStat).Methods("GET")
 }
