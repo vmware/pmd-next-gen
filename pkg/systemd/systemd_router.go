@@ -17,7 +17,6 @@ func routerFetchSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
 	if err := ManagerFetchSystemProperty(r.Context(), w, v["property"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
-
 }
 
 func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
@@ -35,30 +34,25 @@ func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "POST":
-		u := new(Unit)
+	u := new(Unit)
 
-		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
 
-		if err := u.UnitActions(r.Context()); err != nil {
-			web.JSONResponseError(err, w)
-			return
-		}
+	if err := u.UnitCommands(r.Context()); err != nil {
+		web.JSONResponseError(err, w)
+		return
 	}
 
 	web.JSONResponse("", w)
 }
 
 func routerFetchAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
-
-	if err := ListUnits(r.Context(),w); err != nil {
+	if err := ListUnits(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
-
 }
 
 func routerFetchUnitStatus(w http.ResponseWriter, r *http.Request) {
@@ -67,10 +61,9 @@ func routerFetchUnitStatus(w http.ResponseWriter, r *http.Request) {
 		Unit: v["unit"],
 	}
 
-	if err := u.FetchUnitStatus(r.Context(),w); err != nil {
+	if err := u.FetchUnitStatus(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
-
 }
 
 func routerFetchUnitProperty(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +73,7 @@ func routerFetchUnitProperty(w http.ResponseWriter, r *http.Request) {
 		Property: v["property"],
 	}
 
-	if err := u.FetchUnitProperty(r.Context(),w); err != nil {
+	if err := u.FetchUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -91,7 +84,7 @@ func routerFetchUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 		Unit: v["unit"],
 	}
 
-	if err := u.FetchAllUnitProperty(r.Context(),w); err != nil {
+	if err := u.FetchAllUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }

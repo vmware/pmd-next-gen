@@ -53,7 +53,7 @@ type UnitStatus struct {
 func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus: %s", err)
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
 		return err
 	}
 	defer conn.Close()
@@ -80,7 +80,7 @@ func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, prop
 func ListUnits(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus: %s", err)
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
 		return err
 	}
 	defer conn.Close()
@@ -94,10 +94,10 @@ func ListUnits(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(units, w)
 }
 
-func (u *Unit) UnitActions(ctx context.Context) error {
+func (u *Unit) UnitCommands(ctx context.Context) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus: %v", err)
+		log.Errorf("Failed to establish connection to the system bus: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -204,7 +204,7 @@ func (u *Unit) UnitActions(ctx context.Context) error {
 		conn.KillUnitContext(ctx, u.Unit, int32(signal))
 
 	default:
-		log.Errorf("Unknown action='%s' for systemd unit='%s'", u.Action, u.Unit)
+		log.Errorf("Unknown unit command='%s' for systemd unit='%s'", u.Action, u.Unit)
 		return errors.New("unknown unit command")
 	}
 
@@ -214,7 +214,7 @@ func (u *Unit) UnitActions(ctx context.Context) error {
 func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus:: %v", err)
+		log.Errorf("Failed to establish connection to the system bus:: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -226,10 +226,10 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	}
 
 	unit := UnitStatus{
-		Unit:      u.Unit,
-		Name:      units[0].Name,
-		Status:    units[0].ActiveState,
-		LoadState: units[0].LoadState,
+		Unit:        u.Unit,
+		Name:        units[0].Name,
+		Status:      units[0].ActiveState,
+		LoadState:   units[0].LoadState,
 		Description: units[0].Description,
 		ActiveState: units[0].ActiveState,
 		SubState:    units[0].SubState,
@@ -317,7 +317,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 func (u *Unit) FetchUnitProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus: %v", err)
+		log.Errorf("Failed to establish connection to the system bus: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -334,7 +334,7 @@ func (u *Unit) FetchUnitProperty(ctx context.Context, w http.ResponseWriter) err
 func (u *Unit) FetchAllUnitProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus: %v", err)
+		log.Errorf("Failed to establish connection to the system bus: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -351,7 +351,7 @@ func (u *Unit) FetchAllUnitProperty(ctx context.Context, w http.ResponseWriter) 
 func (u *Unit) GetUnitTypeProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
-		log.Errorf("Failed to establishes connection to the system bus:: %v", err)
+		log.Errorf("Failed to establish connection to the system bus:: %v", err)
 		return err
 	}
 	defer conn.Close()
