@@ -45,12 +45,12 @@ type Modules struct {
 }
 
 func GetVersion(w http.ResponseWriter) error {
-	infostat, err := host.Info()
+	infoStat, err := host.Info()
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(infostat, w)
+	return web.JSONResponse(infoStat, w)
 }
 
 func GetPlatformInformation(w http.ResponseWriter) error {

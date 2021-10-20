@@ -11,15 +11,13 @@ import (
 	"github.com/pmd/pkg/web"
 )
 
-func routerGetSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
+func routerFetchSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 
-	switch r.Method {
-	case "GET":
-		if err := ManagerFetchSystemProperty(w, v["property"]); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := ManagerFetchSystemProperty(r.Context(), w, v["property"]); err != nil {
+		web.JSONResponseError(err, w)
 	}
+
 }
 
 func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +44,7 @@ func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := u.UnitActions(); err != nil {
+		if err := u.UnitActions(r.Context()); err != nil {
 			web.JSONResponseError(err, w)
 			return
 		}
@@ -55,59 +53,50 @@ func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 	web.JSONResponse("", w)
 }
 
-func routerGetAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		if err := ListUnits(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+func routerFetchAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
+
+	if err := ListUnits(r.Context(),w); err != nil {
+		web.JSONResponseError(err, w)
 	}
+
 }
 
-func routerGetUnitStatus(w http.ResponseWriter, r *http.Request) {
+func routerFetchUnitStatus(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := Unit{
 		Unit: v["unit"],
 	}
 
-	switch r.Method {
-	case "GET":
-		if err := u.GetUnitStatus(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := u.FetchUnitStatus(r.Context(),w); err != nil {
+		web.JSONResponseError(err, w)
 	}
+
 }
 
-func routerGetUnitProperty(w http.ResponseWriter, r *http.Request) {
+func routerFetchUnitProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := Unit{
 		Unit:     v["unit"],
 		Property: v["property"],
 	}
 
-	switch r.Method {
-	case "GET":
-		if err := u.GetUnitProperty(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := u.FetchUnitProperty(r.Context(),w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
+func routerFetchUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := Unit{
 		Unit: v["unit"],
 	}
 
-	switch r.Method {
-	case "GET":
-		if err := u.GetAllUnitProperty(w); err != nil {
-			web.JSONResponseError(err, w)
-		}
+	if err := u.FetchAllUnitProperty(r.Context(),w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
-func routerGetUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
+func routerFetchUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := Unit{
 		Unit:     v["unit"],
@@ -115,24 +104,24 @@ func routerGetUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 		Property: v["property"],
 	}
 
-	switch r.Method {
-	case "GET":
-		u.GetUnitTypeProperty(w)
-	}
+	u.GetUnitTypeProperty(r.Context(), w)
 }
 
 func RegisterRouterSystemd(router *mux.Router) {
 	n := router.PathPrefix("/service").Subrouter()
 
-	n.HandleFunc("/systemd/manager/property/{property}", routerGetSystemdManagerProperty)
+	// systemd unit commands
+	n.HandleFunc("/systemd", routerConfigureUnit).Methods("POST")
 
-	n.HandleFunc("/systemd/units", routerGetAllSystemdUnits)
-	n.HandleFunc("/systemd", routerConfigureUnit)
-	n.HandleFunc("/systemd/{unit}/status", routerGetUnitStatus)
-	n.HandleFunc("/systemd/{unit}/property", routerGetUnitProperty)
-	n.HandleFunc("/systemd/{unit}/propertyall", routerGetUnitPropertyAll)
-	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerGetUnitTypeProperty)
+	// systemd unit status and property
+	n.HandleFunc("/systemd/manager/property/{property}", routerFetchSystemdManagerProperty).Methods("GET")
+	n.HandleFunc("/systemd/units", routerFetchAllSystemdUnits).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/status", routerFetchUnitStatus).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/property", routerFetchUnitProperty).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/propertyall", routerFetchUnitPropertyAll).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerFetchUnitTypeProperty).Methods("GET")
 
+	// systemd configuration
 	n.HandleFunc("/systemd/conf", routerConfigureSystemdConf)
 	n.HandleFunc("/systemd/conf/update", routerConfigureSystemdConf)
 }
