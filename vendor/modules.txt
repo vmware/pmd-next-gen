@@ -17,9 +17,7 @@ github.com/go-ini/ini
 ## explicit; go 1.12
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/godbus/dbus v4.1.0+incompatible
-## explicit
-# github.com/godbus/dbus/v5 v5.0.5
+# github.com/godbus/dbus/v5 v5.0.4
 ## explicit; go 1.12
 github.com/godbus/dbus/v5
 # github.com/gorilla/mux v1.8.0
@@ -98,7 +96,7 @@ github.com/tklauser/numcpus
 # github.com/urfave/cli/v2 v2.3.0
 ## explicit; go 1.11
 github.com/urfave/cli/v2
-# golang.org/x/sys v0.0.0-20210927052749-1cf2251ac284
+# golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -113,4 +111,3 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
-# github.com/namecoin/x509-compressed => ../x509-compressed

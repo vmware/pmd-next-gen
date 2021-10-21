@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pmd/pkg/web"
+	"github.com/pm-web/pkg/web"
 )
 
 func routerFetchSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
-	u := new(Unit)
+	u := new(UnitAction)
 
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
@@ -57,7 +57,7 @@ func routerFetchAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
 
 func routerFetchUnitStatus(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	u := Unit{
+	u := UnitAction{
 		Unit: v["unit"],
 	}
 
@@ -68,7 +68,7 @@ func routerFetchUnitStatus(w http.ResponseWriter, r *http.Request) {
 
 func routerFetchUnitProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	u := Unit{
+	u := UnitAction{
 		Unit:     v["unit"],
 		Property: v["property"],
 	}
@@ -80,7 +80,7 @@ func routerFetchUnitProperty(w http.ResponseWriter, r *http.Request) {
 
 func routerFetchUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	u := Unit{
+	u := UnitAction{
 		Unit: v["unit"],
 	}
 
@@ -91,7 +91,7 @@ func routerFetchUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 
 func routerFetchUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	u := Unit{
+	u := UnitAction{
 		Unit:     v["unit"],
 		UnitType: v["unittype"],
 		Property: v["property"],

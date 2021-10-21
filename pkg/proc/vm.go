@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/pmd/pkg/system"
-	"github.com/pmd/pkg/web"
+	"github.com/pm-web/pkg/system"
+	"github.com/pm-web/pkg/web"
 )
 
 const (

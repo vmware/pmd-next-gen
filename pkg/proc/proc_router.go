@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pmd/pkg/web"
+	"github.com/pm-web/pkg/web"
 )
 
 type Info struct {

@@ -31,8 +31,6 @@ func JSONResponse(response interface{}, w http.ResponseWriter) error {
 }
 
 func JSONResponseError(err error, w http.ResponseWriter) error {
-	http.Error(w, err.Error(), http.StatusInternalServerError)
-
 	m := JSONResponseMessage{
 		Success: false,
 		Errors:  err.Error(),
@@ -43,6 +41,7 @@ func JSONResponseError(err error, w http.ResponseWriter) error {
 		return err
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
 

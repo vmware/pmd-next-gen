@@ -14,16 +14,16 @@ import (
 )
 
 func Fetch(url string, headers map[string]string) ([]byte, error) {
-	client, err := http.NewRequest("GET", url, nil)
+	httpClient, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range headers {
-		client.Header.Set(k, v)
+		httpClient.Header.Set(k, v)
 	}
 
-	resp, err := http.DefaultClient.Do(client)
+	resp, err := http.DefaultClient.Do(httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func Fetch(url string, headers map[string]string) ([]byte, error) {
 }
 
 func FetchUnixDomainSocket(url string) ([]byte, error) {
-	httpc := http.Client{
+	httpClient := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("unix", "/run/pmwebd/pmwebd.sock")
@@ -57,14 +57,14 @@ func FetchUnixDomainSocket(url string) ([]byte, error) {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpc.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return nil, err
+	if err == nil && resp.StatusCode != 200 {
+		return nil, fmt.Errorf("non-200 status code: %+v", resp)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -75,8 +75,8 @@ func FetchUnixDomainSocket(url string) ([]byte, error) {
 	return body, nil
 }
 
-func DispatchUnixDomainSocket(method string, url string, data string) ([]byte, error) {
-	httpc := http.Client{
+func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]byte, error) {
+	httpClient := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("unix", "/run/pmwebd/pmwebd.sock")
@@ -90,13 +90,14 @@ func DispatchUnixDomainSocket(method string, url string, data string) ([]byte, e
 		return nil, err
 	}
 
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest(method, url, buf)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := httpc.Do(req)
+
+	resp, err := httpClient.Do(req)
 	if err == nil && resp.StatusCode != 200 {
 		return nil, fmt.Errorf("non-200 status code: %+v", resp)
 	}

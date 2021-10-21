@@ -11,9 +11,8 @@ import (
 	"os"
 
 	"github.com/go-ini/ini"
+	"github.com/pm-web/pkg/web"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/pmd/pkg/web"
 )
 
 const (

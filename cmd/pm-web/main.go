@@ -6,10 +6,9 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/pm-web/pkg/conf"
+	"github.com/pm-web/pkg/router"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/pmd/pkg/conf"
-	"github.com/pmd/pkg/router"
 )
 
 func main() {

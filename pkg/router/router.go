@@ -13,12 +13,11 @@ import (
 	"syscall"
 
 	"github.com/gorilla/mux"
+	"github.com/pm-web/pkg/conf"
+	"github.com/pm-web/pkg/proc"
+	"github.com/pm-web/pkg/system"
+	"github.com/pm-web/pkg/systemd"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/pmd/pkg/conf"
-	"github.com/pmd/pkg/proc"
-	"github.com/pmd/pkg/system"
-	"github.com/pmd/pkg/systemd"
 )
 
 func StartRouter(c *conf.Config) error {

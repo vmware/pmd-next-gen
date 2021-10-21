@@ -3,10 +3,9 @@
 package conf
 
 import (
+	"github.com/pm-web/pkg/share"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-
-	"github.com/pmd/pkg/share"
 )
 
 const (

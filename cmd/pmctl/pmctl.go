@@ -14,7 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pmd/pkg/web"
+	"github.com/pm-web/pkg/systemd"
+	"github.com/pm-web/pkg/web"
 )
 
 type UnitStatus struct {
@@ -41,6 +42,37 @@ type UnitStatus struct {
 		InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
 	} `json:"message"`
 	Errors string `json:"errors"`
+}
+
+func PerformSystemdUnitCommand(command string, unit string) {
+	action := systemd.UnitAction{
+		Action: command,
+		Unit:   unit,
+	}
+	resp, err := web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", action)
+	if err != nil {
+		fmt.Printf("Failed to execute '%s': %v", command, err)
+		os.Exit(1)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v", err)
+		os.Exit(0)
+	}
+
+	if m.Success {
+		fmt.Printf("Command executed successfully")
+	} else {
+		var s string
+		if m.Message== "" {
+			s = "n/a"
+		}
+		
+		fmt.Printf("Failed to execute command: %v(%v) ", s, m.Errors)
+		os.Exit(1)
+	}
 }
 
 func fetchSystemdUnitStatus(unit string) {
@@ -124,6 +156,46 @@ func main() {
 					Usage: "Display systemd service status",
 					Action: func(c *cli.Context) error {
 						fetchSystemdUnitStatus(c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "start",
+					Usage: "Start systemd service",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("start", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "stop",
+					Usage: "Stop systemd service",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("stop", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "restart",
+					Usage: "Restart systemd service",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("restart", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "mask",
+					Usage: "Mask systemd unit",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("mask", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "unmask",
+					Usage: "Unmask systemd unit",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("unmask", c.Args().First())
 						return nil
 					},
 				},
