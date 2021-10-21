@@ -64,7 +64,9 @@ func fetchSystemdUnitStatus(unit string) {
 		fmt.Printf("         ActiveState: %+v \n", u.Message.ActiveState)
 		fmt.Printf("            SubState: %+v \n", u.Message.SubState)
 		fmt.Printf("       UnitFileState: %+v \n", u.Message.UnitFileState)
-		fmt.Printf("ActiveEnterTimestamp: %+v \n", time.Unix(int64(u.Message.StateChangeTimestamp), 0))
+
+		t := time.Unix(int64(u.Message.StateChangeTimestamp), 0)
+		fmt.Printf("StateChangeTimeStamp: %+v \n", t.Format(time.UnixDate))
 
 		switch u.Message.ActiveState {
 		case "active", "reloading":
@@ -75,7 +77,7 @@ func fetchSystemdUnitStatus(unit string) {
 		case "inactive", "failed":
 
 			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-			fmt.Printf("             Active: %s (%s) %v ago ", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			fmt.Printf("             Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 
 		case "activating":
 			var t time.Time

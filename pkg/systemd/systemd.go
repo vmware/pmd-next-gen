@@ -52,7 +52,7 @@ type UnitStatus struct {
 	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
 }
 
-func dbusTimeToUnix(prop *sdbus.Property) time.Time {
+func dbusTimeToTime(prop *sdbus.Property) time.Time {
 	var usec int64
 
 	if err := prop.Value.Store(&usec); err != nil {
@@ -270,35 +270,35 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "StateChangeTimestamp"); err == nil {
-			unit.StateChangeTimestamp = dbusTimeToUnix(ts).Local().Unix()
+			unit.StateChangeTimestamp = dbusTimeToTime(ts).Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveExitTimestamp"); err == nil {
-			unit.InactiveExitTimestamp = dbusTimeToUnix(ts).Local().Unix()
+			unit.InactiveExitTimestamp = dbusTimeToTime(ts).Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveEnterTimestamp"); err == nil {
-			unit.ActiveEnterTimestamp = dbusTimeToUnix(ts).Local().Unix()
+			unit.ActiveEnterTimestamp = dbusTimeToTime(ts).Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveExitTimestamp"); err == nil {
-			unit.ActiveExitTimestamp = dbusTimeToUnix(ts).Local().Unix()
+			unit.ActiveExitTimestamp = dbusTimeToTime(ts).Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveEnterTimestamp"); err == nil {
-			unit.InactiveEnterTimestamp = dbusTimeToUnix(ts).Local().Unix()
+			unit.InactiveEnterTimestamp = dbusTimeToTime(ts).Unix()
 		}
 	}()
 
