@@ -109,7 +109,7 @@ func main() {
 	app := &cli.App{
 		Name:    "pmctl",
 		Version: "v0.1",
-		Usage:   "Introspects system data and manage system",
+		Usage:   "Introspects and manage system",
 	}
 
 	app.EnableBashCompletion = true

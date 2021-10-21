@@ -4,7 +4,10 @@
 package web
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -47,7 +50,14 @@ func FetchUnixDomainSocket(url string) ([]byte, error) {
 		},
 	}
 
-	resp, err := httpc.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpc.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +65,40 @@ func FetchUnixDomainSocket(url string) ([]byte, error) {
 
 	if resp.StatusCode != 200 {
 		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func DispatchUnixDomainSocket(method string, url string, data string) ([]byte, error) {
+	httpc := http.Client{
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+				return net.Dial("unix", "/run/pmwebd/pmwebd.sock")
+			},
+		},
+	}
+
+	buf := new(bytes.Buffer)
+	err := json.NewEncoder(buf).Encode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := httpc.Do(req)
+	if err == nil && resp.StatusCode != 200 {
+		return nil, fmt.Errorf("non-200 status code: %+v", resp)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
