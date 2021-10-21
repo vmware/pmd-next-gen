@@ -5,6 +5,7 @@ package systemd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -43,11 +44,11 @@ type UnitStatus struct {
 	JobType                string `json:"JobType"`
 	JobPath                string `json:"JobPath"`
 	UnitFileState          string `json:"UnitFileState"`
-	StateChangeTimestamp   uint64 `json:"StateChangeTimestamp"`
-	InactiveExitTimestamp  uint64 `json:"InactiveExitTimestamp"`
-	ActiveEnterTimestamp   uint64 `json:"ActiveEnterTimestamp"`
-	ActiveExitTimestamp    uint64 `json:"ActiveExitTimestamp"`
-	InactiveEnterTimestamp uint64 `json:"InactiveEnterTimestamp"`
+	StateChangeTimestamp   int64  `json:"StateChangeTimestamp"`
+	InactiveExitTimestamp  int64  `json:"InactiveExitTimestamp"`
+	ActiveEnterTimestamp   int64  `json:"ActiveEnterTimestamp"`
+	ActiveExitTimestamp    int64  `json:"ActiveExitTimestamp"`
+	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
 }
 
 func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
@@ -254,7 +255,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "StateChangeTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(uint64); ok {
+			if t, ok := ts.Value.Value().(int64); ok {
 				unit.StateChangeTimestamp = t
 			}
 		}
@@ -263,7 +264,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveExitTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(uint64); ok {
+			if t, ok := ts.Value.Value().(int64); ok {
 				unit.InactiveExitTimestamp = t
 			}
 		}
@@ -272,7 +273,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveEnterTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(uint64); ok {
+			if t, ok := ts.Value.Value().(int64); ok {
 				unit.ActiveEnterTimestamp = t
 			}
 		}
@@ -281,7 +282,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveExitTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(uint64); ok {
+			if t, ok := ts.Value.Value().(int64); ok {
 				unit.ActiveExitTimestamp = t
 			}
 		}
@@ -290,7 +291,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveEnterTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(uint64); ok {
+			if t, ok := ts.Value.Value().(int64); ok {
 				unit.InactiveEnterTimestamp = t
 			}
 		}
@@ -311,6 +312,7 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 		return err
 	}
 
+	fmt.Println("test123")
 	return web.JSONResponse(unit, w)
 }
 

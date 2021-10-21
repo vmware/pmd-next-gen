@@ -28,10 +28,13 @@ $(BUILDDIR)/%/:
 build:
 	- mkdir -p bin
 	go build -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/pm-webd ./cmd/pm-web
+	go build -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/pmctl ./cmd/pmctl
 
 .PHONY: install
 install:
 	install bin/pm-webd /usr/bin/
+	install bin/pmctl /usr/bin/
+
 	install -vdm 755 /etc/pm-web
 	install -m 755 conf/pmweb.toml /etc/pm-web
 	install -m 755 conf/pmweb-auth.conf /etc/pm-web
