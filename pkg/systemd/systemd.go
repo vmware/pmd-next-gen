@@ -5,14 +5,11 @@ package systemd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 
 	sd "github.com/coreos/go-systemd/v22/dbus"
-	sdbus "github.com/coreos/go-systemd/v22/dbus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pm-web/pkg/web"
@@ -32,40 +29,20 @@ type Property struct {
 }
 
 type UnitStatus struct {
-	Status                 string `json:"property"`
-	Unit                   string `json:"unit"`
-	Name                   string `json:"Name"`
-	Description            string `json:"Description"`
-	MainPid                uint32 `json:"MainPid"`
-	LoadState              string `json:"LoadState"`
-	ActiveState            string `json:"ActiveState"`
-	SubState               string `json:"SubState"`
-	Followed               string `json:"Followed"`
-	Path                   string `json:"Path"`
-	JobId                  uint32 `json:"JobId"`
-	JobType                string `json:"JobType"`
-	JobPath                string `json:"JobPath"`
-	UnitFileState          string `json:"UnitFileState"`
-	StateChangeTimestamp   int64  `json:"StateChangeTimestamp"`
-	InactiveExitTimestamp  int64  `json:"InactiveExitTimestamp"`
-	ActiveEnterTimestamp   int64  `json:"ActiveEnterTimestamp"`
-	ActiveExitTimestamp    int64  `json:"ActiveExitTimestamp"`
-	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
-}
-
-func dbusTimeToUsec(prop *sdbus.Property) (time.Time, error) {
-	var usec int64
-
-	if err := prop.Value.Store(&usec); err != nil {
-		return time.UnixMicro(0), err
-	}
-
-	if usec == 0 {
-		fmt.Println(usec)
-		return time.UnixMicro(usec), errors.New("0")
-	}
-
-	return time.UnixMicro(usec), nil
+	Status        string `json:"property"`
+	Unit          string `json:"unit"`
+	Name          string `json:"Name"`
+	Description   string `json:"Description"`
+	MainPid       uint32 `json:"MainPid"`
+	LoadState     string `json:"LoadState"`
+	ActiveState   string `json:"ActiveState"`
+	SubState      string `json:"SubState"`
+	Followed      string `json:"Followed"`
+	Path          string `json:"Path"`
+	JobId         uint32 `json:"JobId"`
+	JobType       string `json:"JobType"`
+	JobPath       string `json:"JobPath"`
+	UnitFileState string `json:"UnitFileState"`
 }
 
 func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
@@ -258,68 +235,13 @@ func (u *UnitAction) FetchUnitStatus(ctx context.Context, w http.ResponseWriter)
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(len(units) * 7)
+	wg.Add(len(units) * 2)
 
 	go func() {
 		defer wg.Done()
 		if pid, err := conn.GetServicePropertyContext(ctx, u.Unit, "MainPID"); err == nil {
 			if n, ok := pid.Value.Value().(uint32); ok {
 				unit.MainPid = n
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "StateChangeTimestamp"); err == nil {
-			if t, err := dbusTimeToUsec(ts); err != nil {
-				unit.StateChangeTimestamp = 0
-			} else {
-				unit.StateChangeTimestamp = t.Unix()
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveExitTimestamp"); err == nil {
-			if t, err := dbusTimeToUsec(ts); err != nil {
-				unit.InactiveExitTimestamp = 0
-			} else {
-				unit.InactiveExitTimestamp = t.Unix()
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveEnterTimestamp"); err == nil {
-			if t, err := dbusTimeToUsec(ts); err != nil {
-				unit.ActiveEnterTimestamp = 0
-			} else {
-				unit.ActiveEnterTimestamp = t.Unix()
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveExitTimestamp"); err == nil {
-			if t, err := dbusTimeToUsec(ts); err != nil {
-				unit.ActiveExitTimestamp = 0
-			} else {
-				unit.ActiveExitTimestamp = t.Unix()
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveEnterTimestamp"); err == nil {
-			if t, err := dbusTimeToUsec(ts); err != nil {
-				unit.InactiveEnterTimestamp = 0
-			} else {
-				unit.InactiveEnterTimestamp = t.Unix()
 			}
 		}
 	}()
