@@ -34,25 +34,14 @@ type UnitStatus struct {
 		JobType                string `json:"JobType"`
 		JobPath                string `json:"JobPath"`
 		UnitFileState          string `json:"UnitFileState"`
-		StateChangeTimestamp   int64 `json:"StateChangeTimestamp"`
-		InactiveExitTimestamp  int64 `json:"InactiveExitTimestamp"`
-		ActiveEnterTimestamp   int64 `json:"ActiveEnterTimestamp"`
-		ActiveExitTimestamp    int64 `json:"ActiveExitTimestamp"`
-		InactiveEnterTimestamp int64 `json:"InactiveEnterTimestamp"`
+		StateChangeTimestamp   int64  `json:"StateChangeTimestamp"`
+		InactiveExitTimestamp  int64  `json:"InactiveExitTimestamp"`
+		ActiveEnterTimestamp   int64  `json:"ActiveEnterTimestamp"`
+		ActiveExitTimestamp    int64  `json:"ActiveExitTimestamp"`
+		InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
 	} `json:"message"`
 	Errors string `json:"errors"`
 }
-
-// Duration returns the duration of the current status condition.
-/*func (s UnitStatus) Duration() time.Duration {
-	var durationSince = func(t time.Time) time.Duration {
-		if t.IsZero() {
-			return 0
-		}
-		return time.Since(t)
-	}
-
-}*/
 
 func fetchSystemdUnitStatus(unit string) {
 	resp, err := web.FetchUnixDomainSocket("http://localhost/api/v1/service/systemd/" + unit + "/status")
@@ -69,31 +58,39 @@ func fetchSystemdUnitStatus(unit string) {
 
 	if u.Success {
 		fmt.Printf("                Name: %+v \n", u.Message.Name)
-		fmt.Printf("           Description: %+v \n", u.Message.Description)
+		fmt.Printf("         Description: %+v \n", u.Message.Description)
 		fmt.Printf("             MainPid: %+v \n", u.Message.MainPid)
 		fmt.Printf("           LoadState: %+v \n", u.Message.LoadState)
 		fmt.Printf("         ActiveState: %+v \n", u.Message.ActiveState)
 		fmt.Printf("            SubState: %+v \n", u.Message.SubState)
 		fmt.Printf("      Unit filestate: %+v \n", u.Message.UnitFileState)
-		fmt.Printf("ActiveEnterTimestamp: %+v \n", u.Message.ActiveEnterTimestamp)
+		fmt.Printf("ActiveEnterTimestamp: %+v \n", time.Unix(int64(u.Message.StateChangeTimestamp), 0))
 
 		switch u.Message.ActiveState {
 		case "active", "reloading":
 
 			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-			strDate := t.Format(time.UnixDate)
-
-			fmt.Printf("              Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, strDate)
+			fmt.Printf("              Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 
 		case "inactive", "failed":
+
 			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-			fmt.Printf("             Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t)
+			fmt.Printf("             Active: %s (%s) %v ago ", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+
 		case "activating":
-			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
-			fmt.Printf("             Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t)
+			var t time.Time
+
+			if u.Message.ActiveExitTimestamp != 0 {
+				t = time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
+			} else {
+				t = time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
+			}
+
+			fmt.Printf("             Active: %s (%s) %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+
 		default:
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
-			fmt.Printf("             Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t)
+			fmt.Printf("             Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 		}
 	}
 }

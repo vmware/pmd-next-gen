@@ -5,12 +5,13 @@ package systemd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	sd "github.com/coreos/go-systemd/v22/dbus"
+	sdbus "github.com/coreos/go-systemd/v22/dbus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pmd/pkg/web"
@@ -49,6 +50,20 @@ type UnitStatus struct {
 	ActiveEnterTimestamp   int64  `json:"ActiveEnterTimestamp"`
 	ActiveExitTimestamp    int64  `json:"ActiveExitTimestamp"`
 	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
+}
+
+func dbusTimeToUnix(prop *sdbus.Property) time.Time {
+	var usec int64
+
+	if err := prop.Value.Store(&usec); err != nil {
+		return time.Time{}
+	}
+
+	if usec == 0 {
+		return time.Time{}
+	}
+
+	return time.UnixMicro(usec)
 }
 
 func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
@@ -255,45 +270,35 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "StateChangeTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(int64); ok {
-				unit.StateChangeTimestamp = t
-			}
+			unit.StateChangeTimestamp = dbusTimeToUnix(ts).Local().Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveExitTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(int64); ok {
-				unit.InactiveExitTimestamp = t
-			}
+			unit.InactiveExitTimestamp = dbusTimeToUnix(ts).Local().Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveEnterTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(int64); ok {
-				unit.ActiveEnterTimestamp = t
-			}
+			unit.ActiveEnterTimestamp = dbusTimeToUnix(ts).Local().Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveExitTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(int64); ok {
-				unit.ActiveExitTimestamp = t
-			}
+			unit.ActiveExitTimestamp = dbusTimeToUnix(ts).Local().Unix()
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveEnterTimestamp"); err == nil {
-			if t, ok := ts.Value.Value().(int64); ok {
-				unit.InactiveEnterTimestamp = t
-			}
+			unit.InactiveEnterTimestamp = dbusTimeToUnix(ts).Local().Unix()
 		}
 	}()
 
@@ -312,7 +317,6 @@ func (u *Unit) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error
 		return err
 	}
 
-	fmt.Println("test123")
 	return web.JSONResponse(unit, w)
 }
 
