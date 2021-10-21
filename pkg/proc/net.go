@@ -18,7 +18,6 @@ const (
 	sysNetPathIPv6 = "ipv6"
 )
 
-// SysNet Json request
 type SysNet struct {
 	Path     string `json:"path"`
 	Property string `json:"property"`
@@ -26,7 +25,6 @@ type SysNet struct {
 	Link     string `json:"link"`
 }
 
-// getPath read info from proc
 func (r *SysNet) getPath() (string, error) {
 	var procPath string
 
@@ -55,7 +53,6 @@ func (r *SysNet) getPath() (string, error) {
 	return procPath, nil
 }
 
-// GetSysNet read proc value and send response
 func (r *SysNet) GetSysNet(rw http.ResponseWriter) error {
 	path, err := r.getPath()
 	if err != nil {
@@ -77,7 +74,6 @@ func (r *SysNet) GetSysNet(rw http.ResponseWriter) error {
 	return web.JSONResponse(s, rw)
 }
 
-// SetSysNet sets a value to proc
 func (r *SysNet) SetSysNet(rw http.ResponseWriter) error {
 	path, err := r.getPath()
 	if err != nil {

@@ -57,7 +57,7 @@ func WriteFullFile(path string, lines []string) error {
 }
 
 func ReadOneLineFile(path string) (string, error) {
-	f, err := os.Create(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}

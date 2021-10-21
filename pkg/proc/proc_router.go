@@ -82,7 +82,6 @@ func routerFetchProcProtoCountersStat(w http.ResponseWriter, r *http.Request) {
 	if err := FetchProtoCountersStat(w); err != nil {
 		web.JSONResponseError(err, w)
 	}
-
 }
 
 func routerFetchProcFetchSwapMemoryStat(w http.ResponseWriter, r *http.Request) {
