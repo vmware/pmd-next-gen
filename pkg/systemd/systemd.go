@@ -5,6 +5,7 @@ package systemd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -12,8 +13,9 @@ import (
 
 	sd "github.com/coreos/go-systemd/v22/dbus"
 	sdbus "github.com/coreos/go-systemd/v22/dbus"
-	"github.com/pm-web/pkg/web"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/pm-web/pkg/web"
 )
 
 type UnitAction struct {
@@ -51,18 +53,19 @@ type UnitStatus struct {
 	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
 }
 
-func dbusTimeToTime(prop *sdbus.Property) time.Time {
+func dbusTimeToUsec(prop *sdbus.Property) (time.Time, error) {
 	var usec int64
 
 	if err := prop.Value.Store(&usec); err != nil {
-		return time.Time{}
+		return time.UnixMicro(0), err
 	}
 
 	if usec == 0 {
-		return time.Time{}
+		fmt.Println(usec)
+		return time.UnixMicro(usec), errors.New("0")
 	}
 
-	return time.UnixMicro(usec)
+	return time.UnixMicro(usec), nil
 }
 
 func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
@@ -269,35 +272,55 @@ func (u *UnitAction) FetchUnitStatus(ctx context.Context, w http.ResponseWriter)
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "StateChangeTimestamp"); err == nil {
-			unit.StateChangeTimestamp = dbusTimeToTime(ts).Unix()
+			if t, err := dbusTimeToUsec(ts); err != nil {
+				unit.StateChangeTimestamp = 0
+			} else {
+				unit.StateChangeTimestamp = t.Unix()
+			}
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveExitTimestamp"); err == nil {
-			unit.InactiveExitTimestamp = dbusTimeToTime(ts).Unix()
+			if t, err := dbusTimeToUsec(ts); err != nil {
+				unit.InactiveExitTimestamp = 0
+			} else {
+				unit.InactiveExitTimestamp = t.Unix()
+			}
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveEnterTimestamp"); err == nil {
-			unit.ActiveEnterTimestamp = dbusTimeToTime(ts).Unix()
+			if t, err := dbusTimeToUsec(ts); err != nil {
+				unit.ActiveEnterTimestamp = 0
+			} else {
+				unit.ActiveEnterTimestamp = t.Unix()
+			}
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "ActiveExitTimestamp"); err == nil {
-			unit.ActiveExitTimestamp = dbusTimeToTime(ts).Unix()
+			if t, err := dbusTimeToUsec(ts); err != nil {
+				unit.ActiveExitTimestamp = 0
+			} else {
+				unit.ActiveExitTimestamp = t.Unix()
+			}
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if ts, err := conn.GetUnitPropertyContext(ctx, u.Unit, "InactiveEnterTimestamp"); err == nil {
-			unit.InactiveEnterTimestamp = dbusTimeToTime(ts).Unix()
+			if t, err := dbusTimeToUsec(ts); err != nil {
+				unit.InactiveEnterTimestamp = 0
+			} else {
+				unit.InactiveEnterTimestamp = t.Unix()
+			}
 		}
 	}()
 

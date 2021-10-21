@@ -66,10 +66,10 @@ func PerformSystemdUnitCommand(command string, unit string) {
 		fmt.Printf("Command executed successfully")
 	} else {
 		var s string
-		if m.Message== "" {
+		if m.Message == "" {
 			s = "n/a"
 		}
-		
+
 		fmt.Printf("Failed to execute command: %v(%v) ", s, m.Errors)
 		os.Exit(1)
 	}
@@ -89,42 +89,74 @@ func fetchSystemdUnitStatus(unit string) {
 	}
 
 	if u.Success {
-		fmt.Printf("                Name: %+v \n", u.Message.Name)
-		fmt.Printf("         Description: %+v \n", u.Message.Description)
-		fmt.Printf("             MainPid: %+v \n", u.Message.MainPid)
-		fmt.Printf("           LoadState: %+v \n", u.Message.LoadState)
-		fmt.Printf("         ActiveState: %+v \n", u.Message.ActiveState)
-		fmt.Printf("            SubState: %+v \n", u.Message.SubState)
-		fmt.Printf("       UnitFileState: %+v \n", u.Message.UnitFileState)
+		fmt.Printf("                  Name: %+v \n", u.Message.Name)
+		fmt.Printf("           Description: %+v \n", u.Message.Description)
+		fmt.Printf("               MainPid: %+v \n", u.Message.MainPid)
+		fmt.Printf("             LoadState: %+v \n", u.Message.LoadState)
+		fmt.Printf("           ActiveState: %+v \n", u.Message.ActiveState)
+		fmt.Printf("              SubState: %+v \n", u.Message.SubState)
+		fmt.Printf("         UnitFileState: %+v \n", u.Message.UnitFileState)
 
-		t := time.Unix(int64(u.Message.StateChangeTimestamp), 0)
-		fmt.Printf("StateChangeTimeStamp: %+v \n", t.Format(time.UnixDate))
+		if u.Message.StateChangeTimestamp > 0 {
+			t := time.Unix(int64(u.Message.StateChangeTimestamp), 0)
+			fmt.Printf("  StateChangeTimeStamp: %+v \n", t.Format(time.UnixDate))
+		} else {
+			fmt.Printf("  StateChangeTimeStamp: %+v \n", 0)
+		}
+
+		if u.Message.ActiveEnterTimestamp > 0 {
+			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
+			fmt.Printf("  ActiveEnterTimestamp: %+v \n", t.Format(time.UnixDate))
+		} else {
+			fmt.Printf("  ActiveEnterTimestamp: %+v \n", 0)
+		}
+
+		if u.Message.ActiveEnterTimestamp > 0 {
+			t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
+			fmt.Printf(" InactiveExitTimestamp: %+v \n", t.Format(time.UnixDate))
+		} else {
+			fmt.Printf(" InactiveExitTimestamp: %+v \n", 0)
+		}
+
+		if u.Message.ActiveExitTimestamp > 0 {
+			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
+			fmt.Printf("   ActiveExitTimestamp: %+v \n", t.Format(time.UnixDate))
+		} else {
+			fmt.Printf("   ActiveExitTimestamp: %+v \n", 0)
+		}
+
+		if u.Message.InactiveExitTimestamp > 0 {
+			t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
+			fmt.Printf(" InactiveExitTimestamp: %+v \n", t.Format(time.UnixDate))
+		} else {
+			fmt.Printf(" InactiveExitTimestamp: %+v \n", 0)
+		}
 
 		switch u.Message.ActiveState {
 		case "active", "reloading":
 
 			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-			fmt.Printf("              Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			fmt.Printf("                Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 
 		case "inactive", "failed":
 
-			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-			fmt.Printf("             Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
+			fmt.Printf("               Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 
 		case "activating":
 			var t time.Time
 
 			if u.Message.ActiveExitTimestamp != 0 {
-				t = time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
+				t = time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
 			} else {
-				t = time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
+				t = time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
 			}
 
-			fmt.Printf("             Active: %s (%s) %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			fmt.Printf("               Active: %s (%s) %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 
 		default:
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
-			fmt.Printf("             Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			fmt.Printf("               Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 		}
 	} else {
 		fmt.Println(u.Errors)
