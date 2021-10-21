@@ -63,7 +63,7 @@ func fetchSystemdUnitStatus(unit string) {
 		fmt.Printf("           LoadState: %+v \n", u.Message.LoadState)
 		fmt.Printf("         ActiveState: %+v \n", u.Message.ActiveState)
 		fmt.Printf("            SubState: %+v \n", u.Message.SubState)
-		fmt.Printf("      Unit filestate: %+v \n", u.Message.UnitFileState)
+		fmt.Printf("       UnitFileState: %+v \n", u.Message.UnitFileState)
 		fmt.Printf("ActiveEnterTimestamp: %+v \n", time.Unix(int64(u.Message.StateChangeTimestamp), 0))
 
 		switch u.Message.ActiveState {
@@ -92,6 +92,8 @@ func fetchSystemdUnitStatus(unit string) {
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
 			fmt.Printf("             Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 		}
+	} else {
+		fmt.Println(u.Errors)
 	}
 }
 
