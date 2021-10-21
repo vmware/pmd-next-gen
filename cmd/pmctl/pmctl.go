@@ -109,7 +109,7 @@ func main() {
 	app := &cli.App{
 		Name:    "pmctl",
 		Version: "v0.1",
-		Usage:   "Introspects system data",
+		Usage:   "Introspects system data and manage system",
 	}
 
 	app.EnableBashCompletion = true
@@ -117,7 +117,7 @@ func main() {
 		{
 			Name:    "service",
 			Aliases: []string{"s"},
-			Usage:   "Display system or network status",
+			Usage:   "Perform systemd service commands",
 			Subcommands: []*cli.Command{
 				{
 					Name:  "status",
