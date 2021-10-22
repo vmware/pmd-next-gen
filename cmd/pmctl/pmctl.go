@@ -45,11 +45,11 @@ type UnitStatus struct {
 }
 
 func PerformSystemdUnitCommand(command string, unit string) {
-	action := systemd.UnitAction{
+	c:= systemd.UnitAction{
 		Action: command,
 		Unit:   unit,
 	}
-	resp, err := web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", action)
+	resp, err := web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", c)
 	if err != nil {
 		fmt.Printf("Failed to execute '%s': %v", command, err)
 		os.Exit(1)
@@ -188,11 +188,11 @@ func main() {
 		{
 			Name:    "service",
 			Aliases: []string{"s"},
-			Usage:   "Perform systemd service commands",
+			Usage:   "Control the systemd system and service manager",
 			Subcommands: []*cli.Command{
 				{
 					Name:  "status",
-					Usage: "Display systemd service status",
+					Usage: "Show terse runtime status information about one or more units",
 					Action: func(c *cli.Context) error {
 						fetchSystemdUnitStatus(c.Args().First())
 						return nil
@@ -200,7 +200,7 @@ func main() {
 				},
 				{
 					Name:  "start",
-					Usage: "Start systemd service",
+					Usage: "Start (activate) one units specified on the command line",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("start", c.Args().First())
 						return nil
@@ -208,7 +208,7 @@ func main() {
 				},
 				{
 					Name:  "stop",
-					Usage: "Stop systemd service",
+					Usage: "Stop (deactivate) one specified on the command line.",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("stop", c.Args().First())
 						return nil
@@ -216,7 +216,7 @@ func main() {
 				},
 				{
 					Name:  "restart",
-					Usage: "Restart systemd service",
+					Usage: "Stop and then start one unit specified on the command line. If the units are not running yet, they will be started.",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("restart", c.Args().First())
 						return nil
@@ -224,7 +224,7 @@ func main() {
 				},
 				{
 					Name:  "mask",
-					Usage: "Mask systemd unit",
+					Usage: "Mask one or more units, as specified on the command line",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("mask", c.Args().First())
 						return nil
@@ -232,9 +232,25 @@ func main() {
 				},
 				{
 					Name:  "unmask",
-					Usage: "Unmask systemd unit",
+					Usage: "Unmask one unit file, as specified on the command line",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("unmask", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "try-restart",
+					Usage: "Stop and then start one units specified on the command line if the units are running. This does nothing if units are not running.",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("try-restart", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:  "reload-or-restart",
+					Usage: "Reload one unit if they support it. If not, stop and then start them instead. If the units are not running yet, they will be started.",
+					Action: func(c *cli.Context) error {
+						PerformSystemdUnitCommand("reload-or-restart", c.Args().First())
 						return nil
 					},
 				},
