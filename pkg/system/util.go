@@ -19,8 +19,7 @@ func DBusTimeToUsec(prop *sdbus.Property) (time.Time, error) {
 	}
 
 	if usec == 0 {
-
-		return UnixMicro(usec), errors.New("0")
+		return UnixMicro(0), errors.New("0")
 	}
 
 	return UnixMicro(usec), nil
