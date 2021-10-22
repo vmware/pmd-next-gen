@@ -51,26 +51,25 @@ func PerformSystemdUnitCommand(command string, unit string) {
 	}
 	resp, err := web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", c)
 	if err != nil {
-		fmt.Printf("Failed to execute '%s': %v", command, err)
+		fmt.Printf("Failed to execute '%s': %v\n", command, err)
 		os.Exit(1)
-		return
 	}
 
 	m := web.JSONResponseMessage{}
 	if err := json.Unmarshal(resp, &m); err != nil {
-		fmt.Printf("Failed to decode json message: %v", err)
-		os.Exit(0)
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
 	}
 
 	if m.Success {
-		fmt.Printf("Command executed successfully")
+		fmt.Printf("Command executed successfully\n")
 	} else {
 		var s string
 		if m.Message == "" {
 			s = "n/a"
 		}
 
-		fmt.Printf("Failed to execute command: %v(%v) ", s, m.Errors)
+		fmt.Printf("Failed to execute command: %v(%v)\n", s, m.Errors)
 		os.Exit(1)
 	}
 }
@@ -78,13 +77,13 @@ func PerformSystemdUnitCommand(command string, unit string) {
 func fetchSystemdUnitStatus(unit string) {
 	resp, err := web.FetchUnixDomainSocket("http://localhost/api/v1/service/systemd/" + unit + "/status")
 	if err != nil {
-		fmt.Printf("Failed to fetch status: %v", err)
+		fmt.Printf("Failed to fetch unit status: %v\n", err)
 		return
 	}
 
 	u := UnitStatus{}
 	if err := json.Unmarshal(resp, &u); err != nil {
-		fmt.Printf("Failed to decode json message: %v", err)
+		fmt.Printf("Failed to decode json message: %v\n", err)
 		return
 	}
 
@@ -138,14 +137,14 @@ func fetchSystemdUnitStatus(unit string) {
 				t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
 				fmt.Printf("                Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
-				fmt.Printf("                Active: %s (%s)", u.Message.ActiveState, u.Message.SubState)
+				fmt.Printf("                Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
 			}
 		case "inactive", "failed":
 			if u.Message.ActiveExitTimestamp != 0 {
 				t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
-				fmt.Printf("                Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+				fmt.Printf("                Active: %s (%s) since %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
-				fmt.Printf("                Active: %s (%s) ", u.Message.ActiveState, u.Message.SubState)
+				fmt.Printf("                Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
 			}
 		case "activating":
 			var t time.Time
@@ -157,9 +156,9 @@ func fetchSystemdUnitStatus(unit string) {
 					t = time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
 				}
 
-				fmt.Printf("               Active: %s (%s) %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+				fmt.Printf("               Active: %s (%s) %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
-				fmt.Printf("               Active: %s (%s)", u.Message.ActiveState, u.Message.SubState)
+				fmt.Printf("               Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
 			}
 		default:
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
@@ -180,7 +179,7 @@ func main() {
 	app := &cli.App{
 		Name:    "pmctl",
 		Version: "v0.1",
-		Usage:   "Introspects and manage system",
+		Usage:   "Introspects and Controls the system",
 	}
 
 	app.EnableBashCompletion = true
