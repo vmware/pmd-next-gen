@@ -45,7 +45,7 @@ type UnitStatus struct {
 }
 
 func PerformSystemdUnitCommand(command string, unit string) {
-	c:= systemd.UnitAction{
+	c := systemd.UnitAction{
 		Action: command,
 		Unit:   unit,
 	}
@@ -61,15 +61,8 @@ func PerformSystemdUnitCommand(command string, unit string) {
 		os.Exit(1)
 	}
 
-	if m.Success {
-		fmt.Printf("Command executed successfully\n")
-	} else {
-		var s string
-		if m.Message == "" {
-			s = "n/a"
-		}
-
-		fmt.Printf("Failed to execute command: %v(%v)\n", s, m.Errors)
+	if !m.Success {
+		fmt.Printf("Failed to execute command: %v\n", m.Errors)
 		os.Exit(1)
 	}
 }
