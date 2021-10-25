@@ -84,13 +84,13 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 		},
 	}
 
-	buf := new(bytes.Buffer)
-	err := json.NewEncoder(buf).Encode(data)
+	j := new(bytes.Buffer)
+	err := json.NewEncoder(j).Encode(data)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(method, url, buf)
+	req, err := http.NewRequest(method, url, j)
 	if err != nil {
 		return nil, err
 	}

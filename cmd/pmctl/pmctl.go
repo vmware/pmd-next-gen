@@ -184,7 +184,7 @@ func main() {
 			Subcommands: []*cli.Command{
 				{
 					Name:  "status",
-					Usage: "Show terse runtime status information about one or more units",
+					Usage: "Show terse runtime status information about one unit",
 					Action: func(c *cli.Context) error {
 						fetchSystemdUnitStatus(c.Args().First())
 						return nil
@@ -192,7 +192,7 @@ func main() {
 				},
 				{
 					Name:  "start",
-					Usage: "Start (activate) one units specified on the command line",
+					Usage: "Start (activate) one unit specified on the command line",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("start", c.Args().First())
 						return nil
@@ -208,7 +208,7 @@ func main() {
 				},
 				{
 					Name:  "restart",
-					Usage: "Stop and then start one unit specified on the command line. If the units are not running yet, they will be started.",
+					Usage: "Stop and then start one unit specified on the command line. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("restart", c.Args().First())
 						return nil
@@ -216,7 +216,7 @@ func main() {
 				},
 				{
 					Name:  "mask",
-					Usage: "Mask one or more units, as specified on the command line",
+					Usage: "Mask one unit, as specified on the command line",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("mask", c.Args().First())
 						return nil
@@ -232,7 +232,7 @@ func main() {
 				},
 				{
 					Name:  "try-restart",
-					Usage: "Stop and then start one units specified on the command line if the units are running. This does nothing if units are not running.",
+					Usage: "Stop and then start one unit specified on the command line if the unit are running. This does nothing if unit is not running.",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("try-restart", c.Args().First())
 						return nil
@@ -240,7 +240,7 @@ func main() {
 				},
 				{
 					Name:  "reload-or-restart",
-					Usage: "Reload one unit if they support it. If not, stop and then start them instead. If the units are not running yet, they will be started.",
+					Usage: "Reload one unit if they support it. If not, stop and then start instead. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
 						PerformSystemdUnitCommand("reload-or-restart", c.Args().First())
 						return nil
