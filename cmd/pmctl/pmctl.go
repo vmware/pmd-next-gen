@@ -44,15 +44,27 @@ type UnitStatus struct {
 	Errors string `json:"errors"`
 }
 
-func PerformSystemdUnitCommand(command string, unit string) {
+func PerformSystemdUnitCommand(command string, unit string, host string) {
 	c := systemd.UnitAction{
 		Action: command,
 		Unit:   unit,
 	}
-	resp, err := web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", c)
-	if err != nil {
-		fmt.Printf("Failed to execute '%s': %v\n", command, err)
-		os.Exit(1)
+
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.Dispatch("POST", host+"/api/v1/service/systemd", nil, c)
+		if err != nil {
+			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
+			return
+		}
+	} else {
+		resp, err = web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", c)
+		if err != nil {
+			fmt.Printf("Failed to execute '%s': %v\n", command, err)
+			os.Exit(1)
+		}
 	}
 
 	m := web.JSONResponseMessage{}
@@ -67,11 +79,22 @@ func PerformSystemdUnitCommand(command string, unit string) {
 	}
 }
 
-func fetchSystemdUnitStatus(unit string) {
-	resp, err := web.FetchUnixDomainSocket("http://localhost/api/v1/service/systemd/" + unit + "/status")
-	if err != nil {
-		fmt.Printf("Failed to fetch unit status: %v\n", err)
-		return
+func fetchSystemdUnitStatus(unit string, host string) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.Fetch(host+"/api/v1/service/systemd/"+unit+"/status", nil)
+		if err != nil {
+			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
+			return
+		}
+	} else {
+		resp, err = web.FetchUnixDomainSocket("http://localhost/api/v1/service/systemd/" + unit + "/status")
+		if err != nil {
+			fmt.Printf("Failed to fetch unit status from unix domain socket: %v\n", err)
+			return
+		}
 	}
 
 	u := UnitStatus{}
@@ -175,6 +198,14 @@ func main() {
 		Usage:   "Introspects and Controls the system",
 	}
 
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:    "url",
+			Aliases: []string{"u"},
+			Usage:   "http://localhost:80",
+		},
+	}
+
 	app.EnableBashCompletion = true
 	app.Commands = []*cli.Command{
 		{
@@ -185,8 +216,9 @@ func main() {
 				{
 					Name:  "status",
 					Usage: "Show terse runtime status information about one unit",
+
 					Action: func(c *cli.Context) error {
-						fetchSystemdUnitStatus(c.Args().First())
+						fetchSystemdUnitStatus(c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -194,7 +226,7 @@ func main() {
 					Name:  "start",
 					Usage: "Start (activate) one unit specified on the command line",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("start", c.Args().First())
+						PerformSystemdUnitCommand("start", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -202,7 +234,7 @@ func main() {
 					Name:  "stop",
 					Usage: "Stop (deactivate) one specified on the command line.",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("stop", c.Args().First())
+						PerformSystemdUnitCommand("stop", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -210,7 +242,7 @@ func main() {
 					Name:  "restart",
 					Usage: "Stop and then start one unit specified on the command line. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("restart", c.Args().First())
+						PerformSystemdUnitCommand("restart", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -218,7 +250,7 @@ func main() {
 					Name:  "mask",
 					Usage: "Mask one unit, as specified on the command line",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("mask", c.Args().First())
+						PerformSystemdUnitCommand("mask", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -226,7 +258,7 @@ func main() {
 					Name:  "unmask",
 					Usage: "Unmask one unit file, as specified on the command line",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("unmask", c.Args().First())
+						PerformSystemdUnitCommand("unmask", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -234,7 +266,7 @@ func main() {
 					Name:  "try-restart",
 					Usage: "Stop and then start one unit specified on the command line if the unit are running. This does nothing if unit is not running.",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("try-restart", c.Args().First())
+						PerformSystemdUnitCommand("try-restart", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},
@@ -242,7 +274,7 @@ func main() {
 					Name:  "reload-or-restart",
 					Usage: "Reload one unit if they support it. If not, stop and then start instead. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
-						PerformSystemdUnitCommand("reload-or-restart", c.Args().First())
+						PerformSystemdUnitCommand("reload-or-restart", c.Args().First(), c.String("url"))
 						return nil
 					},
 				},

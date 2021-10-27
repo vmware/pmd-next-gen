@@ -23,6 +23,8 @@ func Fetch(url string, headers map[string]string) ([]byte, error) {
 		httpClient.Header.Set(k, v)
 	}
 
+	httpClient.Header.Set("Content-Type", "application/json")
+
 	resp, err := http.DefaultClient.Do(httpClient)
 	if err != nil {
 		return nil, err
@@ -40,6 +42,43 @@ func Fetch(url string, headers map[string]string) ([]byte, error) {
 
 	return body, nil
 }
+
+func Dispatch(method string, url string, headers map[string]string, data interface{}) ([]byte, error) {
+	j := new(bytes.Buffer)
+	err := json.NewEncoder(j).Encode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	httpClient, err := http.NewRequest(method, url, j)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range headers {
+		httpClient.Header.Set(k, v)
+	}
+
+	httpClient.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(httpClient)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
 
 func FetchUnixDomainSocket(url string) ([]byte, error) {
 	httpClient := http.Client{
