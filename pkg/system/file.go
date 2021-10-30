@@ -6,7 +6,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 	"strings"
+
+	"github.com/pm-web/pkg/conf"
 )
 
 func PathExists(path string) bool {
@@ -106,4 +109,8 @@ func CreateDirectoryNested(directoryPath string, perm os.FileMode) error {
 	}
 
 	return nil
+}
+
+func TLSFilePathExits() bool {
+	return PathExists(path.Join(conf.ConfPath, conf.TLSCert)) && PathExists(path.Join(conf.ConfPath, conf.TLSKey))
 }

@@ -13,16 +13,18 @@ import (
 	"syscall"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
+
 	"github.com/pm-web/pkg/conf"
 	"github.com/pm-web/pkg/proc"
 	"github.com/pm-web/pkg/system"
 	"github.com/pm-web/pkg/systemd"
-	log "github.com/sirupsen/logrus"
 )
 
-func StartRouter(c *conf.Config) error {
-	var srv http.Server
+var httpSrv *http.Server
 
+func NewRouter() *mux.Router {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
 
@@ -30,6 +32,42 @@ func StartRouter(c *conf.Config) error {
 	systemd.RegisterRouterSystemd(s)
 	proc.RegisterRouterProc(s)
 
+	return r
+}
+
+func runUnixDomainHttpServer(r *mux.Router) error {
+	var credentialsContextKey = struct{}{}
+
+	system.CreateDirectory("/run/pmwebd/", 0755)
+
+	r.Use(UnixDomainPeerCredential)
+
+	httpSrv = &http.Server{
+		Handler: r,
+		ConnContext: func(ctx context.Context, c net.Conn) context.Context {
+			file, _ := c.(*net.UnixConn).File()
+			credentials, _ := unix.GetsockoptUcred(int(file.Fd()), unix.SOL_SOCKET, unix.SO_PEERCRED)
+			return context.WithValue(ctx, credentialsContextKey, credentials)
+		},
+	}
+
+	log.Infof("Starting pm-webd server at unix domain socket '/run/pmwebd/pmwebd.sock' in HTTP mode")
+
+	os.Remove("/run/pmwebd/pmwebd.sock")
+
+	unixListener, err := net.Listen("unix", "/run/pmwebd/pmwebd.sock")
+	if err != nil {
+		log.Fatalf("Unable to listen on unix domain socket file '/run/pmwebd/pmwebd.sock': %v", err)
+	}
+
+	defer unixListener.Close()
+
+	log.Fatal(httpSrv.Serve(unixListener))
+
+	return nil
+}
+
+func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 	if c.System.UseAuthentication {
 		amw, err := InitAuthMiddleware()
 		if err != nil {
@@ -40,69 +78,54 @@ func StartRouter(c *conf.Config) error {
 		r.Use(amw.AuthMiddleware)
 	}
 
-	var gracefulStop = make(chan os.Signal)
-	signal.Notify(gracefulStop, syscall.SIGTERM)
-	signal.Notify(gracefulStop, syscall.SIGINT)
-	go func() {
-		sig := <-gracefulStop
-
-		log.Printf("Received signal: %+v", sig)
-		log.Println("Shutting down pm-webd ...")
-
-		if err := srv.Shutdown(context.Background()); err != nil {
-			log.Errorf("Failed to shutdown server gracefully: %v", err)
+	if system.TLSFilePathExits() {
+		cfg := &tls.Config{
+			MinVersion:               tls.VersionTLS12,
+			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+			PreferServerCipherSuites: false,
+		}
+		httpSrv = &http.Server{
+			Addr:         c.Network.IPAddress + ":" + c.Network.Port,
+			Handler:      r,
+			TLSConfig:    cfg,
+			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 		}
 
+		log.Infof("Starting pm-webd server at %s:%s in HTTPS mode", c.Network.IPAddress, c.Network.Port)
+
+		log.Fatal(httpSrv.ListenAndServeTLS(path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey)))
+	} else {
+		httpSrv := http.Server{
+			Addr:    c.Network.IPAddress + ":" + c.Network.Port,
+			Handler: r,
+		}
+
+		log.Infof("Starting pm-webd server at %s:%s in HTTP mode", c.Network.IPAddress, c.Network.Port)
+
+		log.Fatal(httpSrv.ListenAndServe())
+	}
+
+	return nil
+}
+
+func StartHttpServer(c *conf.Config) error {
+	r := NewRouter()
+
+	s := make(chan os.Signal, 1)
+	signal.Notify(s, os.Interrupt)
+	signal.Notify(s, syscall.SIGTERM)
+	go func() {
+		<-s
+		if err := httpSrv.Shutdown(context.Background()); err != nil {
+			os.Exit(1)
+		}
 		os.Exit(0)
 	}()
 
 	if c.Network.ListenUnixSocket {
-		system.CreateDirectory("/run/pmwebd/", 0755)
-
-		server := http.Server{
-			Handler: r,
-		}
-
-		log.Infof("Starting pm-webd server at unix domain socket '/run/pmwebd/pmwebd.sock' in HTTP mode")
-
-		os.Remove("/run/pmwebd/pmwebd.sock")
-
-		unixListener, err := net.Listen("unix", "/run/pmwebd/pmwebd.sock")
-		if err != nil {
-			log.Fatalf("Unable to listen on unix domain socket file '/run/pmwebd/pmwebd.sock': %v", err)
-		}
-
-		defer unixListener.Close()
-
-		log.Fatal(server.Serve(unixListener))
-
+		runUnixDomainHttpServer(r)
 	} else {
-		if system.PathExists(path.Join(conf.ConfPath, conf.TLSCert)) && system.PathExists(path.Join(conf.ConfPath, conf.TLSKey)) {
-			cfg := &tls.Config{
-				MinVersion:               tls.VersionTLS12,
-				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-				PreferServerCipherSuites: false,
-			}
-			srv = http.Server{
-				Addr:         c.Network.IPAddress + ":" + c.Network.Port,
-				Handler:      r,
-				TLSConfig:    cfg,
-				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
-			}
-
-			log.Infof("Starting pm-webd server at %s:%s in HTTPS mode", c.Network.IPAddress, c.Network.Port)
-
-			log.Fatal(srv.ListenAndServeTLS(path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey)))
-		} else {
-			srv = http.Server{
-				Addr:    c.Network.IPAddress + ":" + c.Network.Port,
-				Handler: r,
-			}
-
-			log.Infof("Starting pm-webd server at %s:%s in HTTP mode", c.Network.IPAddress, c.Network.Port)
-
-			log.Fatal(srv.ListenAndServe())
-		}
+		runWebHttpServer(c, r)
 	}
 
 	return nil

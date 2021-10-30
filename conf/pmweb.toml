@@ -3,6 +3,6 @@ LogLevel="info"
 UseAuthentication="true"
 
 [Network]
-IPAddress="0.0.0.0"
-Port="8080"
+#IPAddress="0.0.0.0"
+#Port="8080"
 ListenUnixSocket="false"

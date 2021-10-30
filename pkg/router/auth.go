@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pm-web/pkg/system"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
+
+	"github.com/pm-web/pkg/system"
 )
 
 const (
@@ -31,6 +33,20 @@ func (db *TokenDB) AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			log.Infof("Unauthorized user")
 		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func UnixDomainPeerCredential(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var credentialsContextKey = struct{}{}
+
+		credentials := r.Context().Value(credentialsContextKey).(*unix.Ucred)
+
+		log.Infof("Connection credentials: Pid=%v, Uid=%v, Gid=%v", credentials.Pid, credentials.Gid, credentials.Uid)
+
+		next.ServeHTTP(w, r)
 	})
 }
 

@@ -6,9 +6,10 @@ import (
 	"os"
 	"runtime"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/pm-web/pkg/conf"
 	"github.com/pm-web/pkg/router"
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 
 	log.Infof("pm-webd: v%s (built %s)", conf.Version, runtime.Version())
 
-	if err := router.StartRouter(c); err != nil {
+	if err := router.StartHttpServer(c); err != nil {
 		log.Fatalf("Failed to start pm-webd: %v", err)
 		os.Exit(1)
 	}
