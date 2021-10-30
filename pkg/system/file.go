@@ -6,8 +6,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/user"
 	"path"
+	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/pm-web/pkg/conf"
 )
@@ -113,4 +116,39 @@ func CreateDirectoryNested(directoryPath string, perm os.FileMode) error {
 
 func TLSFilePathExits() bool {
 	return PathExists(path.Join(conf.ConfPath, conf.TLSCert)) && PathExists(path.Join(conf.ConfPath, conf.TLSKey))
+}
+
+func ChangeUnixDomainSocketPermission(file string) (err error) {
+	usr, err := user.Lookup("pm-web")
+	if err != nil {
+		_, ok := err.(user.UnknownGroupError)
+		if !ok {
+			return err
+		}
+	}
+
+	uid, _ := strconv.Atoi(usr.Uid)
+	gid, _ := strconv.Atoi(usr.Gid)
+
+	if err := os.Chown(file, uid, gid); err != nil {
+		return err
+	}
+
+	if err := os.Chmod(file, 0770); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateStateDirs(path string, uid int, gid int) error {
+	if err := os.MkdirAll(path, os.FileMode(07777)); err != nil {
+		return err
+	}
+
+	if err := syscall.Chown(path, uid, gid); err != nil {
+		return err
+	}
+
+	return nil
 }

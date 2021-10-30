@@ -38,8 +38,6 @@ func NewRouter() *mux.Router {
 func runUnixDomainHttpServer(r *mux.Router) error {
 	var credentialsContextKey = struct{}{}
 
-	system.CreateDirectory("/run/pmwebd/", 0755)
-
 	r.Use(UnixDomainPeerCredential)
 
 	httpSrv = &http.Server{
@@ -54,13 +52,19 @@ func runUnixDomainHttpServer(r *mux.Router) error {
 	log.Infof("Starting pm-webd server at unix domain socket '/run/pmwebd/pmwebd.sock' in HTTP mode")
 
 	os.Remove("/run/pmwebd/pmwebd.sock")
-
-	unixListener, err := net.Listen("unix", "/run/pmwebd/pmwebd.sock")
+	unixListener, err := net.ListenUnix("unix", &net.UnixAddr{Name: "/run/pmwebd/pmwebd.sock", Net: "unix"})
 	if err != nil {
 		log.Fatalf("Unable to listen on unix domain socket file '/run/pmwebd/pmwebd.sock': %v", err)
 	}
 
 	defer unixListener.Close()
+
+	if err := os.Chmod("/run/pmwebd/pmwebd.sock", 0660); err != nil {
+		log.Errorf("Failed to change socket permissions: %v", err)
+		return err
+	}
+
+	system.ChangeUnixDomainSocketPermission("/run/pmwebd/pmwebd.sock")
 
 	log.Fatal(httpSrv.Serve(unixListener))
 
