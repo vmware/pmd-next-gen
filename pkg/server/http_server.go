@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package router
+package server
 
 import (
 	"context"
@@ -112,7 +112,7 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 	return nil
 }
 
-func StartHttpServer(c *conf.Config) error {
+func Run(c *conf.Config) error {
 	r := NewRouter()
 
 	s := make(chan os.Signal, 1)

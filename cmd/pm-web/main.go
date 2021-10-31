@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pm-web/pkg/conf"
-	"github.com/pm-web/pkg/router"
+	"github.com/pm-web/pkg/server"
 	"github.com/pm-web/pkg/system"
 )
 
@@ -55,7 +55,7 @@ func main() {
 		}
 	}
 
-	if err := router.StartHttpServer(c); err != nil {
+	if err := server.Run(c); err != nil {
 		log.Fatalf("Failed to start pm-webd: %v", err)
 		os.Exit(1)
 	}

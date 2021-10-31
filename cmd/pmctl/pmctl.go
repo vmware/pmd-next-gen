@@ -151,7 +151,7 @@ func fetchSystemdUnitStatus(unit string, host string) {
 		case "active", "reloading":
 			if u.Message.ActiveEnterTimestamp > 0 {
 				t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-				fmt.Printf("                Active: %s (%s) since %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+				fmt.Printf("                Active: %s (%s) since %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
 				fmt.Printf("                Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
 			}
@@ -178,7 +178,7 @@ func fetchSystemdUnitStatus(unit string, host string) {
 			}
 		default:
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
-			fmt.Printf("               Active: %s (%s) ago %v", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			fmt.Printf("               Active: %s (%s) ago %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 		}
 	} else {
 		fmt.Println(u.Errors)
