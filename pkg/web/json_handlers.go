@@ -11,7 +11,7 @@ type JSONResponseMessage struct {
 	Errors  string      `json:"errors"`
 }
 
-func httpResponse(m *JSONResponseMessage, response interface{}, w http.ResponseWriter) error {
+func httpResponse(m *JSONResponseMessage, w http.ResponseWriter) error {
 	j, err := json.Marshal(m)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -31,7 +31,7 @@ func JSONResponse(response interface{}, w http.ResponseWriter) error {
 		Message: response,
 	}
 
-	return httpResponse(&m , response, w)
+	return httpResponse(&m , w)
 }
 
 func JSONResponseError(err error, w http.ResponseWriter) error {
@@ -40,5 +40,5 @@ func JSONResponseError(err error, w http.ResponseWriter) error {
 		Errors:  err.Error(),
 	}
 
-	return httpResponse(&m , nil, w)
+	return httpResponse(&m , w)
 }
