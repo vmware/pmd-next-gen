@@ -49,22 +49,22 @@ func runUnixDomainHttpServer(r *mux.Router) error {
 		},
 	}
 
-	log.Infof("Starting pm-webd server at unix domain socket '/run/pmwebd/pmwebd.sock' in HTTP mode")
+	log.Infof("Starting pm-webd server at unix domain socket '%s' in HTTP mode", conf.UnixDomainSocketPath)
 
-	os.Remove("/run/pmwebd/pmwebd.sock")
-	unixListener, err := net.ListenUnix("unix", &net.UnixAddr{Name: "/run/pmwebd/pmwebd.sock", Net: "unix"})
+	os.Remove(conf.UnixDomainSocketPath)
+	unixListener, err := net.ListenUnix("unix", &net.UnixAddr{Name: conf.UnixDomainSocketPath, Net: "unix"})
 	if err != nil {
-		log.Fatalf("Unable to listen on unix domain socket file '/run/pmwebd/pmwebd.sock': %v", err)
+		log.Fatalf("Unable to listen on unix domain socket file '%s': %v", conf.UnixDomainSocketPath, err)
 	}
 
 	defer unixListener.Close()
 
-	if err := os.Chmod("/run/pmwebd/pmwebd.sock", 0660); err != nil {
+	if err := os.Chmod(conf.UnixDomainSocketPath, 0660); err != nil {
 		log.Errorf("Failed to change socket permissions: %v", err)
 		return err
 	}
 
-	system.ChangeUnixDomainSocketPermission("/run/pmwebd/pmwebd.sock")
+	system.ChangeUnixDomainSocketPermission(conf.UnixDomainSocketPath)
 
 	log.Fatal(httpSrv.Serve(unixListener))
 

@@ -3,9 +3,10 @@
 package conf
 
 import (
-	"github.com/pm-web/pkg/share"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/pm-web/pkg/share"
 )
 
 const (
@@ -21,6 +22,8 @@ const (
 	DefaultIP        = "0.0.0.0"
 	DefaultPort      = "8080"
 	ListenUnixSocket = "true"
+
+	UnixDomainSocketPath = "/run/pmwebd/pmwebd.sock"
 )
 
 type Config struct {

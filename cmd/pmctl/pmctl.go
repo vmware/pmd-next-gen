@@ -202,7 +202,7 @@ func main() {
 		&cli.StringFlag{
 			Name:    "url",
 			Aliases: []string{"u"},
-			Usage:   "http://localhost:80",
+			Usage:   "http://localhost:8080",
 		},
 	}
 

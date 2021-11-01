@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+
+	"github.com/pm-web/pkg/conf"
 )
 
 func Fetch(url string, headers map[string]string) ([]byte, error) {
@@ -79,12 +81,11 @@ func Dispatch(method string, url string, headers map[string]string, data interfa
 	return body, nil
 }
 
-
 func FetchUnixDomainSocket(url string) ([]byte, error) {
 	httpClient := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", "/run/pmwebd/pmwebd.sock")
+				return net.Dial("unix", conf.UnixDomainSocketPath)
 			},
 		},
 	}
@@ -118,7 +119,7 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 	httpClient := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", "/run/pmwebd/pmwebd.sock")
+				return net.Dial("unix", conf.UnixDomainSocketPath)
 			},
 		},
 	}
