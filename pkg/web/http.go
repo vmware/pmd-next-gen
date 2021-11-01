@@ -11,12 +11,20 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/pm-web/pkg/conf"
 )
 
+const (
+	requestMaxWaitTime = 5 * time.Second
+)
+
 func Fetch(url string, headers map[string]string) ([]byte, error) {
-	httpClient, err := http.NewRequest("GET", url, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
+	defer cancel()
+
+	httpClient, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +60,10 @@ func Dispatch(method string, url string, headers map[string]string, data interfa
 		return nil, err
 	}
 
-	httpClient, err := http.NewRequest(method, url, j)
+	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
+	defer cancel()
+
+	httpClient, err := http.NewRequestWithContext(ctx, method, url, j)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +101,10 @@ func FetchUnixDomainSocket(url string) ([]byte, error) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +144,10 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 		return nil, err
 	}
 
-	req, err := http.NewRequest(method, url, j)
+	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, method, url, j)
 	if err != nil {
 		return nil, err
 	}
