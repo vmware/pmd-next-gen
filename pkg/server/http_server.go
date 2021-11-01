@@ -56,7 +56,6 @@ func runUnixDomainHttpServer(r *mux.Router) error {
 	if err != nil {
 		log.Fatalf("Unable to listen on unix domain socket='%s': %v", conf.UnixDomainSocketPath, err)
 	}
-
 	defer unixListener.Close()
 
 	if err := system.ChangeUnixDomainSocketPermission(conf.UnixDomainSocketPath); err != nil {

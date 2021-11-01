@@ -21,7 +21,6 @@ const (
 	defaultRequestTimeout = 5 * time.Second
 )
 
-
 func decodeHttpResponse(resp *http.Response, err error) ([]byte, error) {
 	if resp.StatusCode != 200 {
 		return nil, errors.Wrap(err, "non-200 status code")
@@ -29,7 +28,7 @@ func decodeHttpResponse(resp *http.Response, err error) ([]byte, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not decode body")
 	}
 
 	return body, nil
