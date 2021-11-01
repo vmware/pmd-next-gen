@@ -7,42 +7,24 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/pm-web/pkg/conf"
 )
 
 const (
-	requestMaxWaitTime = 5 * time.Second
+	defaultRequestTimeout = 5 * time.Second
 )
 
-func Fetch(url string, headers map[string]string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
-	defer cancel()
 
-	httpClient, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range headers {
-		httpClient.Header.Set(k, v)
-	}
-
-	httpClient.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(httpClient)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
+func decodeHttpResponse(resp *http.Response, err error) ([]byte, error) {
 	if resp.StatusCode != 200 {
-		return nil, err
+		return nil, errors.Wrap(err, "non-200 status code")
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -53,83 +35,47 @@ func Fetch(url string, headers map[string]string) ([]byte, error) {
 	return body, nil
 }
 
-func Dispatch(method string, url string, headers map[string]string, data interface{}) ([]byte, error) {
+func buildHttpRequest(ctx context.Context, method string, url string, headers map[string]string, data interface{}) (*http.Request, error){
 	j := new(bytes.Buffer)
-	err := json.NewEncoder(j).Encode(data)
+	if err := json.NewEncoder(j).Encode(data);err != nil {
+		return nil, err
+	}
+
+	httpRequest, err := http.NewRequestWithContext(ctx, method, url, j)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
-	defer cancel()
-
-	httpClient, err := http.NewRequestWithContext(ctx, method, url, j)
-	if err != nil {
-		return nil, err
-	}
-
+	httpRequest.Header.Set("Content-Type", "application/json")
 	for k, v := range headers {
-		httpClient.Header.Set(k, v)
+		httpRequest.Header.Set(k, v)
 	}
 
-	httpClient.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(httpClient)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
+	return httpRequest, nil
 }
 
-func FetchUnixDomainSocket(url string) ([]byte, error) {
-	httpClient := http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", conf.UnixDomainSocketPath)
-			},
-		},
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
+func DispatchSocket(method string, url string, headers map[string]string, data interface{}) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := buildHttpRequest(ctx, method, url, headers, data)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := httpClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not complete HTTP request")
 	}
 	defer resp.Body.Close()
 
-	if err == nil && resp.StatusCode != 200 {
-		return nil, fmt.Errorf("non-200 status code: %+v", resp)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
+	return decodeHttpResponse(resp, err)
 }
 
 func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	defer cancel()
+
 	httpClient := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
@@ -138,31 +84,15 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 		},
 	}
 
-	j := new(bytes.Buffer)
-	err := json.NewEncoder(j).Encode(data)
+	req, err := buildHttpRequest(ctx, method, url, nil, data)
 	if err != nil {
 		return nil, err
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), requestMaxWaitTime)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, method, url, j)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := httpClient.Do(req)
-	if err == nil && resp.StatusCode != 200 {
-		return nil, fmt.Errorf("non-200 status code: %+v", resp)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not complete HTTP request")
 	}
 
-	return body, nil
+	return decodeHttpResponse(resp, err)
 }

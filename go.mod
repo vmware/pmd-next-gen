@@ -6,6 +6,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.3.2
 	github.com/go-ini/ini v1.63.2
 	github.com/gorilla/mux v1.8.0
+	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.21.9
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.9.0

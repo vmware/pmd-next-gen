@@ -49,22 +49,21 @@ func runUnixDomainHttpServer(r *mux.Router) error {
 		},
 	}
 
-	log.Infof("Starting pm-webd server at unix domain socket '%s' in HTTP mode", conf.UnixDomainSocketPath)
+	log.Infof("Starting pm-webd server at unix domain socket='%s' in HTTP mode", conf.UnixDomainSocketPath)
 
 	os.Remove(conf.UnixDomainSocketPath)
 	unixListener, err := net.ListenUnix("unix", &net.UnixAddr{Name: conf.UnixDomainSocketPath, Net: "unix"})
 	if err != nil {
-		log.Fatalf("Unable to listen on unix domain socket file '%s': %v", conf.UnixDomainSocketPath, err)
+		log.Fatalf("Unable to listen on unix domain socket='%s': %v", conf.UnixDomainSocketPath, err)
 	}
 
 	defer unixListener.Close()
 
-	if err := os.Chmod(conf.UnixDomainSocketPath, 0660); err != nil {
+	if err := system.ChangeUnixDomainSocketPermission(conf.UnixDomainSocketPath); err != nil {
 		log.Errorf("Failed to change socket permissions: %v", err)
 		return err
 	}
 
-	system.ChangeUnixDomainSocketPermission(conf.UnixDomainSocketPath)
 
 	log.Fatal(httpSrv.Serve(unixListener))
 

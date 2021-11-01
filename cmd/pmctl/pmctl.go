@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"sort"
 	"time"
@@ -54,13 +55,13 @@ func PerformSystemdUnitCommand(command string, unit string, host string) {
 	var err error
 
 	if host != "" {
-		resp, err = web.Dispatch("POST", host+"/api/v1/service/systemd", nil, c)
+		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/service/systemd", nil, c)
 		if err != nil {
 			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
 			return
 		}
 	} else {
-		resp, err = web.DispatchUnixDomainSocket("POST", "http://localhost/api/v1/service/systemd", c)
+		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/service/systemd", c)
 		if err != nil {
 			fmt.Printf("Failed to execute '%s': %v\n", command, err)
 			os.Exit(1)
@@ -84,13 +85,13 @@ func fetchSystemdUnitStatus(unit string, host string) {
 	var err error
 
 	if host != "" {
-		resp, err = web.Fetch(host+"/api/v1/service/systemd/"+unit+"/status", nil)
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/service/systemd/"+unit+"/status", nil, nil)
 		if err != nil {
 			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
 			return
 		}
 	} else {
-		resp, err = web.FetchUnixDomainSocket("http://localhost/api/v1/service/systemd/" + unit + "/status")
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/service/systemd/"+unit+"/status", nil)
 		if err != nil {
 			fmt.Printf("Failed to fetch unit status from unix domain socket: %v\n", err)
 			return
