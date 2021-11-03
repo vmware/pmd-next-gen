@@ -69,11 +69,14 @@ func authenticateLocalUser(credentials *unix.Ucred) error {
 		u, _ := system.GetUserCredentialsByUid(credentials.Uid)
 
 		groups, _ := u.GroupIds()
-		if !share.StringContains(groups,strconv.Itoa(int(pmUser.Gid))) {
+		if !share.StringContains(groups, strconv.Itoa(int(pmUser.Gid))) {
 			return errors.New("user's gid not same as pm-web's gid")
 		}
 
-		log.Infof("Connection credentials: pid=%v, user='%s' uid=%v, gid=%v belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)
+		log.Infof("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)
+	} else {
+		log.Infof("Connection credentials: pid='%d', user='root' uid='%d', gid='%d'", credentials.Pid, credentials.Gid, credentials.Uid)
+
 	}
 
 	return nil
