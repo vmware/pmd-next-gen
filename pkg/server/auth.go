@@ -55,14 +55,25 @@ func InitAuthMiddleware() (TokenDB, error) {
 	return db, nil
 }
 
+func authenticateLocalUser(credentials *unix.Ucred) error {
+	u, _ := system.GetUserCredentialsByUid(credentials.Uid)
+
+	log.Infof("Connection credentials: pid=%v, user='%s' uid=%v, gid=%v", credentials.Pid, u.Username, credentials.Gid, credentials.Uid)
+
+	return nil
+}
+
 func UnixDomainPeerCredential(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var credentialsContextKey = struct{}{}
 
 		credentials := r.Context().Value(credentialsContextKey).(*unix.Ucred)
 
-		log.Infof("Connection credentials: Pid=%v, Uid=%v, Gid=%v", credentials.Pid, credentials.Gid, credentials.Uid)
-
-		next.ServeHTTP(w, r)
+		if err := authenticateLocalUser(credentials); err != nil {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			log.Infof("Unauthorized connection. Credentials: pid=%v, uid=%v, gid=%v", credentials.Pid, credentials.Gid, credentials.Uid)
+		} else {
+			next.ServeHTTP(w, r)
+		}
 	})
 }

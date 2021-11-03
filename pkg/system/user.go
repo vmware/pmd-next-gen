@@ -40,6 +40,15 @@ func GetUserCredentials(usr string) (*syscall.Credential, error) {
 	return &syscall.Credential{Uid: uid, Gid: gid}, nil
 }
 
+func GetUserCredentialsByUid(uid uint32) (*user.User, error) {
+	u, err := user.LookupId(strconv.FormatInt(int64(uid), 10))
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
+}
+
 func SwitchUser(c *syscall.Credential) (err error) {
 	if _, _, err := syscall.RawSyscall(syscall.SYS_SETGID, uintptr(c.Gid), 0, 0); err != 0 {
 		return err
