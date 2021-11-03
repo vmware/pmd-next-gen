@@ -35,10 +35,12 @@ func NewRouter() *mux.Router {
 	return r
 }
 
-func runUnixDomainHttpServer(r *mux.Router) error {
+func runUnixDomainHttpServer(c *conf.Config, r *mux.Router) error {
 	var credentialsContextKey = struct{}{}
 
-	r.Use(UnixDomainPeerCredential)
+	if c.System.UseAuthentication {
+		r.Use(UnixDomainPeerCredential)
+	}
 
 	httpSrv = &http.Server{
 		Handler: r,
@@ -62,7 +64,6 @@ func runUnixDomainHttpServer(r *mux.Router) error {
 		log.Errorf("Failed to change socket permissions: %v", err)
 		return err
 	}
-
 
 	log.Fatal(httpSrv.Serve(unixListener))
 
@@ -125,7 +126,7 @@ func Run(c *conf.Config) error {
 	}()
 
 	if c.Network.ListenUnixSocket {
-		runUnixDomainHttpServer(r)
+		runUnixDomainHttpServer(c, r)
 	} else {
 		runWebHttpServer(c, r)
 	}
