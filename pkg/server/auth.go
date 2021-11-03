@@ -5,12 +5,15 @@ package server
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
+	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/system"
+	"github.com/pm-web/pkg/web"
 )
 
 const (
@@ -56,9 +59,22 @@ func InitAuthMiddleware() (TokenDB, error) {
 }
 
 func authenticateLocalUser(credentials *unix.Ucred) error {
-	u, _ := system.GetUserCredentialsByUid(credentials.Uid)
+	if credentials.Uid != 0 {
+		pmUser, err := system.GetUserCredentials("pm-web")
+		if err != nil {
+			log.Infof("Failed to get user 'pm-web' credentials: %+v", err)
+			return err
+		}
 
-	log.Infof("Connection credentials: pid=%v, user='%s' uid=%v, gid=%v", credentials.Pid, u.Username, credentials.Gid, credentials.Uid)
+		u, _ := system.GetUserCredentialsByUid(credentials.Uid)
+
+		groups, _ := u.GroupIds()
+		if !share.StringContains(groups,strconv.Itoa(int(pmUser.Gid))) {
+			return errors.New("user's gid not same as pm-web's gid")
+		}
+
+		log.Infof("Connection credentials: pid=%v, user='%s' uid=%v, gid=%v belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)
+	}
 
 	return nil
 }
@@ -70,8 +86,8 @@ func UnixDomainPeerCredential(next http.Handler) http.Handler {
 		credentials := r.Context().Value(credentialsContextKey).(*unix.Ucred)
 
 		if err := authenticateLocalUser(credentials); err != nil {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			log.Infof("Unauthorized connection. Credentials: pid=%v, uid=%v, gid=%v", credentials.Pid, credentials.Gid, credentials.Uid)
+			web.JSONResponseError(err, w)
+			log.Infof("Unauthorized connection. Credentials: pid=%v, uid=%v, gid=%v: %v", credentials.Pid, credentials.Gid, credentials.Uid, err)
 		} else {
 			next.ServeHTTP(w, r)
 		}
