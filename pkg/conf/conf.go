@@ -19,8 +19,8 @@ const (
 	DefaultLogLevel   = "info"
 	UseAuthentication = "true"
 
-	DefaultIP        = "0.0.0.0"
-	DefaultPort      = "8080"
+	DefaultIP        = "127.0.0.1"
+	DefaultPort      = "5208"
 	ListenUnixSocket = "true"
 
 	UnixDomainSocketPath = "/run/pmwebd/pmwebd.sock"
