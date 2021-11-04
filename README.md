@@ -107,13 +107,9 @@ A boolean. Specifies whether the users should be authenticated. Defaults to `tru
 
 The `[Network]` section takes following Keys:
 
-`Address=`
+`Listen=`
 
-Specifies the IP address which the local REST API server will listen. Defaults to `127.0.0.1`.
-
-`Port=`
-
-Specifies the IP port which the local REST API server will listen. Defaults to `5209`.
+Specifies the IP address and port which the REST API server will listen to. When enabled, defaults to `127.0.0.1:5208`
 
 `ListenUnixSocket=`
 
@@ -121,16 +117,14 @@ A boolean. Specifies whether the server would listen on a unix domain socket `/r
 
 Note that when both `ListenUnixSocket=` and `Address=` and `Port=` is enabled, server listen on the unix domain socket. By default 
  ```bash
-❯ sudo cat /etc/pm-web/pmweb.toml
+❯ sudo cat /etc/pm-web/pmweb.toml                                     
 [System]
 LogLevel="debug"
-UseAuthentication="true"
+UseAuthentication="false"
 
 [Network]
-#IPAddress="127.0.0.1"
-#Port="5208"
-ListenUnixSocket="true"
-
+Listen="127.0.0.1:5208"
+ListenUnixSocket="false"
 ```
 
 ```bash
