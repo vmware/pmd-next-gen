@@ -3,10 +3,11 @@
 package share
 
 import (
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func ParseBool(str string) (bool, error) {
@@ -21,32 +22,41 @@ func ParseBool(str string) (bool, error) {
 		return false, nil
 	}
 
-	return false, fmt.Errorf("failed to parse")
+	return false, errors.New("failed to parse")
 }
 
-func ParseIP(ip string) (net.IP, error) {
-	if len(ip) == 0 {
-		return nil, fmt.Errorf("failed to parse ip")
-	}
-
+func ParseIp(ip string) (net.IP, error) {
 	a := net.ParseIP(ip)
 
 	if a.To4() == nil || a.To16() == nil {
-		return nil, fmt.Errorf("failed to parse ip")
+		return nil, errors.New("invalid IP")
 	}
 
 	return a, nil
 }
 
 func ParsePort(port string) (uint16, error) {
-	if len(port) == 0 {
-		return 0, nil
-	}
-
 	p, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "invalid port")
 	}
 
 	return uint16(p), nil
+}
+
+func ParseIpPort(s string) (string, string, error) {
+	ip, port, err := net.SplitHostPort(s)
+	if err != nil {
+		return "", "", err
+	}
+
+	if _, err := ParseIp(ip); err != nil {
+		return "", "", errors.New("invalid IP")
+	}
+
+	if _, err := ParsePort(port); err != nil {
+		return "", "", errors.New("invalid port")
+	}
+
+	return ip, port, nil
 }

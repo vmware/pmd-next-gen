@@ -18,6 +18,7 @@ import (
 
 	"github.com/pm-web/pkg/conf"
 	"github.com/pm-web/pkg/proc"
+	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/system"
 	"github.com/pm-web/pkg/systemd"
 )
@@ -81,6 +82,8 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 		r.Use(amw.AuthMiddleware)
 	}
 
+	ip, port, _ := share.ParseIpPort(c.Network.Listen)
+
 	if system.TLSFilePathExits() {
 		cfg := &tls.Config{
 			MinVersion:               tls.VersionTLS12,
@@ -88,22 +91,22 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 			PreferServerCipherSuites: false,
 		}
 		httpSrv = &http.Server{
-			Addr:         c.Network.IPAddress + ":" + c.Network.Port,
+			Addr:         ip + ":" + port,
 			Handler:      r,
 			TLSConfig:    cfg,
 			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 		}
 
-		log.Infof("Starting pm-webd server at %s:%s in HTTPS mode", c.Network.IPAddress, c.Network.Port)
+		log.Infof("Starting pm-webd server at %s:%s in HTTPS mode", ip, port)
 
 		log.Fatal(httpSrv.ListenAndServeTLS(path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey)))
 	} else {
 		httpSrv := http.Server{
-			Addr:    c.Network.IPAddress + ":" + c.Network.Port,
+			Addr:    ip + ":" + port,
 			Handler: r,
 		}
 
-		log.Infof("Starting pm-webd server at %s:%s in HTTP mode", c.Network.IPAddress, c.Network.Port)
+		log.Infof("Starting pm-webd server at %s:%s in HTTP mode", ip, port)
 
 		log.Fatal(httpSrv.ListenAndServe())
 	}

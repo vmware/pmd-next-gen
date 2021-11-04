@@ -36,8 +36,7 @@ type System struct {
 	UseAuthentication bool   `mapstructure:"UseAuthentication"`
 }
 type Network struct {
-	IPAddress        string
-	Port             string
+	Listen       string
 	ListenUnixSocket bool
 }
 
@@ -65,21 +64,14 @@ func Parse() (*Config, error) {
 
 	logrus.Debugf("Log level set to '%+v'", logrus.GetLevel().String())
 
-	if c.Network.IPAddress != "" {
-		if _, err := share.ParseIP(c.Network.IPAddress); err != nil {
-			logrus.Errorf("Failed to parse IPAddress=%s, %s", c.Network.IPAddress, c.Network.Port)
+	if c.Network.Listen != "" {
+		share.ParseIpPort(c.Network.Listen)
+		if _, _, err := share.ParseIpPort(c.Network.Listen); err != nil {
+			logrus.Errorf("Failed to parse Listen=%s", c.Network.Listen)
+			return nil, err
 		}
 	}
 
-	if c.Network.Port != "" {
-		if _, err := share.ParsePort(c.Network.Port); err != nil {
-			logrus.Errorf("Failed to parse conf file Port=%s", c.Network.Port)
-		}
-	}
-
-	if c.Network.IPAddress != "" && c.Network.Port != "" {
-		logrus.Debugf("Parsed IPAddress=%s and Port=%s", c.Network.IPAddress, c.Network.Port)
-	}
 
 	return &c, nil
 }
