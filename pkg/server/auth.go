@@ -73,9 +73,9 @@ func authenticateLocalUser(credentials *unix.Ucred) error {
 			return errors.New("user's gid not same as pm-web's gid")
 		}
 
-		log.Infof("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)
+		log.Debugf("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)
 	} else {
-		log.Infof("Connection credentials: pid='%d', user='root' uid='%d', gid='%d'", credentials.Pid, credentials.Gid, credentials.Uid)
+		log.Debugf("Connection credentials: pid='%d', user='root' uid='%d', gid='%d'", credentials.Pid, credentials.Gid, credentials.Uid)
 
 	}
 
