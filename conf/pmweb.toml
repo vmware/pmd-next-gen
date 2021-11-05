@@ -4,4 +4,4 @@ UseAuthentication="true"
 
 [Network]
 #Listen="127.0.0.1:5208"
-ListenUnixSocket="false"
+ListenUnixSocket="true"
