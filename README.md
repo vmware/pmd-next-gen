@@ -215,8 +215,8 @@ pm-webd is designed with robust plugin based architecture in mind. You can alway
 You can implement and incorporate application features very quickly. Because plug-ins are separate modules with well-defined interfaces,
 you can quickly isolate and solve problems. You can create custom versions of an application with minimal source code modifications.
 
-* Choose namespace under cmd directory ( network, proc, system etc) whare you want to put your module.
-* Write sub router see for example ```api-routerd/cmd/system/login```
+* Choose namespace under `pkg` directory (systemd, system, proc) where you want to put your module.
+* Write sub router see for example ```pkg/systemd/```
 * Write your module ```module.go``` and  ```module_router.go```
 * Write ```RegisterRouterModule```
 * Register ```RegisterRouterModule``` with parent router for example for ```login``` registered with
