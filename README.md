@@ -95,9 +95,9 @@ Specifies the IP address and port which the REST API server will listen to. When
 
 `ListenUnixSocket=`
 
-A boolean. Specifies whether the server would listen on a unix domain socket `/run/pmwebd/pmwebd.sock`. Defaults to true.
+A boolean. Specifies whether the server would listen on a unix domain socket `/run/pmwebd/pmwebd.sock`. Defaults to `true`.
 
-Note that when both `ListenUnixSocket=` and `Listen=` is enabled, server listens on the unix domain socket by default.
+Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
 ❯ sudo cat /etc/pm-web/pmweb.toml                                     
 [System]
