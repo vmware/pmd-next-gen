@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pm-web/pkg/systemd"
+	"github.com/pm-web/plugins/systemd"
 	"github.com/pm-web/pkg/web"
 )
 

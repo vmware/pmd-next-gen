@@ -17,10 +17,10 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/pm-web/pkg/conf"
-	"github.com/pm-web/pkg/proc"
+	"github.com/pm-web/plugins/proc"
 	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/system"
-	"github.com/pm-web/pkg/systemd"
+	"github.com/pm-web/plugins/systemd"
 )
 
 var httpSrv *http.Server
