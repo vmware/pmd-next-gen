@@ -45,6 +45,38 @@ type UnitStatus struct {
 	Errors string `json:"errors"`
 }
 
+type NetDevIOCounters struct {
+	Success bool `json:"success"`
+	Message []struct {
+		Name        string `json:"name"`
+		BytesSent   int    `json:"bytesSent"`
+		BytesRecv   int    `json:"bytesRecv"`
+		PacketsSent int    `json:"packetsSent"`
+		PacketsRecv int    `json:"packetsRecv"`
+		Errin       int    `json:"errin"`
+		Errout      int    `json:"errout"`
+		Dropin      int    `json:"dropin"`
+		Dropout     int    `json:"dropout"`
+		Fifoin      int    `json:"fifoin"`
+		Fifoout     int    `json:"fifoout"`
+	} `json:"message"`
+	Errors string `json:"errors"`
+}
+type NetDevStatistics struct {
+	Success bool `json:"success"`
+	Message []struct {
+		Index        int      `json:"index"`
+		Mtu          int      `json:"mtu"`
+		Name         string   `json:"name"`
+		HardwareAddr string   `json:"hardwareAddr"`
+		Flags        []string `json:"flags"`
+		Addrs        []struct {
+			Addr string `json:"addr"`
+		} `json:"addrs"`
+	} `json:"message"`
+	Errors string `json:"errors"`
+}
+
 func executeSystemdUnitCommand(command string, unit string, host string) {
 	c := systemd.UnitAction{
 		Action: command,
@@ -186,6 +218,46 @@ func fetchSystemdUnitStatus(unit string, host string) {
 	}
 }
 
+func displayNetDevIOStatistics(netDev *NetDevIOCounters) {
+	for _, n := range netDev.Message {
+		fmt.Printf("            Name: %v\n", n.Name)
+		fmt.Printf("Packets received: %v\n", n.PacketsRecv)
+		fmt.Printf("    Packets sent: %v\n", n.PacketsSent)
+		fmt.Printf("  Bytes received: %v\n", n.BytesRecv)
+		fmt.Printf("      Bytes sent: %v\n", n.BytesSent)
+		fmt.Printf("      Bytes sent: %v\n", n.Dropin)
+		fmt.Printf("         Drop in: %v\n", n.Dropout)
+		fmt.Printf("        Error in: %v\n", n.Errin)
+		fmt.Printf("       Error out: %v\n", n.Errout)
+		fmt.Printf("         Fifo in: %v\n", n.Fifoin)
+		fmt.Printf("        Fifo out: %v\n\n", n.Fifoout)
+	}
+}
+
+func fetchNetworkStatus(cmd string, host string) {
+	var resp []byte
+	var err error
+
+	switch cmd {
+	case "iostat":
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", nil, nil)
+	}
+	if err != nil {
+		fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
+		return
+	}
+
+	n := NetDevIOCounters{}
+	if err := json.Unmarshal(resp, &n); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if n.Success {
+		displayNetDevIOStatistics(&n)
+	}
+}
+
 func main() {
 	log.SetOutput(ioutil.Discard)
 
@@ -276,6 +348,22 @@ func main() {
 					Usage: "Reload one unit if they support it. If not, stop and then start instead. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("reload-or-restart", c.Args().First(), c.String("url"))
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "network",
+			Aliases: []string{"n"},
+			Usage:   "Control the network",
+			Subcommands: []*cli.Command{
+				{
+					Name:  "iostat",
+					Usage: "Show terse runtime status information about one unit",
+
+					Action: func(c *cli.Context) error {
+						fetchNetworkStatus("iostat", c.String("url"))
 						return nil
 					},
 				},

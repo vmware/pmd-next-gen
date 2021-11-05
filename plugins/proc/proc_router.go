@@ -17,8 +17,8 @@ type Info struct {
 	Value    string `json:"value"`
 }
 
-func routerFetchProcNetDev(w http.ResponseWriter, r *http.Request) {
-	if err := FetchNetDev(w); err != nil {
+func routerFetchProcNetDevIOCounters(w http.ResponseWriter, r *http.Request) {
+	if err := FetchNetDevIOCounters(w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -240,7 +240,7 @@ func RegisterRouterProc(router *mux.Router) {
 	n.HandleFunc("/virtualization", routerFetchProcVirtualization).Methods("GET")
 	n.HandleFunc("/modules", routerFetchProcModules).Methods("GET")
 	n.HandleFunc("/net/arp", routerFetchProcNetArp).Methods("GET")
-	n.HandleFunc("/netdev", routerFetchProcNetDev).Methods("GET")
+	n.HandleFunc("/netdeviocounters", routerFetchProcNetDevIOCounters).Methods("GET")
 	n.HandleFunc("/netstat/{protocol}", routerFetchProcNetStat).Methods("GET")
 	n.HandleFunc("/partitions", routerFetchPartitions).Methods("GET")
 	n.HandleFunc("/platform", routerFetchProcPlatformInformation).Methods("GET")

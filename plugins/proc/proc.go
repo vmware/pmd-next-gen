@@ -142,7 +142,7 @@ func FetchProtoCountersStat(w http.ResponseWriter) error {
 	return web.JSONResponse(proto, w)
 }
 
-func FetchNetDev(w http.ResponseWriter) error {
+func FetchNetDevIOCounters(w http.ResponseWriter) error {
 	netDev, err := net.IOCounters(true)
 	if err != nil {
 		return err
