@@ -13,8 +13,7 @@ pm-webd is a cloud-enabled, mobile-ready, a super light weight remote management
 
 |Feature| Details |
 | ------ | ------ |
-| socket activation | supports systemd socket activation
-systemd  | information, services (start, stop, restart, status), service properties for example CPUShares
+|systemd  | information, services (start, stop, restart, status), service properties for example CPUShares
 see information from ```/proc``` fs| netstat, netdev, memory and much more
 configure ```/proc/sys/net``` | (core/ipv4/ipv6), VM
 ethtool | see information and configure offload features
