@@ -15,26 +15,9 @@ pm-webd is a cloud-enabled, mobile-ready, a super light weight remote management
 | ------ | ------ |
 | socket activation | supports systemd socket activation
 systemd  | information, services (start, stop, restart, status), service properties for example CPUShares
-networkd |config (.network, .netdev, .link)
-hostnamed | set hostname
-logind |(list-sessions, list-users and terminate-user etc)
-timdate| set time, zone
-nameserver | add/delete/modify ```/etc/resolv.conf```
-timesynd | set configs
-systemd-machined | see info about images/machines. start stop machines
-journald | ```journald.conf```
-systemd conf | ```system.conf```
-coredumpd |```coredump.conf```
-systemd-resolved |```systemd-resolved.conf```
-kernel modules |(modprobe, lsmod, rmmod)
-network | via netlink . Link: mtu, up, down, Create bridge and enslave links, Create bond and enslave links, Adddress: Set, Get, Delete, Gateway: Default Gateway Add and Delete
-group | add/delete/modify
-users |add/delete/modify (requires newuser)
-sysctl |add/delete/modify and apply
 see information from ```/proc``` fs| netstat, netdev, memory and much more
 configure ```/proc/sys/net``` | (core/ipv4/ipv6), VM
 ethtool | see information and configure offload features
-See confs | sudoers and sshd conf
 
 
 ### Dependencies
@@ -109,13 +92,13 @@ The `[Network]` section takes following Keys:
 
 `Listen=`
 
-Specifies the IP address and port which the REST API server will listen to. When enabled, defaults to `127.0.0.1:5208`
+Specifies the IP address and port which the REST API server will listen to. When enabled, defaults to `127.0.0.1:5208`.
 
 `ListenUnixSocket=`
 
 A boolean. Specifies whether the server would listen on a unix domain socket `/run/pmwebd/pmwebd.sock`. Defaults to true.
 
-Note that when both `ListenUnixSocket=` and `Address=` and `Port=` is enabled, server listen on the unix domain socket. By default 
+Note that when both `ListenUnixSocket=` and `Address=` and `Port=` is enabled, server listen on the unix domain socket by default.
  ```bash
 ❯ sudo cat /etc/pm-web/pmweb.toml                                     
 [System]
@@ -225,13 +208,10 @@ Use case: https
 $ curl --header "X-Session-Token: secret" --request GET https://localhost:5208/api/v1/network/ethtool/vmnet8/get-link-features -k --tlsv1.2
 
 ```
-## Use cases
-
-Refer usecase document [use cases](https://github.com/api-routerd/api-routerd/blob/master/examples.md)
 
 ## How to write your own plugin ?
 
-api-routerd is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
+pm-webd is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
 You can implement and incorporate application features very quickly. Because plug-ins are separate modules with well-defined interfaces,
 you can quickly isolate and solve problems. You can create custom versions of an application with minimal source code modifications.
 
