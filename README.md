@@ -4,7 +4,7 @@
 pm-webd is a cloud-enabled, mobile-ready, a super light weight remote management tool which uses REST API for real time configuration and performance as well as health monitoring for systems (containers) and applications. It provides fast API based monitoring without affecting the system it's running on.
 
 - Proactive Monitoring and Analytics
-  api-routerd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
+  pm-webd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
 - Platform independent REST APIs can be accessed via any application (curl, chrome, PostMan ...) from any OS (Linux, IOS, Android, Windows ...)
 - Minimal data transfer using JSON.
 - Plugin based Architechture. See how to write plugin section for more information.
@@ -21,7 +21,7 @@ ethtool | see information and configure offload features
 
 ### Dependencies
 
-api-routerd uses a following open source projects to work properly:
+pm-webd uses a following open source projects to work properly:
 
 * [logrus](https://github.com/sirupsen/logrus)
 * [gorilla mux](https://github.com/gorilla/mux)
@@ -133,7 +133,7 @@ Nov 04 13:12:00 Zeus1 pm-webd[466647]: time="2021-11-04T13:12:00+05:30" level=in
 #### pmctl
 ----
 
-`pmctl` is a CLI tool allows to view system / service status.
+`pmctl` is a CLI tool allows to view system/service status.
 
 ```bash
 ❯ pmctl service status nginx.service
@@ -191,7 +191,7 @@ Country Name (2 letter code) [XX]:
 
 ```
 
-Place ```server.crt``` and ```server.key``` in the dir ```/etc/api-routerd/tls```
+Place ```server.crt``` and ```server.key``` in the dir ```/etc/pm-web/tls```
 
 ```bash
 [root@Zeus tls]# ls
