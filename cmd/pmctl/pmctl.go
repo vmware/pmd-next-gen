@@ -384,26 +384,33 @@ func main() {
 			},
 		},
 		{
-			Name:    "network",
+			Name:    "status",
 			Aliases: []string{"n"},
-			Usage:   "Control the network",
+			Usage:   "Show status of system or network",
 			Subcommands: []*cli.Command{
 				{
-					Name:  "iostat",
-					Usage: "Show iostat of interfaces",
+					Name:    "network",
+					Aliases: []string{"n"},
+					Usage:   "Control the network",
+					Subcommands: []*cli.Command{
+						{
+							Name:  "iostat",
+							Usage: "Show iostat of interfaces",
 
-					Action: func(c *cli.Context) error {
-						fetchNetworkStatus("iostat", c.String("url"))
-						return nil
-					},
-				},
-				{
-					Name:  "interfaces",
-					Usage: "Show network interfaces",
+							Action: func(c *cli.Context) error {
+								fetchNetworkStatus("iostat", c.String("url"))
+								return nil
+							},
+						},
+						{
+							Name:  "interfaces",
+							Usage: "Show network interfaces",
 
-					Action: func(c *cli.Context) error {
-						fetchNetworkStatus("interfaces", c.String("url"))
-						return nil
+							Action: func(c *cli.Context) error {
+								fetchNetworkStatus("interfaces", c.String("url"))
+								return nil
+							},
+						},
 					},
 				},
 			},
