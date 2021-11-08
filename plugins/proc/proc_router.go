@@ -72,8 +72,8 @@ func routerFetchProcPidNetStat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerFetchProcInterfaceStat(w http.ResponseWriter, r *http.Request) {
-	if err := FetchInterfaceStat(w); err != nil {
+func routerFetchProcInterfaces(w http.ResponseWriter, r *http.Request) {
+	if err := FetchInterfaces(w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -230,7 +230,7 @@ func RegisterRouterProc(router *mux.Router) {
 	n.HandleFunc("/cpuinfo", routerFetchProcCPUInfo).Methods("GET")
 	n.HandleFunc("/cputimestat", routerFetchProcCPUTimeStat).Methods("GET")
 	n.HandleFunc("/diskusage", routerFetchDiskUsage).Methods("GET")
-	n.HandleFunc("/interface-stat", routerFetchProcInterfaceStat).Methods("GET")
+	n.HandleFunc("/interfaces", routerFetchProcInterfaces).Methods("GET")
 	n.HandleFunc("/iocounters", routerFetchIOCounters).Methods("GET")
 	n.HandleFunc("/misc", routerFetchProcMisc).Methods("GET")
 	n.HandleFunc("/temperaturestat", routerFetchProcTemperatureStat).Methods("GET")

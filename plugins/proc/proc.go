@@ -151,7 +151,7 @@ func FetchNetDevIOCounters(w http.ResponseWriter) error {
 	return web.JSONResponse(netDev, w)
 }
 
-func FetchInterfaceStat(w http.ResponseWriter) error {
+func FetchInterfaces(w http.ResponseWriter) error {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		return err

@@ -62,7 +62,7 @@ type NetDevIOCounters struct {
 	} `json:"message"`
 	Errors string `json:"errors"`
 }
-type NetDevStatistics struct {
+type Interface struct {
 	Success bool `json:"success"`
 	Message []struct {
 		Index        int      `json:"index"`
@@ -225,8 +225,8 @@ func displayNetDevIOStatistics(netDev *NetDevIOCounters) {
 		fmt.Printf("    Packets sent: %v\n", n.PacketsSent)
 		fmt.Printf("  Bytes received: %v\n", n.BytesRecv)
 		fmt.Printf("      Bytes sent: %v\n", n.BytesSent)
-		fmt.Printf("      Bytes sent: %v\n", n.Dropin)
-		fmt.Printf("         Drop in: %v\n", n.Dropout)
+		fmt.Printf("         Drop in: %v\n", n.Dropin)
+		fmt.Printf("        Drop out: %v\n", n.Dropout)
 		fmt.Printf("        Error in: %v\n", n.Errin)
 		fmt.Printf("       Error out: %v\n", n.Errout)
 		fmt.Printf("         Fifo in: %v\n", n.Fifoin)
@@ -234,27 +234,57 @@ func displayNetDevIOStatistics(netDev *NetDevIOCounters) {
 	}
 }
 
-func fetchNetworkStatus(cmd string, host string) {
-	var resp []byte
-	var err error
+func displayInterfaces(i *Interface) {
+	for _, n := range i.Message {
+		fmt.Printf("            Name: %v\n", n.Name)
+		fmt.Printf("           Index: %v\n", n.Index)
+		fmt.Printf("             MTU: %v\n", n.Mtu)
+		fmt.Printf("           Flags: %v\n", n.Flags)
+		fmt.Printf("Hardware Address: %v\n", n.HardwareAddr)
+		fmt.Printf("         Address: ")
+		for _, j := range n.Addrs {
+			fmt.Printf("%v ", j.Addr)
+		}
+		fmt.Printf("\n\n")
+	}
+}
 
+func fetchNetworkStatus(cmd string, host string) {
 	switch cmd {
 	case "iostat":
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", nil, nil)
-	}
-	if err != nil {
-		fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
-		return
-	}
+		resp, err := web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", nil, nil)
+		if err != nil {
+			fmt.Printf("Failed to fetch iostat from remote host: %v\n", err)
+			return
+		}
 
-	n := NetDevIOCounters{}
-	if err := json.Unmarshal(resp, &n); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
-		return
-	}
+		n := NetDevIOCounters{}
+		if err := json.Unmarshal(resp, &n); err != nil {
+			fmt.Printf("Failed to decode json message: %v\n", err)
+			return
+		}
 
-	if n.Success {
-		displayNetDevIOStatistics(&n)
+		if n.Success {
+			displayNetDevIOStatistics(&n)
+			return
+		}
+	case "interfaces":
+		resp, err := web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/interfaces", nil, nil)
+		if err != nil {
+			fmt.Printf("Failed to fetch iostat from remote host: %v\n", err)
+			return
+		}
+
+		n := Interface{}
+		if err := json.Unmarshal(resp, &n); err != nil {
+			fmt.Printf("Failed to decode json message: %v\n", err)
+			return
+		}
+
+		if n.Success {
+			displayInterfaces(&n)
+			return
+		}
 	}
 }
 
@@ -360,10 +390,19 @@ func main() {
 			Subcommands: []*cli.Command{
 				{
 					Name:  "iostat",
-					Usage: "Show terse runtime status information about one unit",
+					Usage: "Show iostat of interfaces",
 
 					Action: func(c *cli.Context) error {
 						fetchNetworkStatus("iostat", c.String("url"))
+						return nil
+					},
+				},
+				{
+					Name:  "interfaces",
+					Usage: "Show network interfaces",
+
+					Action: func(c *cli.Context) error {
+						fetchNetworkStatus("interfaces", c.String("url"))
 						return nil
 					},
 				},
