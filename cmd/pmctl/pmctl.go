@@ -239,9 +239,16 @@ func displayInterfaces(i *Interface) {
 		fmt.Printf("            Name: %v\n", n.Name)
 		fmt.Printf("           Index: %v\n", n.Index)
 		fmt.Printf("             MTU: %v\n", n.Mtu)
-		fmt.Printf("           Flags: %v\n", n.Flags)
+
+		fmt.Printf("           Flags: ")
+		for _, j := range n.Flags {
+			fmt.Printf("%v ", j)
+		}
+		fmt.Printf("\n")
+
 		fmt.Printf("Hardware Address: %v\n", n.HardwareAddr)
-		fmt.Printf("         Address: ")
+
+		fmt.Printf("       Addresses: ")
 		for _, j := range n.Addrs {
 			fmt.Printf("%v ", j.Addr)
 		}
