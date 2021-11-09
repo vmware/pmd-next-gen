@@ -33,11 +33,9 @@ func (db *TokenDB) AuthMiddleware(next http.Handler) http.Handler {
 			log.Printf("Authenticated user %s\n", user)
 			next.ServeHTTP(w, r)
 		} else {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			log.Infof("Unauthorized user")
 		}
-
-		next.ServeHTTP(w, r)
 	})
 }
 
@@ -76,7 +74,6 @@ func authenticateLocalUser(credentials *unix.Ucred) error {
 		log.Debugf("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)
 	} else {
 		log.Debugf("Connection credentials: pid='%d', user='root' uid='%d', gid='%d'", credentials.Pid, credentials.Gid, credentials.Uid)
-
 	}
 
 	return nil
@@ -90,7 +87,7 @@ func UnixDomainPeerCredential(next http.Handler) http.Handler {
 
 		if err := authenticateLocalUser(credentials); err != nil {
 			web.JSONResponseError(err, w)
-			log.Infof("Unauthorized connection. Credentials: pid=%v, uid=%v, gid=%v: %v", credentials.Pid, credentials.Gid, credentials.Uid, err)
+			log.Infof("Unauthorized connection. Credentials: pid='%d', uid='%d', gid='%d': %v", credentials.Pid, credentials.Gid, credentials.Uid, err)
 		} else {
 			next.ServeHTTP(w, r)
 		}
