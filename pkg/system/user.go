@@ -15,14 +15,12 @@ func GetUserCredentials(usr string) (*syscall.Credential, error) {
 
 	if usr != "" {
 		u, err = user.Lookup(usr)
-		if err != nil {
-			return nil, err
-		}
+
 	} else {
 		u, err = user.Current()
-		if err != nil {
-			return nil, err
-		}
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	i, err := strconv.ParseUint(u.Uid, 10, 32)

@@ -25,14 +25,22 @@ func ParseBool(str string) (bool, error) {
 	return false, errors.New("failed to parse")
 }
 
-func ParseIp(ip string) (net.IP, error) {
-	a := net.ParseIP(ip)
+func ParseIp(addr string) (net.IP, error) {
+	ip := net.ParseIP(addr)
+	if ip == nil {
+		ips, err := net.LookupIP(addr)
+		if err != nil {
+			return nil, errors.New("invalid IP or host")
+		}
 
-	if a.To4() == nil || a.To16() == nil {
-		return nil, errors.New("invalid IP")
+		if ips[0].To4() != nil {
+			return ips[0].To4(), nil
+		} else if ips[0].To16() != nil {
+			return ips[0].To16(), nil
+		}
 	}
 
-	return a, nil
+	return ip, nil
 }
 
 func ParsePort(port string) (uint16, error) {
