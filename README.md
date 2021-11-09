@@ -155,10 +155,18 @@ Nov 04 13:12:00 Zeus1 pm-webd[466647]: time="2021-11-04T13:12:00+05:30" level=in
 
 ### How to configure users ?
 
-Any users added to the group pm-web, they are allowed to access the unix socket.
+##### Unix domain socket
 
+Any users added to the group pm-web, they are allowed to access the unix socket.
 ```sh
 # usermod -a -G pm-web exampleusername
+```
+
+##### Web users via pmctl
+
+Export the token key to the enviroment as below
+```
+❯ export PM_WEB_AUTH_TOKEN=secret
 ```
 
 ### How to configure TLS ?
