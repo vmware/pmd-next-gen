@@ -77,7 +77,7 @@ type Interface struct {
 	Errors string `json:"errors"`
 }
 
-func executeSystemdUnitCommand(command string, unit string, host string) {
+func executeSystemdUnitCommand(command string, unit string, host string, token map[string]string) {
 	c := systemd.UnitAction{
 		Action: command,
 		Unit:   unit,
@@ -87,7 +87,7 @@ func executeSystemdUnitCommand(command string, unit string, host string) {
 	var err error
 
 	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/service/systemd", nil, c)
+		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/service/systemd", token, c)
 		if err != nil {
 			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
 			return
@@ -112,12 +112,12 @@ func executeSystemdUnitCommand(command string, unit string, host string) {
 	}
 }
 
-func fetchSystemdUnitStatus(unit string, host string) {
+func fetchSystemdUnitStatus(unit string, host string, token map[string]string) {
 	var resp []byte
 	var err error
 
 	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/service/systemd/"+unit+"/status", nil, nil)
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/service/systemd/"+unit+"/status", token, nil)
 		if err != nil {
 			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
 			return
@@ -256,14 +256,14 @@ func displayInterfaces(i *Interface) {
 	}
 }
 
-func fetchNetworkStatus(cmd string, host string) {
+func fetchNetworkStatus(cmd string, host string, token map[string]string) {
 	var resp []byte
 	var err error
 
 	switch cmd {
 	case "iostat":
 		if host != "" {
-			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", nil, nil)
+			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", token, nil)
 		} else {
 			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/netdeviocounters", nil)
 		}
@@ -285,7 +285,7 @@ func fetchNetworkStatus(cmd string, host string) {
 		}
 	case "interfaces":
 		if host != "" {
-			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/interfaces", nil, nil)
+			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/interfaces", token, nil)
 		} else {
 			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/interfaces", nil)
 		}
@@ -310,6 +310,8 @@ func fetchNetworkStatus(cmd string, host string) {
 
 func main() {
 	log.SetOutput(ioutil.Discard)
+
+	token, _ := web.BuildAuthTokenFromEnv()
 
 	cli.VersionPrinter = func(c *cli.Context) {
 		fmt.Printf("Version=%s\n", c.App.Version)
@@ -341,7 +343,7 @@ func main() {
 					Usage: "Show terse runtime status information about one unit",
 
 					Action: func(c *cli.Context) error {
-						fetchSystemdUnitStatus(c.Args().First(), c.String("url"))
+						fetchSystemdUnitStatus(c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -349,7 +351,7 @@ func main() {
 					Name:  "start",
 					Usage: "Start (activate) one unit specified on the command line",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("start", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("start", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -357,7 +359,7 @@ func main() {
 					Name:  "stop",
 					Usage: "Stop (deactivate) one specified on the command line.",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("stop", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("stop", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -365,7 +367,7 @@ func main() {
 					Name:  "restart",
 					Usage: "Stop and then start one unit specified on the command line. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("restart", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("restart", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -373,7 +375,7 @@ func main() {
 					Name:  "mask",
 					Usage: "Mask one unit, as specified on the command line",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("mask", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("mask", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -381,7 +383,7 @@ func main() {
 					Name:  "unmask",
 					Usage: "Unmask one unit file, as specified on the command line",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("unmask", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("unmask", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -389,7 +391,7 @@ func main() {
 					Name:  "try-restart",
 					Usage: "Stop and then start one unit specified on the command line if the unit are running. This does nothing if unit is not running.",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("try-restart", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("try-restart", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -397,7 +399,7 @@ func main() {
 					Name:  "reload-or-restart",
 					Usage: "Reload one unit if they support it. If not, stop and then start instead. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
-						executeSystemdUnitCommand("reload-or-restart", c.Args().First(), c.String("url"))
+						executeSystemdUnitCommand("reload-or-restart", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -406,19 +408,19 @@ func main() {
 		{
 			Name:    "status",
 			Aliases: []string{"n"},
-			Usage:   "Show status of system or network",
+			Usage:   "Introspects of system or network status",
 			Subcommands: []*cli.Command{
 				{
 					Name:    "network",
 					Aliases: []string{"n"},
-					Usage:   "Control the network",
+					Usage:   "Introspects the network status",
 					Subcommands: []*cli.Command{
 						{
 							Name:  "iostat",
 							Usage: "Show iostat of interfaces",
 
 							Action: func(c *cli.Context) error {
-								fetchNetworkStatus("iostat", c.String("url"))
+								fetchNetworkStatus("iostat", c.String("url"), token)
 								return nil
 							},
 						},
@@ -427,7 +429,7 @@ func main() {
 							Usage: "Show network interfaces",
 
 							Action: func(c *cli.Context) error {
-								fetchNetworkStatus("interfaces", c.String("url"))
+								fetchNetworkStatus("interfaces", c.String("url"), token)
 								return nil
 							},
 						},

@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -94,4 +95,16 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 	}
 
 	return decodeHttpResponse(resp)
+}
+
+func BuildAuthTokenFromEnv() (map[string]string, error) {
+	token := os.Getenv("PM_WEB_AUTH_TOKEN")
+	if token == "" {
+		return nil, errors.New("authentication token not found")
+	}
+
+	headers := make(map[string]string)
+	headers["X-Session-Token"] = token
+
+	return headers, nil
 }
