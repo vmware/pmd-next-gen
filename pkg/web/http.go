@@ -21,22 +21,22 @@ const (
 	defaultRequestTimeout = 5 * time.Second
 )
 
-func decodeHttpResponse(resp *http.Response, err error) ([]byte, error) {
+func decodeHttpResponse(resp *http.Response) ([]byte, error) {
 	if resp.StatusCode != 200 {
-		return nil, errors.Wrap(err, "non-200 status code")
+		return nil, errors.New(resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not decode body")
+		return nil, errors.New("could not parse body")
 	}
 
 	return body, nil
 }
 
-func buildHttpRequest(ctx context.Context, method string, url string, headers map[string]string, data interface{}) (*http.Request, error){
+func buildHttpRequest(ctx context.Context, method string, url string, headers map[string]string, data interface{}) (*http.Request, error) {
 	j := new(bytes.Buffer)
-	if err := json.NewEncoder(j).Encode(data);err != nil {
+	if err := json.NewEncoder(j).Encode(data); err != nil {
 		return nil, err
 	}
 
@@ -68,7 +68,7 @@ func DispatchSocket(method string, url string, headers map[string]string, data i
 	}
 	defer resp.Body.Close()
 
-	return decodeHttpResponse(resp, err)
+	return decodeHttpResponse(resp)
 }
 
 func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]byte, error) {
@@ -93,5 +93,5 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 		return nil, errors.Wrap(err, "could not complete HTTP request")
 	}
 
-	return decodeHttpResponse(resp, err)
+	return decodeHttpResponse(resp)
 }

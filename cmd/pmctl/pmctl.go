@@ -264,16 +264,13 @@ func fetchNetworkStatus(cmd string, host string) {
 	case "iostat":
 		if host != "" {
 			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", nil, nil)
-			if err != nil {
-				fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
-				return
-			}
 		} else {
 			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/netdeviocounters", nil)
-			if err != nil {
-				fmt.Printf("Failed to fetch unit status from unix domain socket: %v\n", err)
-				return
-			}
+		}
+
+		if err != nil {
+			fmt.Printf("Failed to fetch networks device's iostat: %v\n", err)
+			return
 		}
 
 		n := NetDevIOCounters{}
@@ -289,16 +286,13 @@ func fetchNetworkStatus(cmd string, host string) {
 	case "interfaces":
 		if host != "" {
 			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/interfaces", nil, nil)
-			if err != nil {
-				fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
-				return
-			}
 		} else {
 			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/interfaces", nil)
-			if err != nil {
-				fmt.Printf("Failed to fetch unit status from unix domain socket: %v\n", err)
-				return
-			}
+		}
+
+		if err != nil {
+			fmt.Printf("Failed to fetch networks devices: %v\n", err)
+			return
 		}
 
 		n := Interface{}
