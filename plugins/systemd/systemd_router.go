@@ -11,10 +11,10 @@ import (
 	"github.com/pm-web/pkg/web"
 )
 
-func routerFetchSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
+func routerAcquireSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 
-	if err := ManagerFetchSystemProperty(r.Context(), w, v["property"]); err != nil {
+	if err := ManagerAcquireSystemProperty(r.Context(), w, v["property"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -49,47 +49,47 @@ func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 	web.JSONResponse("", w)
 }
 
-func routerFetchAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
+func routerAcquireAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
 	if err := ListUnits(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
-func routerFetchUnitStatus(w http.ResponseWriter, r *http.Request) {
+func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := UnitAction{
 		Unit: v["unit"],
 	}
 
-	if err := u.FetchUnitStatus(r.Context(), w); err != nil {
+	if err := u.AcquireUnitStatus(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
-func routerFetchUnitProperty(w http.ResponseWriter, r *http.Request) {
+func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := UnitAction{
 		Unit:     v["unit"],
 		Property: v["property"],
 	}
 
-	if err := u.FetchUnitProperty(r.Context(), w); err != nil {
+	if err := u.AcquireUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
-func routerFetchUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
+func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := UnitAction{
 		Unit: v["unit"],
 	}
 
-	if err := u.FetchAllUnitProperty(r.Context(), w); err != nil {
+	if err := u.AcquireAllUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
-func routerFetchUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
+func routerAcquireUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	u := UnitAction{
 		Unit:     v["unit"],
@@ -97,7 +97,7 @@ func routerFetchUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 		Property: v["property"],
 	}
 
-	u.GetUnitTypeProperty(r.Context(), w)
+	u.AcquireUnitTypeProperty(r.Context(), w)
 }
 
 func RegisterRouterSystemd(router *mux.Router) {
@@ -107,12 +107,12 @@ func RegisterRouterSystemd(router *mux.Router) {
 	n.HandleFunc("/systemd", routerConfigureUnit).Methods("POST")
 
 	// systemd unit status and property
-	n.HandleFunc("/systemd/manager/property/{property}", routerFetchSystemdManagerProperty).Methods("GET")
-	n.HandleFunc("/systemd/units", routerFetchAllSystemdUnits).Methods("GET")
-	n.HandleFunc("/systemd/{unit}/status", routerFetchUnitStatus).Methods("GET")
-	n.HandleFunc("/systemd/{unit}/property", routerFetchUnitProperty).Methods("GET")
-	n.HandleFunc("/systemd/{unit}/propertyall", routerFetchUnitPropertyAll).Methods("GET")
-	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerFetchUnitTypeProperty).Methods("GET")
+	n.HandleFunc("/systemd/manager/property/{property}", routerAcquireSystemdManagerProperty).Methods("GET")
+	n.HandleFunc("/systemd/units", routerAcquireAllSystemdUnits).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/status", routerAcquireUnitStatus).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/property", routerAcquireUnitProperty).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/propertyall", routerAcquireUnitPropertyAll).Methods("GET")
+	n.HandleFunc("/systemd/{unit}/property/{unittype}", routerAcquireUnitTypeProperty).Methods("GET")
 
 	// systemd configuration
 	n.HandleFunc("/systemd/conf", routerConfigureSystemdConf)

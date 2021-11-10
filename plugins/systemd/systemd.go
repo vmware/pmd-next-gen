@@ -51,7 +51,7 @@ type UnitStatus struct {
 	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
 }
 
-func ManagerFetchSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
+func ManagerAcquireSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
@@ -212,7 +212,7 @@ func (u *UnitAction) UnitCommands(ctx context.Context) error {
 	return nil
 }
 
-func (u *UnitAction) FetchUnitStatus(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitAction) AcquireUnitStatus(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus:: %v", err)
@@ -322,7 +322,7 @@ func (u *UnitAction) FetchUnitStatus(ctx context.Context, w http.ResponseWriter)
 	return web.JSONResponse(unit, w)
 }
 
-func (u *UnitAction) FetchUnitProperty(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitAction) AcquireUnitProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %v", err)
@@ -339,7 +339,7 @@ func (u *UnitAction) FetchUnitProperty(ctx context.Context, w http.ResponseWrite
 	return web.JSONResponse(p, w)
 }
 
-func (u *UnitAction) FetchAllUnitProperty(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitAction) AcquireAllUnitProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %v", err)
@@ -356,7 +356,7 @@ func (u *UnitAction) FetchAllUnitProperty(ctx context.Context, w http.ResponseWr
 	return web.JSONResponse(p, w)
 }
 
-func (u *UnitAction) GetUnitTypeProperty(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitAction) AcquireUnitTypeProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus:: %v", err)

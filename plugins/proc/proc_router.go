@@ -21,7 +21,7 @@ func routerFetchProcNetStat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	protocol := vars["protocol"]
 
-	if err := FetchNetStat(w, protocol); err != nil {
+	if err := AcquireNetStat(w, protocol); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -31,7 +31,7 @@ func routerFetchProcPidNetStat(w http.ResponseWriter, r *http.Request) {
 	protocol := vars["protocol"]
 	pid := vars["pid"]
 
-	if err := FetchNetStatPid(w, protocol, pid); err != nil {
+	if err := AcquireNetStatPid(w, protocol, pid); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -93,7 +93,7 @@ func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerFetchProcNetArp(w http.ResponseWriter, r *http.Request) {
-	if err := FetchNetArp(w); err != nil {
+	if err := AcquireNetArp(w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -103,7 +103,7 @@ func routerFetchProcProcess(w http.ResponseWriter, r *http.Request) {
 	pid := vars["pid"]
 	property := vars["property"]
 
-	if err := FetchProcessInfo(w, pid, property); err != nil {
+	if err := AcquireProcessInfo(w, pid, property); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -114,41 +114,41 @@ func routerFetchSystem(w http.ResponseWriter, r *http.Request) {
 
 	switch v["system"] {
 	case "avgstat":
-		err = FetchAvgStat(w)
+		err = AcquireAvgStat(w)
 	case "cpuinfo":
-		err = FetchCPUInfo(w)
+		err = AcquireCPUInfo(w)
 	case "cputimestat":
-		err = FetchCPUTimeStat(w)
+		err = AcquireCPUTimeStat(w)
 	case "diskusage":
-		err = FetchDiskUsage(w)
+		err = AcquireDiskUsage(w)
 	case "iocounters":
-		err = FetchIOCounters(w)
+		err = AcquireIOCounters(w)
 	case "partitions":
-		err = FetchPartitions(w)
+		err = AcquirePartitions(w)
 	case "temperaturestat":
-		err = FetchTemperatureStat(w)
+		err = AcquireTemperatureStat(w)
 	case "modules":
-		err = FetchModules(w)
+		err = AcquireModules(w)
 	case "misc":
-		err = FetchMisc(w)
+		err = AcquireMisc(w)
 	case "userstat":
-		err = FetchUserStat(w)
+		err = AcquireUserStat(w)
 	case "version":
-		err = FetchVersion(w)
+		err = AcquireVersion(w)
 	case "virtualmemory":
-		err = FetchVirtualMemoryStat(w)
+		err = AcquireVirtualMemoryStat(w)
 	case "virtualization":
-		err = FetchVirtualization(w)
+		err = AcquireVirtualization(w)
 	case "platform":
-		err = FetchPlatformInformation(w)
+		err = AcquirePlatformInformation(w)
 	case "swapmemory":
-		err = FetchSwapMemoryStat(w)
+		err = AcquireSwapMemoryStat(w)
 	case "interfaces":
-		err = FetchInterfaces(w)
+		err = AcquireInterfaces(w)
 	case "netdeviocounters":
-		err = FetchNetDevIOCounters(w)
+		err = AcquireNetDevIOCounters(w)
 	case "protocounterstat":
-		err = FetchProtoCountersStat(w)
+		err = AcquireProtoCountersStat(w)
 	}
 
 	if err != nil {

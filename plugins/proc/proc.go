@@ -44,7 +44,7 @@ type Modules struct {
 	State      string `json:"State"`
 }
 
-func FetchVersion(w http.ResponseWriter) error {
+func AcquireVersion(w http.ResponseWriter) error {
 	infoStat, err := host.Info()
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func FetchVersion(w http.ResponseWriter) error {
 	return web.JSONResponse(infoStat, w)
 }
 
-func FetchPlatformInformation(w http.ResponseWriter) error {
+func AcquirePlatformInformation(w http.ResponseWriter) error {
 	platform, family, version, err := host.PlatformInformation()
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func FetchPlatformInformation(w http.ResponseWriter) error {
 	return web.JSONResponse(p, w)
 }
 
-func FetchVirtualization(w http.ResponseWriter) error {
+func AcquireVirtualization(w http.ResponseWriter) error {
 	system, role, err := host.Virtualization()
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func FetchVirtualization(w http.ResponseWriter) error {
 	return web.JSONResponse(v, w)
 }
 
-func FetchUserStat(w http.ResponseWriter) error {
+func AcquireUserStat(w http.ResponseWriter) error {
 	userStat, err := host.Users()
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func FetchUserStat(w http.ResponseWriter) error {
 	return web.JSONResponse(userStat, w)
 }
 
-func FetchTemperatureStat(w http.ResponseWriter) error {
+func AcquireTemperatureStat(w http.ResponseWriter) error {
 	tempStat, err := host.SensorsTemperatures()
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func FetchTemperatureStat(w http.ResponseWriter) error {
 }
 
 // read netstat from proc tcp/udp/sctp
-func FetchNetStat(w http.ResponseWriter, protocol string) error {
+func AcquireNetStat(w http.ResponseWriter, protocol string) error {
 	conn, err := net.Connections(protocol)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func FetchNetStat(w http.ResponseWriter, protocol string) error {
 	return web.JSONResponse(conn, w)
 }
 
-func FetchNetStatPid(w http.ResponseWriter, protocol string, process string) error {
+func AcquireNetStatPid(w http.ResponseWriter, protocol string, process string) error {
 	pid, err := strconv.ParseInt(process, 10, 32)
 	if err != nil || protocol == "" || pid == 0 {
 		return errors.New("can't parse request")
@@ -131,7 +131,7 @@ func FetchNetStatPid(w http.ResponseWriter, protocol string, process string) err
 	return web.JSONResponse(conn, w)
 }
 
-func FetchProtoCountersStat(w http.ResponseWriter) error {
+func AcquireProtoCountersStat(w http.ResponseWriter) error {
 	protocols := []string{"ip", "icmp", "icmpmsg", "tcp", "udp", "udplite"}
 
 	proto, err := net.ProtoCounters(protocols)
@@ -142,7 +142,7 @@ func FetchProtoCountersStat(w http.ResponseWriter) error {
 	return web.JSONResponse(proto, w)
 }
 
-func FetchNetDevIOCounters(w http.ResponseWriter) error {
+func AcquireNetDevIOCounters(w http.ResponseWriter) error {
 	netDev, err := net.IOCounters(true)
 	if err != nil {
 		return err
@@ -151,7 +151,7 @@ func FetchNetDevIOCounters(w http.ResponseWriter) error {
 	return web.JSONResponse(netDev, w)
 }
 
-func FetchInterfaces(w http.ResponseWriter) error {
+func AcquireInterfaces(w http.ResponseWriter) error {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func FetchInterfaces(w http.ResponseWriter) error {
 	return web.JSONResponse(interfaces, w)
 }
 
-func FetchSwapMemoryStat(w http.ResponseWriter) error {
+func AcquireSwapMemoryStat(w http.ResponseWriter) error {
 	swap, err := mem.SwapMemory()
 	if err != nil {
 		return err
@@ -169,7 +169,7 @@ func FetchSwapMemoryStat(w http.ResponseWriter) error {
 	return web.JSONResponse(swap, w)
 }
 
-func FetchVirtualMemoryStat(w http.ResponseWriter) error {
+func AcquireVirtualMemoryStat(w http.ResponseWriter) error {
 	virt, err := mem.VirtualMemory()
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func FetchVirtualMemoryStat(w http.ResponseWriter) error {
 	return web.JSONResponse(virt, w)
 }
 
-func FetchCPUInfo(w http.ResponseWriter) error {
+func AcquireCPUInfo(w http.ResponseWriter) error {
 	cpuInfo, err := cpu.Info()
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func FetchCPUInfo(w http.ResponseWriter) error {
 	return web.JSONResponse(cpuInfo, w)
 }
 
-func FetchCPUTimeStat(w http.ResponseWriter) error {
+func AcquireCPUTimeStat(w http.ResponseWriter) error {
 	cpuTime, err := cpu.Times(true)
 	if err != nil {
 		return err
@@ -196,7 +196,7 @@ func FetchCPUTimeStat(w http.ResponseWriter) error {
 	return web.JSONResponse(cpuTime, w)
 }
 
-func FetchAvgStat(w http.ResponseWriter) error {
+func AcquireAvgStat(w http.ResponseWriter) error {
 	avgStat, err := load.Avg()
 	if err != nil {
 		return err
@@ -205,7 +205,7 @@ func FetchAvgStat(w http.ResponseWriter) error {
 	return web.JSONResponse(avgStat, w)
 }
 
-func FetchPartitions(w http.ResponseWriter) error {
+func AcquirePartitions(w http.ResponseWriter) error {
 	part, err := disk.Partitions(true)
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func FetchPartitions(w http.ResponseWriter) error {
 	return web.JSONResponse(part, w)
 }
 
-func FetchIOCounters(w http.ResponseWriter) error {
+func AcquireIOCounters(w http.ResponseWriter) error {
 	ioCounters, err := disk.IOCounters()
 	if err != nil {
 		return err
@@ -223,7 +223,7 @@ func FetchIOCounters(w http.ResponseWriter) error {
 	return web.JSONResponse(ioCounters, w)
 }
 
-func FetchDiskUsage(w http.ResponseWriter) error {
+func AcquireDiskUsage(w http.ResponseWriter) error {
 	u, err := disk.Usage("/")
 	if err != nil {
 		return err
@@ -232,7 +232,7 @@ func FetchDiskUsage(w http.ResponseWriter) error {
 	return web.JSONResponse(u, w)
 }
 
-func FetchMisc(w http.ResponseWriter) error {
+func AcquireMisc(w http.ResponseWriter) error {
 	lines, err := system.ReadFullFile(procMiscPath)
 	if err != nil {
 		log.Fatalf("Failed to read: %s", procMiscPath)
@@ -253,35 +253,34 @@ func FetchMisc(w http.ResponseWriter) error {
 	return web.JSONResponse(miscMap, w)
 }
 
-func FetchNetArp(w http.ResponseWriter) error {
+func AcquireNetArp(w http.ResponseWriter) error {
 	lines, err := system.ReadFullFile(procNetArpPath)
 	if err != nil {
 		log.Errorf("Failed to read '%s': %v", procNetArpPath, err)
 		return err
 	}
 
-	netARP := make([]NetARP, len(lines)-1)
+	arp := make([]NetARP, len(lines))
 	for i, line := range lines {
 		if i == 0 {
 			continue
 		}
 
 		fields := strings.Fields(line)
-
-		arp := NetARP{}
-		arp.IPAddress = fields[0]
-		arp.HWType = fields[1]
-		arp.Flags = fields[2]
-		arp.HWAddress = fields[3]
-		arp.Mask = fields[4]
-		arp.Device = fields[5]
-		netARP[i-1] = arp
+		arp[i] = NetARP{
+			IPAddress: fields[0],
+			HWType:    fields[1],
+			Flags:     fields[2],
+			HWAddress: fields[3],
+			Mask:      fields[4],
+			Device:    fields[5],
+		}
 	}
 
-	return web.JSONResponse(netARP, w)
+	return web.JSONResponse(arp, w)
 }
 
-func FetchModules(w http.ResponseWriter) error {
+func AcquireModules(w http.ResponseWriter) error {
 	lines, err := system.ReadFullFile(procModulesPath)
 	if err != nil {
 		log.Fatalf("Failed to read '%s': %v", procModulesPath, err)
@@ -319,7 +318,7 @@ func FetchModules(w http.ResponseWriter) error {
 	return web.JSONResponse(modules, w)
 }
 
-func FetchProcessInfo(w http.ResponseWriter, proc string, property string) error {
+func AcquireProcessInfo(w http.ResponseWriter, proc string, property string) error {
 	pid, err := strconv.ParseInt(proc, 10, 32)
 	if err != nil {
 		return err
