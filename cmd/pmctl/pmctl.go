@@ -112,7 +112,7 @@ func executeSystemdUnitCommand(command string, unit string, host string, token m
 	}
 }
 
-func fetchSystemdUnitStatus(unit string, host string, token map[string]string) {
+func acquireSystemdUnitStatus(unit string, host string, token map[string]string) {
 	var resp []byte
 	var err error
 
@@ -256,7 +256,7 @@ func displayInterfaces(i *Interface) {
 	}
 }
 
-func fetchNetworkStatus(cmd string, host string, token map[string]string) {
+func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 	var resp []byte
 	var err error
 
@@ -343,7 +343,7 @@ func main() {
 					Usage: "Show terse runtime status information about one unit",
 
 					Action: func(c *cli.Context) error {
-						fetchSystemdUnitStatus(c.Args().First(), c.String("url"), token)
+						acquireSystemdUnitStatus(c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -420,7 +420,7 @@ func main() {
 							Usage: "Show iostat of interfaces",
 
 							Action: func(c *cli.Context) error {
-								fetchNetworkStatus("iostat", c.String("url"), token)
+								acquireNetworkStatus("iostat", c.String("url"), token)
 								return nil
 							},
 						},
@@ -429,7 +429,7 @@ func main() {
 							Usage: "Show network interfaces",
 
 							Action: func(c *cli.Context) error {
-								fetchNetworkStatus("interfaces", c.String("url"), token)
+								acquireNetworkStatus("interfaces", c.String("url"), token)
 								return nil
 							},
 						},

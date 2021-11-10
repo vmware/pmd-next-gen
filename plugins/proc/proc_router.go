@@ -4,6 +4,7 @@ package proc
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -157,6 +158,8 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 		err = AcquireNetDevIOCounters(w)
 	case "protocounterstat":
 		err = AcquireProtoCountersStat(w)
+	default:
+		err = errors.New("not found")
 	}
 
 	if err != nil {
@@ -180,5 +183,4 @@ func RegisterRouterProc(router *mux.Router) {
 
 	n.HandleFunc("/process/{pid}/{property}/", routerAcquireProcProcess).Methods("GET")
 	n.HandleFunc("/protopidstat/{pid}/{protocol}", routerAcquireProcPidNetStat).Methods("GET")
-
 }
