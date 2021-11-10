@@ -17,7 +17,7 @@ type Info struct {
 	Value    string `json:"value"`
 }
 
-func routerFetchProcNetStat(w http.ResponseWriter, r *http.Request) {
+func routerAcquireProcNetStat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	protocol := vars["protocol"]
 
@@ -26,7 +26,7 @@ func routerFetchProcNetStat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerFetchProcPidNetStat(w http.ResponseWriter, r *http.Request) {
+func routerAcquireProcPidNetStat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	protocol := vars["protocol"]
 	pid := vars["pid"]
@@ -36,7 +36,7 @@ func routerFetchProcPidNetStat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerFetchProcSysVM(w http.ResponseWriter, r *http.Request) {
+func routerAcquireProcSysVM(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	vm := VM{
 		Property: vars["path"],
@@ -66,9 +66,13 @@ func routerConfigureProcSysVM(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerFetchProcSysNet(w http.ResponseWriter, r *http.Request) {
+func routerAcquireProcSysNet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	proc := SysNet{Path: vars["path"], Property: vars["conf"], Link: vars["link"]}
+	proc := SysNet{
+		Path: vars["path"],
+		Property: vars["conf"],
+		Link: vars["link"],
+	}
 
 	if err := proc.GetSysNet(w); err != nil {
 		web.JSONResponseError(err, w)
@@ -77,7 +81,11 @@ func routerFetchProcSysNet(w http.ResponseWriter, r *http.Request) {
 
 func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	proc := SysNet{Path: vars["path"], Property: vars["conf"], Link: vars["link"]}
+	proc := SysNet{
+		Path: vars["path"],
+		Property: vars["conf"],
+		Link: vars["link"],
+	}
 
 	v := new(Info)
 
@@ -92,13 +100,13 @@ func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerFetchProcNetArp(w http.ResponseWriter, r *http.Request) {
+func routerAcquireProcNetArp(w http.ResponseWriter, r *http.Request) {
 	if err := AcquireNetArp(w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
-func routerFetchProcProcess(w http.ResponseWriter, r *http.Request) {
+func routerAcquireProcProcess(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pid := vars["pid"]
 	property := vars["property"]
@@ -108,7 +116,7 @@ func routerFetchProcProcess(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerFetchSystem(w http.ResponseWriter, r *http.Request) {
+func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 	var err error
 	v := mux.Vars(r)
 
@@ -159,18 +167,18 @@ func routerFetchSystem(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterProc(router *mux.Router) {
 	n := router.PathPrefix("/proc").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/sys/net/{path}/{link}/{conf}", routerFetchProcSysNet).Methods("GET")
+	n.HandleFunc("/sys/net/{path}/{link}/{conf}", routerAcquireProcSysNet).Methods("GET")
 	n.HandleFunc("/sys/net/{path}/{link}/{conf}", configureProcSysNet).Methods("PUT")
 
-	n.HandleFunc("/sys/vm/{path}", routerFetchProcSysVM).Methods("GET")
+	n.HandleFunc("/sys/vm/{path}", routerAcquireProcSysVM).Methods("GET")
 	n.HandleFunc("/sys/vm/{path}", routerConfigureProcSysVM).Methods("PUT")
 
-	n.HandleFunc("/{system}", routerFetchSystem).Methods("GET")
+	n.HandleFunc("/{system}", routerAcquireSystem).Methods("GET")
 
-	n.HandleFunc("/net/arp", routerFetchProcNetArp).Methods("GET")
-	n.HandleFunc("/netstat/{protocol}", routerFetchProcNetStat).Methods("GET")
+	n.HandleFunc("/net/arp", routerAcquireProcNetArp).Methods("GET")
+	n.HandleFunc("/netstat/{protocol}", routerAcquireProcNetStat).Methods("GET")
 
-	n.HandleFunc("/process/{pid}/{property}/", routerFetchProcProcess).Methods("GET")
-	n.HandleFunc("/protopidstat/{pid}/{protocol}", routerFetchProcPidNetStat).Methods("GET")
+	n.HandleFunc("/process/{pid}/{property}/", routerAcquireProcProcess).Methods("GET")
+	n.HandleFunc("/protopidstat/{pid}/{protocol}", routerAcquireProcPidNetStat).Methods("GET")
 
 }
