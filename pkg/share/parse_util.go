@@ -30,7 +30,7 @@ func ParseIp(addr string) (net.IP, error) {
 	if ip == nil {
 		ips, err := net.LookupIP(addr)
 		if err != nil {
-			return nil, errors.New("invalid IP or host")
+			return nil, err
 		}
 
 		if ips[0].To4() != nil {
@@ -59,11 +59,11 @@ func ParseIpPort(s string) (string, string, error) {
 	}
 
 	if _, err := ParseIp(ip); err != nil {
-		return "", "", errors.New("invalid IP")
+		return "", "", err
 	}
 
 	if _, err := ParsePort(port); err != nil {
-		return "", "", errors.New("invalid port")
+		return "", "", err
 	}
 
 	return ip, port, nil

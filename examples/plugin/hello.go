@@ -8,7 +8,7 @@ import (
 	"github.com/pm-web/pkg/web"
 )
 
-//H ello JSON message
+// Hello JSON message
 type Hello struct {
 	Cmd  string `json:"cmd"`
 	Text string `json:"text"`
