@@ -20,18 +20,18 @@ const (
 )
 
 type User struct {
-	Uid           string   `json:"uid"`
-	Gid           string   `json:"gid"`
-	Groups        []string `json:"groups"`
-	Comment       string   `json:"comment"`
-	HomeDirectory string   `json:"home_dir"`
-	Shell         string   `json:"shell"`
-	Username      string   `json:"username"`
-	Password      string   `json:"password"`
+	Uid           string   `json:"Uid"`
+	Gid           string   `json:"Gid"`
+	Groups        []string `json:"Groups"`
+	Comment       string   `json:"Comment"`
+	HomeDirectory string   `json:"HomeDir"`
+	Shell         string   `json:"Shell"`
+	UserName      string   `json:"UserName"`
+	Password      string   `json:"Password"`
 }
 
 func (r *User) Add(w http.ResponseWriter) error {
-	u, err := user.Lookup(r.Username)
+	u, err := user.Lookup(r.UserName)
 	if err != nil {
 		_, ok := err.(user.UnknownUserError)
 		if !ok {
@@ -39,7 +39,7 @@ func (r *User) Add(w http.ResponseWriter) error {
 		}
 	}
 	if u != nil {
-		return fmt.Errorf("user '%s' already exists", r.Username)
+		return fmt.Errorf("user '%s' already exists", r.UserName)
 	}
 
 	if r.Uid != "" {
@@ -51,12 +51,12 @@ func (r *User) Add(w http.ResponseWriter) error {
 			}
 		}
 		if id != nil {
-			return fmt.Errorf("user '%s': gid '%s' already exists", r.Username, r.Gid)
+			return fmt.Errorf("user '%s': gid '%s' already exists", r.UserName, r.Gid)
 		}
 	}
 
-	// <Username>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
-	line := r.Username + ":" + r.Password + ":" + r.Uid + ":" + r.Gid + ":" + r.Comment + ":" + r.HomeDirectory + ":" + r.Shell
+	// <UserName>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
+	line := r.UserName + ":" + r.Password + ":" + r.Uid + ":" + r.Gid + ":" + r.Comment + ":" + r.HomeDirectory + ":" + r.Shell
 	if err := system.WriteOneLineFile(userFile, line); err != nil {
 		return err
 	}
@@ -70,15 +70,15 @@ func (r *User) Add(w http.ResponseWriter) error {
 	cmd := exec.Command(path, userFile)
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Errorf("Failed to add user %s: %s", r.Username, stdout)
-		return fmt.Errorf("failed to add user '%s': %s", r.Username, stdout)
+		log.Errorf("Failed to add user %s: %s", r.UserName, stdout)
+		return fmt.Errorf("failed to add user '%s': %s", r.UserName, stdout)
 	}
 
 	return web.JSONResponse("user added", w)
 }
 
 func (r *User) Remove(w http.ResponseWriter) error {
-	g, err := user.Lookup(r.Username)
+	g, err := user.Lookup(r.UserName)
 	if err != nil {
 		_, ok := err.(user.UnknownUserError)
 		if !ok {
@@ -86,7 +86,7 @@ func (r *User) Remove(w http.ResponseWriter) error {
 		}
 	}
 	if g == nil {
-		return fmt.Errorf("user '%s' does not exists", r.Username)
+		return fmt.Errorf("user '%s' does not exists", r.UserName)
 	}
 
 	path, err := exec.LookPath("userdel")
@@ -94,18 +94,18 @@ func (r *User) Remove(w http.ResponseWriter) error {
 		return err
 	}
 
-	cmd := exec.Command(path, r.Username)
+	cmd := exec.Command(path, r.UserName)
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Errorf("Failed to delete user %s: %s", r.Username, stdout)
-		return fmt.Errorf("user '%s': %s", r.Username, stdout)
+		log.Errorf("Failed to delete user %s: %s", r.UserName, stdout)
+		return fmt.Errorf("user '%s': %s", r.UserName, stdout)
 	}
 
 	return web.JSONResponse("user removed", w)
 }
 
 func (r *User) Modify(w http.ResponseWriter) error {
-	g, err := user.Lookup(r.Username)
+	g, err := user.Lookup(r.UserName)
 	if err != nil {
 		_, ok := err.(user.UnknownUserError)
 		if !ok {
@@ -113,7 +113,7 @@ func (r *User) Modify(w http.ResponseWriter) error {
 		}
 	}
 	if g == nil {
-		return fmt.Errorf("user %s does not exists", r.Username)
+		return fmt.Errorf("user %s does not exists", r.UserName)
 	}
 
 	path, err := exec.LookPath("usermod")
@@ -121,11 +121,11 @@ func (r *User) Modify(w http.ResponseWriter) error {
 		return err
 	}
 
-	cmd := exec.Command(path, "-G", r.Groups[0], r.Username)
+	cmd := exec.Command(path, "-G", r.Groups[0], r.UserName)
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Errorf("Failed to modify user %s: %s", r.Username, stdout)
-		return fmt.Errorf("unable to modify user %s: %s", r.Username, stdout)
+		log.Errorf("Failed to modify user %s: %s", r.UserName, stdout)
+		return fmt.Errorf("unable to modify user %s: %s", r.UserName, stdout)
 	}
 
 	return web.JSONResponse("user modified", w)
