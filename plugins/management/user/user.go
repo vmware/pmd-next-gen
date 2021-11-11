@@ -30,6 +30,23 @@ type User struct {
 	Password      string   `json:"Password"`
 }
 
+func (u *User) update() error {
+	// <Name>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
+	line := u.Name + ":" + u.Password + ":" + u.Uid + ":" + u.Gid + ":" + u.Comment + ":" + u.HomeDirectory + ":" + u.Shell
+	if err := system.WriteOneLineFile(userFile, line); err != nil {
+		return err
+	}
+	defer os.Remove(userFile)
+
+	if s, err := system.ExecAndCapture("newusers", userFile); err != nil {
+		log.Errorf("Failed to add user %s: %s (%v)", u.Name, s, err)
+		return fmt.Errorf("%s (%v)", s, err)
+	}
+
+	return nil
+}
+
+
 func (u *User) Add(w http.ResponseWriter) error {
 	var c *syscall.Credential
 	var err error
@@ -57,16 +74,8 @@ func (u *User) Add(w http.ResponseWriter) error {
 		}
 	}
 
-	// <Name>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
-	line := u.Name + ":" + u.Password + ":" + u.Uid + ":" + u.Gid + ":" + u.Comment + ":" + u.HomeDirectory + ":" + u.Shell
-	if err := system.WriteOneLineFile(userFile, line); err != nil {
+	if err := u.update(); err != nil {
 		return err
-	}
-	defer os.Remove(userFile)
-
-	if s, err := system.ExecAndCapture("newusers", userFile); err != nil {
-		log.Errorf("Failed to add user %s: %s (%v)", u.Name, s, err)
-		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("user added", w)
@@ -90,16 +99,8 @@ func (u *User) Modify(w http.ResponseWriter) error {
 		return err
 	}
 
-	// <Name>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
-	line := u.Name + ":" + u.Password + ":" + u.Uid + ":" + u.Gid + ":" + u.Comment + ":" + u.HomeDirectory + ":" + u.Shell
-	if err := system.WriteOneLineFile(userFile, line); err != nil {
+	if err := u.update(); err != nil {
 		return err
-	}
-	defer os.Remove(userFile)
-
-	if s, err := system.ExecAndCapture("newusers", userFile); err != nil {
-		log.Errorf("Failed to add user %s: %s (%v)", u.Name, s, err)
-		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("user modified", w)
