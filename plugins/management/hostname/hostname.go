@@ -55,7 +55,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("Hostname"); err == nil {
 			hostNameProperties["Hostname"] = p
 		}
-
 	}()
 
 	go func() {
@@ -64,7 +63,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("StaticHostname"); err == nil {
 			hostNameProperties["StaticHostname"] = p
 		}
-
 	}()
 
 	go func() {
@@ -73,7 +71,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("PrettyHostname"); err == nil {
 			hostNameProperties["PrettyHostname"] = p
 		}
-
 	}()
 
 	go func() {
@@ -82,7 +79,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("IconName"); err == nil {
 			hostNameProperties["IconName"] = p
 		}
-
 	}()
 
 	go func() {
@@ -91,7 +87,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("Chassis"); err == nil {
 			hostNameProperties["Chassis"] = p
 		}
-
 	}()
 
 	go func() {
@@ -100,7 +95,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("Deployment"); err == nil {
 			hostNameProperties["Deployment"] = p
 		}
-
 	}()
 
 	go func() {
@@ -109,7 +103,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("Location"); err == nil {
 			hostNameProperties["Location"] = p
 		}
-
 	}()
 
 	go func() {
@@ -118,7 +111,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("KernelName"); err == nil {
 			hostNameProperties["KernelName"] = p
 		}
-
 	}()
 
 	go func() {
@@ -127,7 +119,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("KernelRelease"); err == nil {
 			hostNameProperties["LKernelRelease"] = p
 		}
-
 	}()
 
 	go func() {
@@ -136,7 +127,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("KernelVersion"); err == nil {
 			hostNameProperties["KernelVersion"] = p
 		}
-
 	}()
 
 	go func() {
@@ -145,7 +135,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("OperatingSystemPrettyName"); err == nil {
 			hostNameProperties["OperatingSystemPrettyName"] = p
 		}
-
 	}()
 
 	go func() {
@@ -154,7 +143,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("OperatingSystemCPEName"); err == nil {
 			hostNameProperties["OperatingSystemCPEName"] = p
 		}
-
 	}()
 
 	go func() {
@@ -163,7 +151,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		if p, err := conn.GetHostName("HomeURL"); err == nil {
 			hostNameProperties["HomeURL"] = p
 		}
-
 	}()
 
 	wg.Wait()

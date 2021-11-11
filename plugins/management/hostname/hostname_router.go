@@ -32,7 +32,6 @@ func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterHostname(router *mux.Router) {
 	s := router.PathPrefix("/hostname").Subrouter().StrictSlash(false)
 
-	s.HandleFunc("", routerAcquireHostname).Methods("GET")
-	s.HandleFunc("/get/{property}", routerAcquireHostname).Methods("GET")
-	s.HandleFunc("/set", routerSetHostname).Methods("POST")
+	s.HandleFunc("/property", routerAcquireHostname).Methods("GET")
+	s.HandleFunc("/method", routerSetHostname).Methods("POST")
 }
