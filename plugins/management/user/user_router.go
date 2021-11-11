@@ -12,7 +12,7 @@ import (
 )
 
 func routerAddUser(w http.ResponseWriter, r *http.Request) {
-	u := new(User)
+	u := User{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -24,7 +24,7 @@ func routerAddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerModifyUser(w http.ResponseWriter, r *http.Request) {
-	u := new(User)
+	u := User{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -32,12 +32,11 @@ func routerModifyUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := u.Modify(w); err != nil {
 		web.JSONResponseError(err, w)
-		return
 	}
 }
 
 func routerRemoveUser(w http.ResponseWriter, r *http.Request) {
-	u := new(User)
+	u := User{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return

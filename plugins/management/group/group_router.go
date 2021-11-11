@@ -12,7 +12,7 @@ import (
 )
 
 func routerGroupAdd(w http.ResponseWriter, r *http.Request) {
-	g := new(Group)
+	g := Group{}
 	if err := json.NewDecoder(r.Body).Decode(&g); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -24,7 +24,7 @@ func routerGroupAdd(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerGroupModify(w http.ResponseWriter, r *http.Request) {
-	g := new(Group)
+	g := Group{}
 	if err := json.NewDecoder(r.Body).Decode(&g); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -36,7 +36,7 @@ func routerGroupModify(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerGroupRemove(w http.ResponseWriter, r *http.Request) {
-	g := new(Group)
+	g := Group{}
 	if err := json.NewDecoder(r.Body).Decode(&g); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return

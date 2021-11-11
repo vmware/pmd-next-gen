@@ -12,15 +12,14 @@ import (
 	"github.com/pm-web/pkg/web"
 )
 
-type Info struct {
+type Proc struct {
 	Path     string `json:"path"`
 	Property string `json:"property"`
 	Value    string `json:"value"`
 }
 
 func routerAcquireProcNetStat(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	protocol := vars["protocol"]
+	protocol := mux.Vars(r)["protocol"]
 
 	if err := AcquireNetStat(w, protocol); err != nil {
 		web.JSONResponseError(err, w)
@@ -28,19 +27,14 @@ func routerAcquireProcNetStat(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireProcPidNetStat(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	protocol := vars["protocol"]
-	pid := vars["pid"]
-
-	if err := AcquireNetStatPid(w, protocol, pid); err != nil {
+	if err := AcquireNetStatPid(w, mux.Vars(r)["protocol"], mux.Vars(r)["pid"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
 func routerAcquireProcSysVM(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	vm := VM{
-		Property: vars["path"],
+		Property: mux.Vars(r)["path"],
 	}
 
 	if err := vm.GetVM(w); err != nil {
@@ -49,13 +43,11 @@ func routerAcquireProcSysVM(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerConfigureProcSysVM(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	vm := VM{
-		Property: vars["path"],
+		Property: mux.Vars(r)["path"],
 	}
 
-	v := new(Info)
-
+	v := Proc{}
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		web.JSONResponseError(err, w)
 		return
@@ -68,11 +60,10 @@ func routerConfigureProcSysVM(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireProcSysNet(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	proc := SysNet{
-		Path: vars["path"],
-		Property: vars["conf"],
-		Link: vars["link"],
+		Path:     mux.Vars(r)["path"],
+		Property: mux.Vars(r)["conf"],
+		Link:     mux.Vars(r)["link"],
 	}
 
 	if err := proc.GetSysNet(w); err != nil {
@@ -81,15 +72,13 @@ func routerAcquireProcSysNet(w http.ResponseWriter, r *http.Request) {
 }
 
 func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	proc := SysNet{
-		Path: vars["path"],
-		Property: vars["conf"],
-		Link: vars["link"],
+		Path:     mux.Vars(r)["path"],
+		Property: mux.Vars(r)["conf"],
+		Link:     mux.Vars(r)["link"],
 	}
 
-	v := new(Info)
-
+	v := Proc{}
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		web.JSONResponseError(err, w)
 		return
@@ -108,20 +97,15 @@ func routerAcquireProcNetArp(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireProcProcess(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	pid := vars["pid"]
-	property := vars["property"]
-
-	if err := AcquireProcessInfo(w, pid, property); err != nil {
+	if err := AcquireProcessInfo(w, mux.Vars(r)["pid"], mux.Vars(r)["property"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
 func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 	var err error
-	v := mux.Vars(r)
 
-	switch v["system"] {
+	switch mux.Vars(r)["system"] {
 	case "avgstat":
 		err = AcquireAvgStat(w)
 	case "cpuinfo":

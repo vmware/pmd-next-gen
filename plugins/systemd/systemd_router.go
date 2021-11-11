@@ -12,9 +12,7 @@ import (
 )
 
 func routerAcquireSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
-
-	if err := ManagerAcquireSystemProperty(r.Context(), w, v["property"]); err != nil {
+	if err := ManagerAcquireSystemProperty(r.Context(), w, mux.Vars(r)["property"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -34,8 +32,7 @@ func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
-	u := new(UnitAction)
-
+	u := UnitAction{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -56,9 +53,8 @@ func routerAcquireAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
 	u := UnitAction{
-		Unit: v["unit"],
+		Unit: mux.Vars(r)["unit"],
 	}
 
 	if err := u.AcquireUnitStatus(r.Context(), w); err != nil {
@@ -67,10 +63,9 @@ func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
 	u := UnitAction{
-		Unit:     v["unit"],
-		Property: v["property"],
+		Unit:     mux.Vars(r)["unit"],
+		Property: mux.Vars(r)["property"],
 	}
 
 	if err := u.AcquireUnitProperty(r.Context(), w); err != nil {
@@ -79,9 +74,8 @@ func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
 	u := UnitAction{
-		Unit: v["unit"],
+		Unit: mux.Vars(r)["unit"],
 	}
 
 	if err := u.AcquireAllUnitProperty(r.Context(), w); err != nil {
@@ -90,11 +84,10 @@ func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
-	v := mux.Vars(r)
 	u := UnitAction{
-		Unit:     v["unit"],
-		UnitType: v["unittype"],
-		Property: v["property"],
+		Unit:     mux.Vars(r)["unit"],
+		UnitType: mux.Vars(r)["unittype"],
+		Property: mux.Vars(r)["property"],
 	}
 
 	u.AcquireUnitTypeProperty(r.Context(), w)
