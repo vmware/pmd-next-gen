@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/pm-web/plugins/management/group"
+	"github.com/pm-web/plugins/management/hostname"
 	"github.com/pm-web/plugins/management/user"
 )
 
@@ -14,4 +15,7 @@ func RegisterRouterManagement(router *mux.Router) {
 
 	group.RegisterRouterGroup(n)
 	user.RegisterRouterUser(n)
+
+	hostname.Init()
+	hostname.RegisterRouterHostname(n)
 }

@@ -39,7 +39,7 @@ func (u *User) update() error {
 	defer os.Remove(userFile)
 
 	if s, err := system.ExecAndCapture("newusers", userFile); err != nil {
-		log.Errorf("Failed to add user %s: %s (%v)", u.Name, s, err)
+		log.Errorf("Failed to add user '%s': %s (%v)", u.Name, s, err)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 
@@ -58,7 +58,7 @@ func (u *User) Add(w http.ResponseWriter) error {
 		}
 	}
 	if c != nil {
-		return fmt.Errorf("user=%s gid=%d already exists", u.Name, c.Gid)
+		return fmt.Errorf("user='%s', gid='%d' already exists", u.Name, c.Gid)
 	}
 
 	if u.Uid != "" {
@@ -70,7 +70,7 @@ func (u *User) Add(w http.ResponseWriter) error {
 			}
 		}
 		if id != nil {
-			return fmt.Errorf("user=%s gid=%s already exists", u.Name, id.Uid)
+			return fmt.Errorf("user='%s', gid='%s' already exists", u.Name, id.Uid)
 		}
 	}
 
@@ -87,7 +87,7 @@ func (u *User) Remove(w http.ResponseWriter) error {
 	}
 
 	if s, err := system.ExecAndCapture("userdel", u.Name); err != nil {
-		log.Errorf("Failed to delete user %s: %s (%v)", u.Name, s)
+		log.Errorf("Failed to delete user '%s': %s (%v)", u.Name, s)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 

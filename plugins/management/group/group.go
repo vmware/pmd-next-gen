@@ -31,7 +31,7 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 		}
 	}
 	if grp != nil {
-		return fmt.Errorf("group %s gid %s already exists", grp.Name, grp.Gid)
+		return fmt.Errorf("group '%s', gid '%s' already exists", grp.Name, grp.Gid)
 	}
 
 	if g.Gid != "" {
@@ -43,12 +43,12 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 			}
 		}
 		if id != nil {
-			return fmt.Errorf("group %s gid %s already exists", g.Name, g.Gid)
+			return fmt.Errorf("group '%s', gid '%s' already exists", g.Name, g.Gid)
 		}
 	}
 
 	if s, err := system.ExecAndCapture("groupadd", g.Name, "-g", g.Gid); err != nil {
-		log.Errorf("Failed to add group %s: %s (%v)", g.Name, s, err)
+		log.Errorf("Failed to add group '%s': %s (%v)", g.Name, s, err)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 
@@ -61,7 +61,7 @@ func (g *Group) GroupRemove(w http.ResponseWriter) error {
 	}
 
 	if s, err := system.ExecAndCapture("groupdel", g.Name); err != nil {
-		log.Errorf("Failed to remove group %s: %s (%v)", g.Name, s, err)
+		log.Errorf("Failed to remove group '%s': %s (%v)", g.Name, s, err)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 
@@ -78,7 +78,7 @@ func (g *Group) GroupModify(w http.ResponseWriter) error {
 	}
 
 	if s, err := system.ExecAndCapture("groupmod", "-n", g.NewName, g.Name); err != nil {
-		log.Errorf("Failed to modify group %s: %s (%v)", g.Name, s, err)
+		log.Errorf("Failed to modify group '%s': %s (%v)", g.Name, s, err)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 

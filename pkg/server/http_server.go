@@ -19,9 +19,9 @@ import (
 	"github.com/pm-web/pkg/conf"
 	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/system"
+	"github.com/pm-web/plugins/management"
 	"github.com/pm-web/plugins/proc"
 	"github.com/pm-web/plugins/systemd"
-	"github.com/pm-web/plugins/management"
 )
 
 var httpSrv *http.Server
@@ -32,7 +32,9 @@ func NewRouter() *mux.Router {
 
 	systemd.InitSystemd()
 	systemd.RegisterRouterSystemd(s)
+
 	management.RegisterRouterManagement(s)
+
 	proc.RegisterRouterProc(s)
 
 	return r
