@@ -17,7 +17,7 @@ type Hostname struct {
 }
 
 func (h *Hostname) SetHostname() error {
-	conn, err := NewConn()
+	conn, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
 		return err
@@ -28,7 +28,7 @@ func (h *Hostname) SetHostname() error {
 }
 
 func AcquireHostnameProperties(w http.ResponseWriter) error {
-	conn, err := NewConn()
+	conn, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
 		return err

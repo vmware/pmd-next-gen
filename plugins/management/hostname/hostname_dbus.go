@@ -15,30 +15,30 @@ const (
 	dbusPath      = "/org/freedesktop/hostname1"
 )
 
-type Conn struct {
+type SDConnection struct {
 	conn   *dbus.Conn
 	object dbus.BusObject
 }
 
-func NewConn() (*Conn, error) {
-	c := new(Conn)
-
+func NewSDConnection() (*SDConnection, error) {
 	conn, err := share.GetSystemBusPrivateConn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to system bus: %v", err)
 	}
 
-	c.conn = conn
-	c.object = conn.Object(dbusInterface, dbus.ObjectPath(dbusPath))
+	c := SDConnection {
+		conn : conn,
+		object :conn.Object(dbusInterface, dbus.ObjectPath(dbusPath)),
+	}
 
-	return c, nil
+	return &c, nil
 }
 
-func (c *Conn) Close() {
+func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func (c *Conn) SetHostName(method string, value string) error {
+func (c *SDConnection) SetHostName(method string, value string) error {
 	if err := c.object.Call(dbusInterface+"."+method, 0, value, false).Err; err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (c *Conn) SetHostName(method string, value string) error {
 	return nil
 }
 
-func (c *Conn) GetHostName(property string) (string, error) {
+func (c *SDConnection) GetHostName(property string) (string, error) {
 	p, err := c.object.GetProperty(dbusInterface + "." + property)
 	if err != nil {
 		return "", err

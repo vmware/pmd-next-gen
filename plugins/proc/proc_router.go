@@ -19,9 +19,7 @@ type Proc struct {
 }
 
 func routerAcquireProcNetStat(w http.ResponseWriter, r *http.Request) {
-	protocol := mux.Vars(r)["protocol"]
-
-	if err := AcquireNetStat(w, protocol); err != nil {
+	if err := AcquireNetStat(w, mux.Vars(r)["protocol"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
