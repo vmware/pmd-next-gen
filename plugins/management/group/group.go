@@ -34,7 +34,6 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 		return fmt.Errorf("group %s gid %s already exists", grp.Name, grp.Gid)
 	}
 
-
 	if g.Gid != "" {
 		id, err := user.LookupGroupId(g.Gid)
 		if err != nil {

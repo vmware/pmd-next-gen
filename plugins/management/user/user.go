@@ -26,7 +26,7 @@ type User struct {
 	Comment       string   `json:"Comment"`
 	HomeDirectory string   `json:"HomeDir"`
 	Shell         string   `json:"Shell"`
-	Name      string   `json:"Name"`
+	Name          string   `json:"Name"`
 	Password      string   `json:"Password"`
 }
 
@@ -90,8 +90,15 @@ func (u *User) Modify(w http.ResponseWriter) error {
 		return err
 	}
 
-	if s, err := system.ExecAndCapture("usermod", "-G", u.Groups[0], u.Name); err != nil {
-		log.Errorf("Failed to modify user %s: %s (%v)", u.Name, s, err)
+	// <Name>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
+	line := u.Name + ":" + u.Password + ":" + u.Uid + ":" + u.Gid + ":" + u.Comment + ":" + u.HomeDirectory + ":" + u.Shell
+	if err := system.WriteOneLineFile(userFile, line); err != nil {
+		return err
+	}
+	defer os.Remove(userFile)
+
+	if s, err := system.ExecAndCapture("newusers", userFile); err != nil {
+		log.Errorf("Failed to add user %s: %s (%v)", u.Name, s, err)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 
