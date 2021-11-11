@@ -3,13 +3,14 @@
 package group
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
-	"os/exec"
 	"os/user"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/pm-web/pkg/system"
 	"github.com/pm-web/pkg/web"
 )
 
@@ -19,104 +20,60 @@ type Group struct {
 	NewName string `json:"NewName"`
 }
 
-func (r *Group) GroupAdd(w http.ResponseWriter) error {
-	g, err := user.LookupGroup(r.Name)
-	if err != nil {
-		_, ok := err.(user.UnknownGroupError)
+func (g *Group) GroupAdd(w http.ResponseWriter) error {
+	if _, err := system.GetUserCredentials(g.Name); err != nil {
+		_, ok := err.(user.UnknownUserError)
 		if !ok {
 			return err
 		}
 	}
-	if g != nil {
-		return fmt.Errorf("group %s already exists", r.Name)
-	}
 
-	id, err := user.LookupGroupId(r.Gid)
-	if err != nil {
-		_, ok := err.(user.UnknownGroupIdError)
-		if !ok {
-			return err
+	if g.Gid != "" {
+		id, err := user.LookupGroupId(g.Gid)
+		if err != nil {
+			_, ok := err.(user.UnknownUserError)
+			if !ok {
+				return err
+			}
+		}
+		if id != nil {
+			return fmt.Errorf("group %s gid %s already exists", g.Name, g.Gid)
 		}
 	}
-	if id != nil {
-		return fmt.Errorf("group %s: Gid %s already exists", r.Name, r.Gid)
-	}
 
-	path, err := exec.LookPath("groupadd")
-	if err != nil {
-		return err
-	}
-
-	cmd := exec.Command(path, r.Name, "-g", r.Gid)
-	stdout, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Errorf("Failed to add group %s: %s", r.Name, stdout)
-		return fmt.Errorf("group '%s': %s", r.Name, stdout)
+	if s, err := system.ExecAndCapture("groupadd", g.Name, "-g", g.Gid); err != nil {
+		log.Errorf("Failed to add group %s: %s (%v)", g.Name, s, err)
+		return fmt.Errorf("group '%s': %s (%v)", g.Name, s, err)
 	}
 
 	return web.JSONResponse("group added", w)
 }
 
-func (r *Group) GroupRemove(w http.ResponseWriter) error {
-	g, err := user.LookupGroup(r.Name)
-	if err != nil {
-		_, ok := err.(user.UnknownGroupError)
-		if !ok {
-			return err
-		}
-	}
-	if g == nil {
-		return fmt.Errorf("group %s does not exists", r.Name)
-	}
-
-	path, err := exec.LookPath("groupdel")
-	if err != nil {
+func (g *Group) GroupRemove(w http.ResponseWriter) error {
+	if _, err := system.GetUserCredentials(g.Name); err != nil {
 		return err
 	}
 
-	cmd := exec.Command(path, r.Name)
-	stdout, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Errorf("Failed to delete group %s: %s", r.Name, stdout)
-		return fmt.Errorf("group '%s': %s", r.Name, stdout)
+	if s, err := system.ExecAndCapture("groupdel", g.Name); err != nil {
+		log.Errorf("Failed to remove group %s: %s (%v)", g.Name, s, err)
+		return fmt.Errorf("group '%s': %s (%v)", g.Name, s, err)
 	}
 
 	return web.JSONResponse("group removed", w)
 }
 
-func (r *Group) GroupModify(w http.ResponseWriter) error {
-	g, err := user.LookupGroup(r.Name)
-	if err != nil {
-		_, ok := err.(user.UnknownGroupError)
-		if !ok {
-			return err
-		}
-	}
-	if g == nil {
-		return fmt.Errorf("existing group '%s' does not exists", r.Name)
-	}
-
-	g, err = user.LookupGroup(r.NewName)
-	if err != nil {
-		_, ok := err.(user.UnknownGroupError)
-		if !ok {
-			return err
-		}
-	}
-	if g != nil {
-		return fmt.Errorf("new group '%s' does not exists", r.NewName)
-	}
-
-	path, err := exec.LookPath("groupmod")
-	if err != nil {
+func (g *Group) GroupModify(w http.ResponseWriter) error {
+	if _, err := system.GetUserCredentials(g.Name); err != nil {
 		return err
 	}
 
-	cmd := exec.Command(path, "-n", r.NewName, r.Name)
-	stdout, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Errorf("Failed to modify group %s: %s", r.Name, stdout)
-		return fmt.Errorf("group '%s': %s", r.Name, stdout)
+	if g, err := user.LookupGroup(g.NewName); err != nil || g != nil {
+		return errors.New("new group exists")
+	}
+
+	if s, err := system.ExecAndCapture("groupmod", "-n", g.NewName, g.Name); err != nil {
+		log.Errorf("Failed to modify group %s: %s (%v)", g.Name, s, err)
+		return fmt.Errorf("group '%s': %s (%v)", g.Name, s, err)
 	}
 
 	return web.JSONResponse("group modified", w)

@@ -51,6 +51,6 @@ func RegisterRouterGroup(router *mux.Router) {
 	s := router.PathPrefix("/group").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/add", routerGroupAdd).Methods("POST")
-	s.HandleFunc("/delete", routerGroupRemove).Methods("DELETE")
+	s.HandleFunc("/remove", routerGroupRemove).Methods("DELETE")
 	s.HandleFunc("/modify", routerGroupModify).Methods("PUT")
 }

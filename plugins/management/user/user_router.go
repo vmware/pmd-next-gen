@@ -52,6 +52,6 @@ func RegisterRouterUser(router *mux.Router) {
 	s := router.PathPrefix("/user").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/add", routerAddUser).Methods("POST")
-	s.HandleFunc("/delete", routerRemoveUser).Methods("DELETE")
+	s.HandleFunc("/remove", routerRemoveUser).Methods("DELETE")
 	s.HandleFunc("/modify", routerModifyUser).Methods("PUT")
 }
