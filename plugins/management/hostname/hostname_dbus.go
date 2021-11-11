@@ -39,8 +39,7 @@ func (c *Conn) Close() {
 }
 
 func (c *Conn) SetHostName(property string, value string) error {
-	err := c.object.Call(dbusInterface+"."+property, 0, value, false).Err
-	if err != nil {
+	if err := c.object.Call(dbusInterface+"."+property, 0, value, false).Err; err != nil {
 		return err
 	}
 

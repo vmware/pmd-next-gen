@@ -47,7 +47,7 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 	hostNameProperties := map[string]string{}
 
 	var wg sync.WaitGroup
-	wg.Add(13)
+	wg.Add(16)
 
 	go func() {
 		defer wg.Done()
@@ -148,10 +148,37 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 	go func() {
 		defer wg.Done()
 
-		if p, err := conn.GetHostName("HomeURL"); err == nil {
-			hostNameProperties["HomeURL"] = p
+		if p, err := conn.GetHostName("OperatingSystemHomeURL"); err == nil {
+			hostNameProperties["OperatingSystemHomeURL"] = p
 		}
 	}()
+
+
+	go func() {
+		defer wg.Done()
+
+		if p, err := conn.GetHostName("HardwareVendor"); err == nil {
+			hostNameProperties["HardwareVendor"] = p
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		if p, err := conn.GetHostName("HardwareModel"); err == nil {
+			hostNameProperties["HardwareModel"] = p
+		}
+	}()
+
+
+	go func() {
+		defer wg.Done()
+
+		if p, err := conn.GetHostName("ProductUUID"); err == nil {
+			hostNameProperties["ProductUUID"] = p
+		}
+	}()
+
 
 	wg.Wait()
 
