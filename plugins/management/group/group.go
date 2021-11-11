@@ -21,12 +21,19 @@ type Group struct {
 }
 
 func (g *Group) GroupAdd(w http.ResponseWriter) error {
-	if _, err := system.GetUserCredentials(g.Name); err != nil {
+	var grp *user.Group
+	var err error
+
+	if grp, err = user.LookupGroup(g.Name); err != nil {
 		_, ok := err.(user.UnknownUserError)
 		if !ok {
 			return err
 		}
 	}
+	if grp != nil {
+		return fmt.Errorf("group %s gid %s already exists", grp.Name, grp.Gid)
+	}
+
 
 	if g.Gid != "" {
 		id, err := user.LookupGroupId(g.Gid)
@@ -43,7 +50,7 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 
 	if s, err := system.ExecAndCapture("groupadd", g.Name, "-g", g.Gid); err != nil {
 		log.Errorf("Failed to add group %s: %s (%v)", g.Name, s, err)
-		return fmt.Errorf("group '%s': %s (%v)", g.Name, s, err)
+		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("group added", w)
@@ -56,7 +63,7 @@ func (g *Group) GroupRemove(w http.ResponseWriter) error {
 
 	if s, err := system.ExecAndCapture("groupdel", g.Name); err != nil {
 		log.Errorf("Failed to remove group %s: %s (%v)", g.Name, s, err)
-		return fmt.Errorf("group '%s': %s (%v)", g.Name, s, err)
+		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("group removed", w)
@@ -73,7 +80,7 @@ func (g *Group) GroupModify(w http.ResponseWriter) error {
 
 	if s, err := system.ExecAndCapture("groupmod", "-n", g.NewName, g.Name); err != nil {
 		log.Errorf("Failed to modify group %s: %s (%v)", g.Name, s, err)
-		return fmt.Errorf("group '%s': %s (%v)", g.Name, s, err)
+		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("group modified", w)

@@ -29,7 +29,7 @@ func DBusTimeToUsec(prop *sdbus.Property) (time.Time, error) {
 func ExecAndCapture(cmd string, args ...string) (string, error) {
 	c := exec.Command(cmd, args...)
 	if out, err := c.CombinedOutput(); err != nil {
-		return "", err
+		return string(out), err
 	} else {
 		return string(out), nil
 	}

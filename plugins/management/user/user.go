@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"syscall"
 
 	log "github.com/sirupsen/logrus"
 
@@ -25,20 +26,26 @@ type User struct {
 	Comment       string   `json:"Comment"`
 	HomeDirectory string   `json:"HomeDir"`
 	Shell         string   `json:"Shell"`
-	UserName      string   `json:"UserName"`
+	Name      string   `json:"Name"`
 	Password      string   `json:"Password"`
 }
 
-func (r *User) Add(w http.ResponseWriter) error {
-	if _, err := system.GetUserCredentials(r.UserName); err != nil {
+func (u *User) Add(w http.ResponseWriter) error {
+	var c *syscall.Credential
+	var err error
+
+	if c, err = system.GetUserCredentials(u.Name); err != nil {
 		_, ok := err.(user.UnknownUserError)
 		if !ok {
 			return err
 		}
 	}
+	if c != nil {
+		return fmt.Errorf("user=%s gid=%d already exists", u.Name, c.Gid)
+	}
 
-	if r.Uid != "" {
-		id, err := user.LookupId(r.Uid)
+	if u.Uid != "" {
+		id, err := user.LookupId(u.Uid)
 		if err != nil {
 			_, ok := err.(user.UnknownUserError)
 			if !ok {
@@ -46,46 +53,46 @@ func (r *User) Add(w http.ResponseWriter) error {
 			}
 		}
 		if id != nil {
-			return fmt.Errorf("user %s gid %s already exists", r.UserName, r.Gid)
+			return fmt.Errorf("user=%s gid=%s already exists", u.Name, id.Uid)
 		}
 	}
 
-	// <UserName>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
-	line := r.UserName + ":" + r.Password + ":" + r.Uid + ":" + r.Gid + ":" + r.Comment + ":" + r.HomeDirectory + ":" + r.Shell
+	// <Name>:<Password>:<UID>:<GID>:<User Info>:<Home Dir>:<Default Shell>
+	line := u.Name + ":" + u.Password + ":" + u.Uid + ":" + u.Gid + ":" + u.Comment + ":" + u.HomeDirectory + ":" + u.Shell
 	if err := system.WriteOneLineFile(userFile, line); err != nil {
 		return err
 	}
 	defer os.Remove(userFile)
 
 	if s, err := system.ExecAndCapture("newusers", userFile); err != nil {
-		log.Errorf("Failed to add user %s: %s (%v)", r.UserName, s, err)
-		return fmt.Errorf("failed to add user '%s': %s (%v)", r.UserName, s, err)
+		log.Errorf("Failed to add user %s: %s (%v)", u.Name, s, err)
+		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("user added", w)
 }
 
-func (r *User) Remove(w http.ResponseWriter) error {
-	if _, err := system.GetUserCredentials(r.UserName); err != nil {
+func (u *User) Remove(w http.ResponseWriter) error {
+	if _, err := system.GetUserCredentials(u.Name); err != nil {
 		return err
 	}
 
-	if s, err := system.ExecAndCapture("userdel", r.UserName); err != nil {
-		log.Errorf("Failed to delete user %s: %s (%v)", r.UserName, s)
-		return fmt.Errorf("user '%s': %s (%v)", r.UserName, s, err)
+	if s, err := system.ExecAndCapture("userdel", u.Name); err != nil {
+		log.Errorf("Failed to delete user %s: %s (%v)", u.Name, s)
+		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("user removed", w)
 }
 
-func (r *User) Modify(w http.ResponseWriter) error {
-	if _, err := system.GetUserCredentials(r.UserName); err != nil {
+func (u *User) Modify(w http.ResponseWriter) error {
+	if _, err := system.GetUserCredentials(u.Name); err != nil {
 		return err
 	}
 
-	if s, err := system.ExecAndCapture("usermod", "-G", r.Groups[0], r.UserName); err != nil {
-		log.Errorf("Failed to modify user %s: %s (%v)", r.UserName, s, err)
-		return fmt.Errorf("unable to modify user %s: %s (%v)", r.UserName, s, err)
+	if s, err := system.ExecAndCapture("usermod", "-G", u.Groups[0], u.Name); err != nil {
+		log.Errorf("Failed to modify user %s: %s (%v)", u.Name, s, err)
+		return fmt.Errorf("%s (%v)", s, err)
 	}
 
 	return web.JSONResponse("user modified", w)
