@@ -320,14 +320,14 @@ func main() {
 	app := &cli.App{
 		Name:    "pmctl",
 		Version: "v0.1",
-		Usage:   "Introspects and Controls the system",
+		Usage:   "Introspects and controls the system",
 	}
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
 			Name:    "url",
 			Aliases: []string{"u"},
-			Usage:   "http://localhost:8080",
+			Usage:   "http://localhost:5208",
 		},
 	}
 
