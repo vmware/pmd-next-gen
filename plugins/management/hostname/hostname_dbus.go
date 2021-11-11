@@ -38,8 +38,8 @@ func (c *Conn) Close() {
 	c.conn.Close()
 }
 
-func (c *Conn) SetHostName(property string, value string) error {
-	if err := c.object.Call(dbusInterface+"."+property, 0, value, false).Err; err != nil {
+func (c *Conn) SetHostName(method string, value string) error {
+	if err := c.object.Call(dbusInterface+"."+method, 0, value, false).Err; err != nil {
 		return err
 	}
 

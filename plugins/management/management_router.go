@@ -16,6 +16,5 @@ func RegisterRouterManagement(router *mux.Router) {
 	group.RegisterRouterGroup(n)
 	user.RegisterRouterUser(n)
 
-	hostname.Init()
 	hostname.RegisterRouterHostname(n)
 }

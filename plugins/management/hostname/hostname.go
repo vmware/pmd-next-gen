@@ -3,22 +3,18 @@
 package hostname
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/web"
 )
 
 type Hostname struct {
-	Property string `json:"property"`
-	Value    string `json:"value"`
+	Method string `json:"Method"`
+	Value  string `json:"Value"`
 }
-
-var hostNameMethods share.Set
 
 func (h *Hostname) SetHostname() error {
 	conn, err := NewConn()
@@ -28,12 +24,7 @@ func (h *Hostname) SetHostname() error {
 	}
 	defer conn.Close()
 
-	b := hostNameMethods.Contains(h.Property)
-	if !b {
-		return fmt.Errorf("failed to set hostname property: '%s' not found", h.Property)
-	}
-
-	return conn.SetHostName(h.Property, h.Value)
+	return conn.SetHostName(h.Method, h.Value)
 }
 
 func AcquireHostnameProperties(w http.ResponseWriter) error {
@@ -153,7 +144,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		}
 	}()
 
-
 	go func() {
 		defer wg.Done()
 
@@ -170,7 +160,6 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		}
 	}()
 
-
 	go func() {
 		defer wg.Done()
 
@@ -179,20 +168,7 @@ func AcquireHostnameProperties(w http.ResponseWriter) error {
 		}
 	}()
 
-
 	wg.Wait()
 
 	return web.JSONResponse(hostNameProperties, w)
-}
-
-func Init() {
-	hostNameMethods := share.NewSet()
-
-	hostNameMethods.Add("SetHostname")
-	hostNameMethods.Add("SetStaticHostname")
-	hostNameMethods.Add("SetPrettyHostname")
-	hostNameMethods.Add("SetIconName")
-	hostNameMethods.Add("SetChassis")
-	hostNameMethods.Add("SetDeployment")
-	hostNameMethods.Add("SetLocation")
 }
