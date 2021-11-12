@@ -21,42 +21,19 @@ type Link struct {
 }
 
 type LinkInfo struct {
-	Index        int      `json:"Index"`
-	Mtu          int      `json:"MTU"`
-	TxQLen       int      `json:"TxQLen"`
-	Name         string   `json:"Name"`
-	HardwareAddr string   `json:"HardwareAddr"`
-	Flags        []string `json:"Flags"`
-	RawFlags     uint32   `json:"RawFlags"`
-	ParentIndex  int      `json:"ParentIndex"`
-	MasterIndex  int      `json:"MasterIndex"`
-	Namespace    string   `json:"Namespace"`
-	Alias        string   `json:"Alias"`
-	Statistics   struct {
-		RxPackets         int `json:"RxPackets"`
-		TxPackets         int `json:"TxPackets"`
-		RxBytes           int `json:"RxBytes"`
-		TxBytes           int `json:"TxBytes"`
-		RxErrors          int `json:"RxErrors"`
-		TxErrors          int `json:"TxErrors"`
-		RxDropped         int `json:"RxDropped"`
-		TxDropped         int `json:"TxDropped"`
-		Multicast         int `json:"Multicast"`
-		Collisions        int `json:"Collisions"`
-		RxLengthErrors    int `json:"RxLengthErrors"`
-		RxOverErrors      int `json:"RxOverErrors"`
-		RxCrcErrors       int `json:"RxCrcErrors"`
-		RxFrameErrors     int `json:"RxFrameErrors"`
-		RxFifoErrors      int `json:"RxFifoErrors"`
-		RxMissedErrors    int `json:"RxMissedErrors"`
-		TxAbortedErrors   int `json:"TxAbortedErrors"`
-		TxCarrierErrors   int `json:"TxCarrierErrors"`
-		TxFifoErrors      int `json:"TxFifoErrors"`
-		TxHeartbeatErrors int `json:"TxHeartbeatErrors"`
-		TxWindowErrors    int `json:"TxWindowErrors"`
-		RxCompressed      int `json:"RxCompressed"`
-		TxCompressed      int `json:"TxCompressed"`
-	} `json:"Statistics"`
+	Index        int                    `json:"Index"`
+	Mtu          int                    `json:"MTU"`
+	TxQLen       int                    `json:"TxQLen"`
+	Name         string                 `json:"Name"`
+	HardwareAddr string                 `json:"HardwareAddr"`
+	Flags        []string               `json:"Flags"`
+	RawFlags     uint32                 `json:"RawFlags"`
+	ParentIndex  int                    `json:"ParentIndex"`
+	MasterIndex  int                    `json:"MasterIndex"`
+	Namespace    string                 `json:"Namespace"`
+	Alias        string                 `json:"Alias"`
+	Statistics   *netlink.LinkStatistics `json:"Statistics"`
+
 	Promisc int `json:"Promisc"`
 	Xdp     struct {
 		Fd       int  `json:"Fd"`
@@ -66,14 +43,13 @@ type LinkInfo struct {
 	} `json:"Xdp"`
 	EncapType   string `json:"EncapType"`
 	Protinfo    string `json:"Protinfo"`
-	OperState   int    `json:"OperState"`
+	OperState   string `json:"OperState"`
 	NetNsID     int    `json:"NetNsID"`
 	NumTxQueues int    `json:"NumTxQueues"`
 	NumRxQueues int    `json:"NumRxQueues"`
-	GSOMaxSize  int    `json:"GSOMaxSize"`
-	GSOMaxSegs  int    `json:"GSOMaxSegs"`
-	Vfs         string `json:"Vfs"`
-	Group       int    `json:"Group"`
+	GSOMaxSize  uint32 `json:"GSOMaxSize"`
+	GSOMaxSegs  uint32 `json:"GSOMaxSegs"`
+	Group       uint32 `json:"Group"`
 	Slave       string `json:"Slave"`
 }
 
@@ -100,7 +76,22 @@ func fillOneLink(link netlink.Link) LinkInfo {
 		ParentIndex:  link.Attrs().ParentIndex,
 		MasterIndex:  link.Attrs().MasterIndex,
 		Alias:        link.Attrs().Alias,
+		EncapType:    link.Attrs().EncapType,
+		OperState:    link.Attrs().OperState.String(),
+		NetNsID:      link.Attrs().NetNsID,
+		NumTxQueues:  link.Attrs().NumTxQueues,
+		NumRxQueues:  link.Attrs().NumRxQueues,
+		GSOMaxSize:   link.Attrs().GSOMaxSize,
+		GSOMaxSegs:   link.Attrs().GSOMaxSegs,
+		Group:        link.Attrs().Group,
+		Statistics : link.Attrs().Statistics,
+		Promisc: link.Attrs().Promisc,
 	}
+
+	if link.Attrs().Protinfo != nil {
+		l.Protinfo = link.Attrs().Protinfo.String()
+	}
+
 
 	if isUp(link.Attrs().Flags) {
 		l.Flags = append(l.Flags, "Up")
