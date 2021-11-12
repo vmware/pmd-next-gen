@@ -31,7 +31,7 @@ func JSONResponse(response interface{}, w http.ResponseWriter) error {
 		Message: response,
 	}
 
-	return httpResponse(&m , w)
+	return httpResponse(&m, w)
 }
 
 func JSONResponseError(err error, w http.ResponseWriter) error {
@@ -40,5 +40,14 @@ func JSONResponseError(err error, w http.ResponseWriter) error {
 		Errors:  err.Error(),
 	}
 
-	return httpResponse(&m , w)
+	return httpResponse(&m, w)
+}
+
+func JSONUnmarshal(msg []byte) (map[string]interface{}, error) {
+	m := make(map[string]interface{})
+
+	if err := json.Unmarshal(msg, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }

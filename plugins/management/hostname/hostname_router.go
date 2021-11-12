@@ -12,7 +12,7 @@ import (
 )
 
 func routerAcquireHostname(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireHostnameProperties(w); err != nil {
+	if err := AcquireHostnameProperties(r.Context(), w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -24,7 +24,7 @@ func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := hostname.SetHostname(); err != nil {
+	if err := hostname.SetHostname(r.Context()); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
