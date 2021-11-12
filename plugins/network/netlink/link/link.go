@@ -26,7 +26,7 @@ type LinkInfo struct {
 	TxQLen       int                     `json:"TxQLen"`
 	Name         string                  `json:"Name"`
 	HardwareAddr string                  `json:"HardwareAddr"`
-	Flags        []string                `json:"Flags"`
+	Flags        string                  `json:"Flags"`
 	RawFlags     uint32                  `json:"RawFlags"`
 	ParentIndex  int                     `json:"ParentIndex"`
 	MasterIndex  int                     `json:"MasterIndex"`
@@ -86,24 +86,11 @@ func fillOneLink(link netlink.Link) LinkInfo {
 		Group:        link.Attrs().Group,
 		Statistics:   link.Attrs().Statistics,
 		Promisc:      link.Attrs().Promisc,
+		Flags:        link.Attrs().Flags.String(),
 	}
 
 	if link.Attrs().Protinfo != nil {
 		l.Protinfo = link.Attrs().Protinfo.String()
-	}
-
-	if isUp(link.Attrs().Flags) {
-		l.Flags = append(l.Flags, "Up")
-	} else {
-		l.Flags = append(l.Flags, "Down")
-	}
-
-	if isBroadcastCast(link.Attrs().Flags) {
-		l.Flags = append(l.Flags, "BroadCast")
-	}
-
-	if isMulticastCast(link.Attrs().Flags) {
-		l.Flags = append(l.Flags, "MultiCast")
 	}
 
 	return l

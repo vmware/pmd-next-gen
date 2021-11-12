@@ -78,7 +78,6 @@ func (a *Address) AcquireAddresses(rw http.ResponseWriter) error {
 		}
 
 		return web.JSONResponse(addrs, rw)
-
 	}
 
 	addrs, err := netlink.AddrList(nil, netlink.FAMILY_ALL)
