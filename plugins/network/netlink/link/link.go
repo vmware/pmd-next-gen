@@ -21,17 +21,17 @@ type Link struct {
 }
 
 type LinkInfo struct {
-	Index        int                    `json:"Index"`
-	Mtu          int                    `json:"MTU"`
-	TxQLen       int                    `json:"TxQLen"`
-	Name         string                 `json:"Name"`
-	HardwareAddr string                 `json:"HardwareAddr"`
-	Flags        []string               `json:"Flags"`
-	RawFlags     uint32                 `json:"RawFlags"`
-	ParentIndex  int                    `json:"ParentIndex"`
-	MasterIndex  int                    `json:"MasterIndex"`
-	Namespace    string                 `json:"Namespace"`
-	Alias        string                 `json:"Alias"`
+	Index        int                     `json:"Index"`
+	Mtu          int                     `json:"MTU"`
+	TxQLen       int                     `json:"TxQLen"`
+	Name         string                  `json:"Name"`
+	HardwareAddr string                  `json:"HardwareAddr"`
+	Flags        []string                `json:"Flags"`
+	RawFlags     uint32                  `json:"RawFlags"`
+	ParentIndex  int                     `json:"ParentIndex"`
+	MasterIndex  int                     `json:"MasterIndex"`
+	Namespace    string                  `json:"Namespace"`
+	Alias        string                  `json:"Alias"`
 	Statistics   *netlink.LinkStatistics `json:"Statistics"`
 
 	Promisc int `json:"Promisc"`
@@ -84,17 +84,18 @@ func fillOneLink(link netlink.Link) LinkInfo {
 		GSOMaxSize:   link.Attrs().GSOMaxSize,
 		GSOMaxSegs:   link.Attrs().GSOMaxSegs,
 		Group:        link.Attrs().Group,
-		Statistics : link.Attrs().Statistics,
-		Promisc: link.Attrs().Promisc,
+		Statistics:   link.Attrs().Statistics,
+		Promisc:      link.Attrs().Promisc,
 	}
 
 	if link.Attrs().Protinfo != nil {
 		l.Protinfo = link.Attrs().Protinfo.String()
 	}
 
-
 	if isUp(link.Attrs().Flags) {
 		l.Flags = append(l.Flags, "Up")
+	} else {
+		l.Flags = append(l.Flags, "Down")
 	}
 
 	if isBroadcastCast(link.Attrs().Flags) {
