@@ -20,6 +20,7 @@ import (
 	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/system"
 	"github.com/pm-web/plugins/management"
+	"github.com/pm-web/plugins/network"
 	"github.com/pm-web/plugins/proc"
 	"github.com/pm-web/plugins/systemd"
 )
@@ -34,6 +35,7 @@ func NewRouter() *mux.Router {
 	systemd.RegisterRouterSystemd(s)
 
 	management.RegisterRouterManagement(s)
+	network.RegisterRouterNetwork(s)
 
 	proc.RegisterRouterProc(s)
 
