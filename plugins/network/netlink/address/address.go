@@ -11,7 +11,6 @@ import (
 	"github.com/pm-web/pkg/web"
 )
 
-
 type Address struct {
 	IP          string `json:"IP"`
 	Mask        int    `json:"Mask"`
@@ -35,9 +34,9 @@ type AddressInfo struct {
 }
 
 type AddressAction struct {
-	Action      string `json:"action"`
-	Link        string `json:"link"`
-	Address     Address `json:"Address"`
+	Action  string  `json:"action"`
+	Link    string  `json:"link"`
+	Address Address `json:"Address"`
 }
 
 func decodeJSONRequest(r *http.Request) (*AddressAction, error) {
@@ -95,7 +94,7 @@ func fillOneAddress(a *netlink.Addr) Address {
 		ValidLft:    a.ValidLft,
 	}
 
-	addr.Mask , _ = a.Mask.Size()
+	addr.Mask, _ = a.Mask.Size()
 	if a.Peer != nil {
 		addr.Peer = a.Peer.String()
 	}
@@ -143,16 +142,13 @@ func (a *AddressAction) AcquireAddresses(w http.ResponseWriter) error {
 
 	var addrs []AddressInfo
 	for _, link := range linkList {
-
 		a, err := netlink.AddrList(link, netlink.FAMILY_ALL)
 		if err != nil {
 			return err
 		}
 
 		ad := buildAddressList(link, a)
-
 		addrs = append(addrs, ad)
-
 	}
 
 	return web.JSONResponse(addrs, w)
