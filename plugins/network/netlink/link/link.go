@@ -3,7 +3,6 @@
 package link
 
 import (
-	"net"
 	"net/http"
 
 	"github.com/vishvananda/netlink"
@@ -53,17 +52,6 @@ type LinkInfo struct {
 	Slave       string `json:"Slave"`
 }
 
-func isUp(v net.Flags) bool {
-	return v&net.FlagUp == net.FlagUp
-}
-
-func isBroadcastCast(v net.Flags) bool {
-	return v&net.FlagBroadcast == net.FlagBroadcast
-}
-
-func isMulticastCast(v net.Flags) bool {
-	return v&net.FlagMulticast == net.FlagMulticast
-}
 
 func fillOneLink(link netlink.Link) LinkInfo {
 	l := LinkInfo{

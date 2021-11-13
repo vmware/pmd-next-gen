@@ -9,7 +9,7 @@ import (
 )
 
 func routerAcquireAddress(w http.ResponseWriter, r *http.Request) {
-	link := Address{
+	link := AddressAction{
 		Link: mux.Vars(r)["link"],
 	}
 
