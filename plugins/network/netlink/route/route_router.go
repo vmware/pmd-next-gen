@@ -32,7 +32,7 @@ func routerDeleteRoute(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerAcquireRoutes(w http.ResponseWriter, r *http.Request) {
+func routerAcquireRoute(w http.ResponseWriter, r *http.Request) {
 	rt := Route{
 		Link: mux.Vars(r)["link"],
 	}
@@ -47,6 +47,6 @@ func RegisterRouterRoute(router *mux.Router) {
 
 	s.HandleFunc("/route/{link}", routerAddRoute).Methods("POST")
 	s.HandleFunc("/route/{link}", routerDeleteRoute).Methods("DELETE")
-	s.HandleFunc("/route", routerGetRoute).Methods("GET")
-	s.HandleFunc("/route/{link}", routerAcquireRoutes).Methods("GET")
+	s.HandleFunc("/route", routerAcquireRoute).Methods("GET")
+	s.HandleFunc("/route/{link}", routerAcquireRoute).Methods("GET")
 }
