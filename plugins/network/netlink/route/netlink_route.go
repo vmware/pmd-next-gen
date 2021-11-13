@@ -24,106 +24,106 @@ type Route struct {
 }
 
 func decodeJSONRequest(r *http.Request) (*Route, error) {
-	route := Route{}
-	err := json.NewDecoder(r.Body).Decode(&route)
+	rt := Route{}
+	err := json.NewDecoder(r.Body).Decode(&rt)
 	if err != nil {
 		return nil, err
 	}
 
-	return &route, nil
+	return &rt, nil
 }
 
-func (route *Route) AddDefaultGateWay() error {
-	link, err := netlink.LinkByName(route.Link)
+func (rt *Route) AddDefaultGateWay() error {
+	link, err := netlink.LinkByName(rt.Link)
 	if err != nil {
-		log.Errorf("Failed to find link %s: %v", err, route.Link)
+		log.Errorf("Failed to find link %s: %v", err, rt.Link)
 		return err
 	}
 
-	ipAddr, _, err := net.ParseCIDR(route.Gateway)
+	ipAddr, _, err := net.ParseCIDR(rt.Gateway)
 	if err != nil {
-		log.Errorf("Failed to parse default GateWay address %s: %v", route.Gateway, err)
+		log.Errorf("Failed to parse default GateWay address %s: %v", rt.Gateway, err)
 		return err
 	}
 
 	onlink := 0
-	b, err := share.ParseBool(strings.TrimSpace(route.OnLink))
+	b, err := share.ParseBool(strings.TrimSpace(rt.OnLink))
 	if err != nil {
-		log.Errorf("Failed to parse GatewayOnlink %s: %v", route.OnLink, err)
+		log.Errorf("Failed to parse GatewayOnlink %s: %v", rt.OnLink, err)
 	} else {
 		if b {
 			onlink |= syscall.RTNH_F_ONLINK
 		}
 	}
 
-	rt := &netlink.Route{
+	route := &netlink.Route{
 		Scope:     netlink.SCOPE_UNIVERSE,
 		LinkIndex: link.Attrs().Index,
 		Gw:        ipAddr,
 		Flags:     onlink,
 	}
 
-	if err := netlink.RouteAdd(rt); err != nil {
-		log.Errorf("Failed to add default GateWay address %s: %v", route.Gateway, err)
+	if err := netlink.RouteAdd(route); err != nil {
+		log.Errorf("Failed to add default GateWay address %s: %v", rt.Gateway, err)
 		return err
 	}
 
 	return nil
 }
 
-func (route *Route) ReplaceDefaultGateWay() error {
-	link, err := netlink.LinkByName(route.Link)
+func (rt *Route) ReplaceDefaultGateWay() error {
+	link, err := netlink.LinkByName(rt.Link)
 	if err != nil {
 		return err
 	}
 
-	ipAddr, _, err := net.ParseCIDR(route.Gateway)
+	ipAddr, _, err := net.ParseCIDR(rt.Gateway)
 	if err != nil {
-		log.Errorf("Failed to parse default GateWay address %s: %v", route.Gateway, err)
+		log.Errorf("Failed to parse default GateWay address %s: %v", rt.Gateway, err)
 		return err
 	}
 
 	onlink := 0
-	b, err := share.ParseBool(strings.TrimSpace(route.OnLink))
+	b, err := share.ParseBool(strings.TrimSpace(rt.OnLink))
 	if err != nil {
-		log.Errorf("Failed to parse GatewayOnlink %s: %v", route.OnLink, err)
+		log.Errorf("Failed to parse GatewayOnlink %s: %v", rt.OnLink, err)
 	} else {
 		if b {
 			onlink |= syscall.RTNH_F_ONLINK
 		}
 	}
 
-	rt := &netlink.Route{
-		Scope:     netlink.SCOPE_UNIVERSE,
+	route := &netlink.Route{
+		Scope:     netlink.SCOPE_LINK,
 		LinkIndex: link.Attrs().Index,
 		Gw:        ipAddr,
 		Flags:     onlink,
 	}
 
-	if err := netlink.RouteReplace(rt); err != nil {
-		log.Errorf("Failed to replace default GateWay address %s: %v", route.Gateway, err)
+	if err := netlink.RouteReplace(route); err != nil {
+		log.Errorf("Failed to replace default GateWay address %s: %v", rt.Gateway, err)
 		return err
 	}
 
 	return nil
 }
 
-func (route *Route) DeleteGateWay() error {
-	link, err := netlink.LinkByName(route.Link)
+func (rt *Route) RemoveGateWay() error {
+	link, err := netlink.LinkByName(rt.Link)
 	if err != nil {
 		log.Errorf("Failed to delete default gateway %s: %v", link, err)
 		return err
 	}
 
-	ipAddr, _, err := net.ParseCIDR(route.Gateway)
+	ipAddr, _, err := net.ParseCIDR(rt.Gateway)
 	if err != nil {
 		return err
 	}
 
-	switch route.Action {
-	case "del-default-gw":
+	switch rt.Action {
+	case "remove-default-gw":
 		rt := &netlink.Route{
-			Scope:     netlink.SCOPE_UNIVERSE,
+			Scope:     netlink.SCOPE_LINK,
 			LinkIndex: link.Attrs().Index,
 			Gw:        ipAddr,
 		}
@@ -137,8 +137,21 @@ func (route *Route) DeleteGateWay() error {
 	return nil
 }
 
-func (route *Route) AcquireRoutes(rw http.ResponseWriter) error {
-	routes, err := netlink.RouteList(nil, 0)
+func (rt *Route) AcquireRoutes(rw http.ResponseWriter) error {
+	if rt.Link != "" {
+		link, err := netlink.LinkByName(rt.Link)
+		if err != nil {
+			return err
+		}
+
+		routes, err := netlink.RouteList(link, netlink.FAMILY_ALL)
+		if err != nil {
+			return err
+		}
+		return web.JSONResponse(routes, rw)
+	}
+
+	routes, err := netlink.RouteList(nil, netlink.FAMILY_ALL)
 	if err != nil {
 		return err
 	}
@@ -146,12 +159,12 @@ func (route *Route) AcquireRoutes(rw http.ResponseWriter) error {
 	return web.JSONResponse(routes, rw)
 }
 
-func (route *Route) Configure() error {
-	switch route.Action {
+func (rt *Route) Configure() error {
+	switch rt.Action {
 	case "add-default-gw":
-		return route.AddDefaultGateWay()
+		return rt.AddDefaultGateWay()
 	case "replace-default-gw":
-		return route.ReplaceDefaultGateWay()
+		return rt.ReplaceDefaultGateWay()
 	}
 
 	return nil

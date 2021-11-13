@@ -13,6 +13,7 @@ import (
 func RegisterRouterNetwork(router *mux.Router) {
 	n := router.PathPrefix("/network").Subrouter()
 
+	// netlink
 	link.RegisterRouterLink(n)
 	address.RegisterRouterAddress(n)
 	route.RegisterRouterRoute(n)

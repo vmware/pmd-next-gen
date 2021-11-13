@@ -9,25 +9,25 @@ import (
 )
 
 func routerAddRoute(w http.ResponseWriter, r *http.Request) {
-	route, err := decodeJSONRequest(r)
+	rt, err := decodeJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
 	}
 
-	if err := route.Configure(); err != nil {
+	if err := rt.Configure(); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
 func routerDeleteRoute(w http.ResponseWriter, r *http.Request) {
-	route, err := decodeJSONRequest(r)
+	rt, err := decodeJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
 	}
 
-	if err = route.DeleteGateWay(); err != nil {
+	if err = rt.RemoveGateWay(); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
