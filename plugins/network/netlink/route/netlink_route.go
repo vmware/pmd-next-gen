@@ -23,6 +23,31 @@ type Route struct {
 	OnLink  string `json:"onlink"`
 }
 
+type RouteInfo struct {
+	LinkIndex  int `json:"LinkIndex"`
+	ILinkIndex int `json:"ILinkIndex"`
+	Scope      int `json:"Scope"`
+	Dst        struct {
+		IP   string `json:"IP"`
+		Mask int    `json:"Mask"`
+	} `json:"Dst"`
+	Src       string   `json:"Src"`
+	Gw        string   `json:"Gw"`
+	MultiPath string   `json:"MultiPath"`
+	Protocol  int      `json:"Protocol"`
+	Priority  int      `json:"Priority"`
+	Table     int      `json:"Table"`
+	Type      int      `json:"Type"`
+	Tos       int      `json:"Tos"`
+	Flags     []string `json:"Flags"`
+	MPLSDst   string   `json:"MPLSDst"`
+	NewDst    string   `json:"NewDst"`
+	Encap     string   `json:"Encap"`
+	Mtu       int      `json:"MTU"`
+	AdvMSS    int      `json:"AdvMSS"`
+	Hoplimit  int      `json:"Hoplimit"`
+}
+
 func decodeJSONRequest(r *http.Request) (*Route, error) {
 	rt := Route{}
 	err := json.NewDecoder(r.Body).Decode(&rt)
@@ -137,7 +162,52 @@ func (rt *Route) RemoveGateWay() error {
 	return nil
 }
 
-func (rt *Route) AcquireRoutes(rw http.ResponseWriter) error {
+func fillOneRoute(rt *netlink.Route) RouteInfo {
+	route := RouteInfo{
+		LinkIndex:  rt.LinkIndex,
+		ILinkIndex: rt.ILinkIndex,
+		Scope:      int(rt.Scope),
+		Protocol:   rt.Protocol,
+		Priority:   rt.Priority,
+		Table:      rt.Table,
+		Type:       rt.Type,
+		Tos:        rt.Tos,
+		Mtu:        rt.MTU,
+		AdvMSS:     rt.AdvMSS,
+		Hoplimit:   rt.Hoplimit,
+	}
+
+	if rt.Gw != nil {
+		route.Gw = rt.Gw.String()
+	}
+
+	if rt.Src != nil {
+		route.Src = rt.Src.String()
+	}
+
+	if rt.Dst != nil {
+		route.Dst.IP = rt.Dst.IP.String()
+		route.Dst.Mask, _ = rt.Dst.Mask.Size()
+	}
+
+	if rt.Flags != 0 {
+		route.Flags = rt.ListFlags()
+	}
+
+	return route
+}
+
+func buildRouteList(routes []netlink.Route) []RouteInfo {
+	var rts []RouteInfo
+	for _, rt := range routes {
+		route := fillOneRoute(&rt)
+		rts = append(rts, route)
+	}
+
+	return rts
+}
+
+func (rt *Route) AcquireRoutes(w http.ResponseWriter) error {
 	if rt.Link != "" {
 		link, err := netlink.LinkByName(rt.Link)
 		if err != nil {
@@ -148,7 +218,7 @@ func (rt *Route) AcquireRoutes(rw http.ResponseWriter) error {
 		if err != nil {
 			return err
 		}
-		return web.JSONResponse(routes, rw)
+		return web.JSONResponse(buildRouteList(routes), w)
 	}
 
 	routes, err := netlink.RouteList(nil, netlink.FAMILY_ALL)
@@ -156,7 +226,7 @@ func (rt *Route) AcquireRoutes(rw http.ResponseWriter) error {
 		return err
 	}
 
-	return web.JSONResponse(routes, rw)
+	return web.JSONResponse(buildRouteList(routes), w)
 }
 
 func (rt *Route) Configure() error {
