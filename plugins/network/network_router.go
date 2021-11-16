@@ -8,6 +8,7 @@ import (
 	"github.com/pm-web/plugins/network/netlink/address"
 	"github.com/pm-web/plugins/network/netlink/link"
 	"github.com/pm-web/plugins/network/netlink/route"
+	"github.com/pm-web/plugins/network/networkd"
 )
 
 func RegisterRouterNetwork(router *mux.Router) {
@@ -17,4 +18,7 @@ func RegisterRouterNetwork(router *mux.Router) {
 	link.RegisterRouterLink(n)
 	address.RegisterRouterAddress(n)
 	route.RegisterRouterRoute(n)
+
+	//s ystemd-networkd
+	networkd.RegisterRouterNetworkd(n)
 }
