@@ -7,13 +7,13 @@ import (
 
 	"github.com/vishvananda/netlink"
 
-	"github.com/pm-web/pkg/config"
+	"github.com/pm-web/pkg/configfile"
 	"github.com/pm-web/pkg/system"
 )
 
 func ParseLinkString(ifindex int, key string) (string, error) {
 	path := "/run/systemd/netif/links/" + strconv.Itoa(ifindex)
-	v, err := config.ParseKeyFromSectionString(path, "", key)
+	v, err := configfile.ParseKeyFromSectionString(path, "", key)
 	if err != nil {
 		return "", err
 	}

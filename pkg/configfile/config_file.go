@@ -1,4 +1,4 @@
-package config
+package configfile
 
 import (
 	"errors"
@@ -12,15 +12,15 @@ type Meta struct {
 	cfg  *ini.File
 }
 
-func Load(path string) (*Meta, error) {	
-	cfg, err := ini.Load(path)
+func Load(path string) (*Meta, error) {
+	cfg, err := ini.LoadSources(ini.LoadOptions{AllowNonUniqueSections: true, AllowDuplicateShadowValues: true}, path)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &Meta{
 		Path: path,
-		cfg : cfg,
+		cfg:  cfg,
 	}, nil
 }
 
@@ -42,7 +42,7 @@ func ParseKeyFromSectionString(path string, section string, key string) (string,
 	return v, nil
 }
 
-func (m *Meta) SetKeySectionString(section string, key string, value string){
+func (m *Meta) SetKeySectionString(section string, key string, value string) {
 	m.cfg.Section(section).Key(key).SetValue(strings.ToLower(value))
 }
 
