@@ -3,10 +3,9 @@
 package networkd
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"path"
 	"strings"
 
 	"github.com/vishvananda/netlink"
@@ -44,6 +43,20 @@ func decodeJSONRequest(r *http.Request) (*Network, error) {
 	return &n, nil
 }
 
+func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter, ifName string) error {
+	link, err := netlink.LinkByName(ifName)
+	if err != nil {
+		return err
+	}
+
+	props, err := DBusNetworkLinkProperty(ctx, link.Attrs().Index)
+	if err != nil {
+		return err
+	}
+
+	return web.JSONResponse(props, w)
+}
+
 func (n *Network) ConfigureNetworkSection(m *configfile.Meta) {
 	if n.NetworkSection.DHCP != "" {
 		m.SetKeySectionString("Network", "DHCP", n.NetworkSection.DHCP)
@@ -65,7 +78,6 @@ func (n *Network) ConfigureNetworkSection(m *configfile.Meta) {
 		m.SetKeySectionString("Network", "Domains", strings.Join(n.NetworkSection.Domains, " "))
 	}
 
-	fmt.Println(n)
 	if len(n.NetworkSection.DNS) > 0 {
 		m.SetKeySectionString("Network", "DNS", strings.Join(n.NetworkSection.DNS, " "))
 	}
@@ -73,10 +85,9 @@ func (n *Network) ConfigureNetworkSection(m *configfile.Meta) {
 	if len(n.NetworkSection.NTP) > 0 {
 		m.SetKeySectionString("Network", "NTP", strings.Join(n.NetworkSection.NTP, " "))
 	}
-
 }
 
-func (n *Network) ConfigureNetwork(w http.ResponseWriter) error {
+func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	link, err := netlink.LinkByName(n.Link)
 	if err != nil {
 		return err
@@ -87,7 +98,7 @@ func (n *Network) ConfigureNetwork(w http.ResponseWriter) error {
 		return err
 	}
 
-	m, err := configfile.Load(path.Join("/etc/systemd/network", network))
+	m, err := configfile.Load(network)
 	if err != nil {
 		return err
 	}
@@ -95,6 +106,10 @@ func (n *Network) ConfigureNetwork(w http.ResponseWriter) error {
 	n.ConfigureNetworkSection(m)
 
 	if err := m.Save(); err != nil {
+		return err
+	}
+
+	if err := DBusNetworkReload(ctx); err != nil {
 		return err
 	}
 

@@ -1,6 +1,7 @@
 package networkd
 
 import (
+	"fmt"
 	"path"
 	"strconv"
 	"strings"
@@ -41,7 +42,7 @@ func CreateNetworkFile(link string) (string, error) {
 		return "", err
 	}
 
-	return file, nil
+	return path.Join("/etc/systemd/network", file), nil
 
 }
 
@@ -64,5 +65,6 @@ func CreateOrParseNetworkFile(link netlink.Link) (string, error) {
 		}
 	}
 
+	fmt.Println(network)
 	return network, nil
 }
