@@ -77,6 +77,32 @@ type Interface struct {
 	Errors string `json:"errors"`
 }
 
+type LinkStatus struct {
+	Success bool `json:"success"`
+	Message struct {
+		Interfaces []struct {
+			AddressState     string        `json:"AddressState"`
+			AlternativeNames []interface{} `json:"AlternativeNames"`
+			CarrierState     string        `json:"CarrierState"`
+			Driver           interface{}   `json:"Driver"`
+			IPv4AddressState string        `json:"IPv4AddressState"`
+			IPv6AddressState string        `json:"IPv6AddressState"`
+			Index            int           `json:"Index"`
+			LinkFile         interface{}   `json:"LinkFile"`
+			Model            interface{}   `json:"Model"`
+			Name             string        `json:"Name"`
+			OnlineState      interface{}   `json:"OnlineState"`
+			OperationalState string        `json:"OperationalState"`
+			Path             interface{}   `json:"Path"`
+			SetupState       string        `json:"SetupState"`
+			Type             string        `json:"Type"`
+			Vendor           interface{}   `json:"Vendor"`
+			NetworkFile      string        `json:"NetworkFile,omitempty"`
+		} `json:"Interfaces"`
+	} `json:"message"`
+	Errors string `json:"errors"`
+}
+
 func executeSystemdUnitCommand(command string, unit string, host string, token map[string]string) {
 	c := systemd.UnitAction{
 		Action: command,
@@ -256,11 +282,43 @@ func displayInterfaces(i *Interface) {
 	}
 }
 
+func displayNetworkStatus(l *LinkStatus) {
+	for _, n := range l.Message.Interfaces {
+		fmt.Printf("            Name: %v\n", n.Name)
+		fmt.Printf("           Index: %v\n", n.Index)
+		fmt.Printf("           NetworkFile: %v\n", n.NetworkFile)
+
+		fmt.Printf("\n\n")
+	}
+}
+
 func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 	var resp []byte
 	var err error
 
 	switch cmd {
+	case "network":
+		if host != "" {
+			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/links", token, nil)
+		} else {
+			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/links", nil)
+		}
+
+		if err != nil {
+			fmt.Printf("Failed to fetch networks status: %v\n", err)
+			return
+		}
+
+		n := LinkStatus{}
+		if err := json.Unmarshal(resp, &n); err != nil {
+			fmt.Printf("Failed to decode json message: %v\n", err)
+			return
+		}
+
+		if n.Success {
+			displayNetworkStatus(&n)
+			return
+		}
 	case "iostat":
 		if host != "" {
 			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", token, nil)
@@ -414,6 +472,12 @@ func main() {
 					Name:    "network",
 					Aliases: []string{"n"},
 					Usage:   "Introspects the network status",
+
+					Action: func(c *cli.Context) error {
+						acquireNetworkStatus("network", c.String("url"), token)
+						return nil
+					},
+
 					Subcommands: []*cli.Command{
 						{
 							Name:  "iostat",

@@ -71,7 +71,7 @@ func DBusNetworkReload(ctx context.Context) error {
 	return nil
 }
 
-func DBusNetworkLinkProperty(ctx context.Context, index int) (map[string]interface{}, error) {
+func DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error) {
 	c, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)

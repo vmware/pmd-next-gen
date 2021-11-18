@@ -23,7 +23,7 @@ func routerConfigureNetwork(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireLinkProperty(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireNetworkLinkProperty(r.Context(), w, mux.Vars(r)["link"]); err != nil {
+	if err := AcquireNetworkLinkProperty(r.Context(), w,); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -31,6 +31,6 @@ func routerAcquireLinkProperty(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterNetworkd(router *mux.Router) {
 	n := router.PathPrefix("/networkd").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/network/{link}", routerAcquireLinkProperty).Methods("GET")
+	n.HandleFunc("/network/links", routerAcquireLinkProperty).Methods("GET")
 	n.HandleFunc("/network", routerConfigureNetwork).Methods("POST")
 }

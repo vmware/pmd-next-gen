@@ -5,6 +5,7 @@ package networkd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -34,6 +35,26 @@ type Network struct {
 	NetworkSection NetworkSection `json:"NetworkSection"`
 }
 
+type LinkState struct {
+	AddressState     string   `json:"AddressState"`
+	AlternativeNames []string `json:"AlternativeNames"`
+	CarrierState     string   `json:"CarrierState"`
+	Driver           string   `json:"Driver"`
+	IPv4AddressState string   `json:"IPv4AddressState"`
+	IPv6AddressState string   `json:"IPv6AddressState"`
+	Index            int      `json:"Index"`
+	LinkFile         string   `json:"LinkFile"`
+	Model            string   `json:"Model"`
+	Name             string   `json:"Name"`
+	NetworkFile      string   `json:"NetworkFile"`
+	OnlineState      string   `json:"OnlineState"`
+	OperationalState string   `json:"OperationalState"`
+	Path             string   `json:"Path"`
+	SetupState       string   `json:"SetupState"`
+	Type             string   `json:"Type"`
+	Vendor           string   `json:"Vendor"`
+}
+
 func decodeJSONRequest(r *http.Request) (*Network, error) {
 	n := Network{}
 	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
@@ -43,18 +64,17 @@ func decodeJSONRequest(r *http.Request) (*Network, error) {
 	return &n, nil
 }
 
-func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter, ifName string) error {
-	link, err := netlink.LinkByName(ifName)
+func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) error {
+	links, err := DBusNetworkLinkProperty(ctx)
 	if err != nil {
 		return err
 	}
 
-	props, err := DBusNetworkLinkProperty(ctx, link.Attrs().Index)
-	if err != nil {
-		return err
+	for _, m := range links {
+		fmt.Println(m)
 	}
 
-	return web.JSONResponse(props, w)
+	return web.JSONResponse(links, w)
 }
 
 func (n *Network) ConfigureNetworkSection(m *configfile.Meta) {
