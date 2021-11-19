@@ -100,40 +100,48 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 			Addr:         ip + ":" + port,
 			Handler:      r,
 			TLSConfig:    cfg,
-			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 		}
 
 		log.Infof("Starting pm-webd server at %s:%s in HTTPS mode", ip, port)
 
-		log.Fatal(httpSrv.ListenAndServeTLS(path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey)))
+		httpSrv.ListenAndServeTLS(path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey))
 	} else {
-		httpSrv := http.Server{
+		httpSrv = &http.Server{
 			Addr:    ip + ":" + port,
 			Handler: r,
 		}
 
 		log.Infof("Starting pm-webd server at %s:%s in HTTP mode", ip, port)
 
-		log.Fatal(httpSrv.ListenAndServe())
+		httpSrv.ListenAndServe()
 	}
 
 	return nil
 }
 
 func Run(c *conf.Config) error {
-	r := NewRouter()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	s := make(chan os.Signal, 1)
-	signal.Notify(s, os.Interrupt)
-	signal.Notify(s, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	go func() {
-		<-s
-		if err := httpSrv.Shutdown(context.Background()); err != nil {
-			os.Exit(1)
+		select {
+		case sig := <-sigs:
+			log.Printf("Signal received='%v'. Shutting down pm-webd ...", sig)
+
+			if err := httpSrv.Shutdown(ctx); err != nil {
+				os.Exit(1)
+			}
+
+			cancel()
+		case <-ctx.Done():
 		}
-		os.Exit(0)
 	}()
 
+	r := NewRouter()
 	if c.Network.ListenUnixSocket {
 		runUnixDomainHttpServer(c, r)
 	} else {

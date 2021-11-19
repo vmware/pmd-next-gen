@@ -5,7 +5,6 @@ package networkd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -68,10 +67,6 @@ func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) erro
 	links, err := DBusNetworkLinkProperty(ctx)
 	if err != nil {
 		return err
-	}
-
-	for _, m := range links {
-		fmt.Println(m)
 	}
 
 	return web.JSONResponse(links, w)

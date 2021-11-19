@@ -286,9 +286,7 @@ func displayNetworkStatus(l *LinkStatus) {
 	for _, n := range l.Message.Interfaces {
 		fmt.Printf("            Name: %v\n", n.Name)
 		fmt.Printf("           Index: %v\n", n.Index)
-		fmt.Printf("           NetworkFile: %v\n", n.NetworkFile)
-
-		fmt.Printf("\n\n")
+		fmt.Printf("     NetworkFile: %v\n", n.NetworkFile)
 	}
 }
 
