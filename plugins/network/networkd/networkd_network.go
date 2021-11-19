@@ -45,10 +45,26 @@ type RouteSection struct {
 	Scope           string `json:"Scope"`
 }
 
+type DHCPv4Section struct {
+	ClientIdentifier      string `json:"ClientIdentifier"`
+	VendorClassIdentifier string `json:"VendorClassIdentifier"`
+	RequestOptions        string `json:"RequestOptions"`
+	SendOption            string `json:"SendOption"`
+	UseDNS                string `json:"UseDNS"`
+	UseNTP                string `json:"UseNTP"`
+	UseHostname           string `json:"UseHostname"`
+	UseDomains            string `json:"UseDomains"`
+	UseRoutes             string `json:"UseRoutes"`
+	UseMTU                string `json:"UseMTU"`
+	UseGateway            string `json:"UseGateway"`
+	UseTimezone           string `json:"UUseTimezone"`
+}
+
 type Network struct {
 	Link            string           `json:"Link"`
 	MatchSection    MatchSection     `json:"MatchSection"`
 	NetworkSection  NetworkSection   `json:"NetworkSection"`
+	DHCPv4Section   DHCPv4Section    `json:"DHCPv4Section"`
 	AddressSections []AddressSection `json:"AddressSections"`
 	RouteSections   []RouteSection   `json:"RouteSections"`
 }
@@ -95,37 +111,63 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) {
 	if n.NetworkSection.DHCP != "" {
 		m.SetKeySectionString("Network", "DHCP", n.NetworkSection.DHCP)
 	}
-
 	if n.NetworkSection.Address != "" {
 		m.SetKeySectionString("Network", "Address", n.NetworkSection.Address)
 	}
-
 	if n.NetworkSection.Gateway != "" {
 		m.SetKeySectionString("Network", "Gateway", n.NetworkSection.Gateway)
 	}
-
 	if n.NetworkSection.IPv6AcceptRA != "" {
 		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
-
 	if n.NetworkSection.LinkLocalAddressing != "" {
 		m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
 	}
-
 	if n.NetworkSection.MulticastDNS != "" {
 		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
 	}
-
 	if len(n.NetworkSection.Domains) > 0 {
 		m.SetKeySectionString("Network", "Domains", strings.Join(n.NetworkSection.Domains, " "))
 	}
-
 	if len(n.NetworkSection.DNS) > 0 {
 		m.SetKeySectionString("Network", "DNS", strings.Join(n.NetworkSection.DNS, " "))
 	}
-
 	if len(n.NetworkSection.NTP) > 0 {
 		m.SetKeySectionString("Network", "NTP", strings.Join(n.NetworkSection.NTP, " "))
+	}
+}
+
+func (n *Network) buildDHCPv4Section(m *configfile.Meta) {
+	if n.DHCPv4Section.ClientIdentifier != "" {
+		m.SetKeySectionString("DHCPv4", "ClientIdentifier", n.DHCPv4Section.ClientIdentifier)
+	}
+	if n.DHCPv4Section.VendorClassIdentifier != "" {
+		m.SetKeySectionString("DHCPv4", "VendorClassIdentifier", n.DHCPv4Section.VendorClassIdentifier)
+	}
+	if n.DHCPv4Section.RequestOptions != "" {
+		m.SetKeySectionString("DHCPv4", "RequestOptions", n.DHCPv4Section.RequestOptions)
+	}
+	if n.DHCPv4Section.SendOption != "" {
+		m.SetKeySectionString("DHCPv4", "SendOption", n.DHCPv4Section.SendOption)
+	}
+	if n.DHCPv4Section.UseDNS != "" {
+		m.SetKeySectionString("DHCPv4", "UseDNS", n.DHCPv4Section.UseDNS)
+	}
+	if n.DHCPv4Section.UseDomains != "" {
+		m.SetKeySectionString("DHCPv4", "UseDomains", n.DHCPv4Section.UseDomains)
+	}
+	if n.DHCPv4Section.UseNTP != "" {
+		m.SetKeySectionString("DHCPv4", "UseNTP", n.DHCPv4Section.UseNTP)
+	}
+	if n.DHCPv4Section.UseMTU != "" {
+		m.SetKeySectionString("DHCPv4", "UseMTU", n.DHCPv4Section.UseMTU)
+	}
+
+	if n.DHCPv4Section.UseGateway != "" {
+		m.SetKeySectionString("DHCPv4", "UseGateway", n.DHCPv4Section.UseGateway)
+	}
+	if n.DHCPv4Section.UseTimezone != "" {
+		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
 	}
 }
 
@@ -166,7 +208,6 @@ func (n *Network) buildRouteSection(m *configfile.Meta) {
 		if rt.Table != "" {
 			m.SetKeySectionString("Route", "Table", rt.Table)
 		}
-
 		if rt.Scope != "" {
 			m.SetKeySectionString("Route", "Scope", rt.Scope)
 		}
@@ -190,6 +231,7 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 	}
 
 	n.buildNetworkSection(m)
+	n.buildDHCPv4Section(m)
 	n.buildAddressSection(m)
 	n.buildRouteSection(m)
 
