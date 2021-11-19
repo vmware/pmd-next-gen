@@ -1,7 +1,6 @@
 package networkd
 
 import (
-	"fmt"
 	"path"
 	"strconv"
 	"strings"
@@ -47,24 +46,23 @@ func CreateNetworkFile(link string) (string, error) {
 }
 
 func CreateOrParseNetworkFile(link netlink.Link) (string, error) {
-	var network string
+	var n string
 	var err error
 
 	if _, err := ParseLinkSetupState(link.Attrs().Index); err != nil {
-		if network, err = CreateNetworkFile(link.Attrs().Name); err != nil {
+		if n, err = CreateNetworkFile(link.Attrs().Name); err != nil {
 			return "", err
 		}
 
-		return network, nil
+		return n, nil
 	}
 
-	network, err = ParseLinkNetworkFile(link.Attrs().Index)
+	n, err = ParseLinkNetworkFile(link.Attrs().Index)
 	if err != nil {
-		if network, err = CreateNetworkFile(link.Attrs().Name); err != nil {
+		if n, err = CreateNetworkFile(link.Attrs().Name); err != nil {
 			return "", err
 		}
 	}
 
-	fmt.Println(network)
-	return network, nil
+	return n, nil
 }

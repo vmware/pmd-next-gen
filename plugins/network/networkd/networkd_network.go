@@ -20,6 +20,8 @@ type MatchSection struct {
 
 type NetworkSection struct {
 	DHCP                string   `json:"DHCP"`
+	Address             string   `json:"Address"`
+	Gateway             string   `json:"Gateway"`
 	DNS                 []string `json:"DNS"`
 	Domains             []string `json:"Domains"`
 	NTP                 []string `json:"NTP"`
@@ -27,11 +29,28 @@ type NetworkSection struct {
 	LinkLocalAddressing string   `json:"LinkLocalAddressing"`
 	MulticastDNS        string   `json:"MulticastDNS"`
 }
+type AddressSection struct {
+	Address string `json:"Address"`
+	Peer    string `json:"Peer"`
+	Label   string `json:"Label"`
+	Scope   string `json:"Scope"`
+}
+type RouteSection struct {
+	Gateway         string `json:"Gateway"`
+	GatewayOnlink   string `json:"GatewayOnlink"`
+	Destination     string `json:"Destination"`
+	Source          string `json:"Source"`
+	PreferredSource string `json:"PreferredSource"`
+	Table           string `json:"Table"`
+	Scope           string `json:"Scope"`
+}
 
 type Network struct {
-	Link           string         `json:"Link"`
-	MatchSection   MatchSection   `json:"MatchSection"`
-	NetworkSection NetworkSection `json:"NetworkSection"`
+	Link            string           `json:"Link"`
+	MatchSection    MatchSection     `json:"MatchSection"`
+	NetworkSection  NetworkSection   `json:"NetworkSection"`
+	AddressSections []AddressSection `json:"AddressSections"`
+	RouteSections   []RouteSection   `json:"RouteSections"`
 }
 
 type LinkState struct {
@@ -72,9 +91,17 @@ func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) erro
 	return web.JSONResponse(links, w)
 }
 
-func (n *Network) ConfigureNetworkSection(m *configfile.Meta) {
+func (n *Network) buildNetworkSection(m *configfile.Meta) {
 	if n.NetworkSection.DHCP != "" {
 		m.SetKeySectionString("Network", "DHCP", n.NetworkSection.DHCP)
+	}
+
+	if n.NetworkSection.Address != "" {
+		m.SetKeySectionString("Network", "Address", n.NetworkSection.Address)
+	}
+
+	if n.NetworkSection.Gateway != "" {
+		m.SetKeySectionString("Network", "Gateway", n.NetworkSection.Gateway)
 	}
 
 	if n.NetworkSection.IPv6AcceptRA != "" {
@@ -102,6 +129,50 @@ func (n *Network) ConfigureNetworkSection(m *configfile.Meta) {
 	}
 }
 
+func (n *Network) buildAddressSection(m *configfile.Meta) {
+	for _, a := range n.AddressSections {
+		if a.Address != "" {
+			m.SetKeySectionString("Address", "Address", a.Address)
+		}
+		if a.Peer != "" {
+			m.SetKeySectionString("Address", "Peer", a.Peer)
+		}
+		if a.Label != "" {
+			m.SetKeySectionString("Address", "Label", a.Label)
+		}
+		if a.Scope != "" {
+			m.SetKeySectionString("Address", "Scope", a.Scope)
+		}
+	}
+}
+
+func (n *Network) buildRouteSection(m *configfile.Meta) {
+	for _, rt := range n.RouteSections {
+		if rt.Gateway != "" {
+			m.SetKeySectionString("Route", "Gateway", rt.Gateway)
+		}
+		if rt.GatewayOnlink != "" {
+			m.SetKeySectionString("Route", "GatewayOnlink", rt.GatewayOnlink)
+		}
+		if rt.Destination != "" {
+			m.SetKeySectionString("Route", "Destination", rt.Destination)
+		}
+		if rt.Source != "" {
+			m.SetKeySectionString("Route", "Source", rt.Source)
+		}
+		if rt.PreferredSource != "" {
+			m.SetKeySectionString("Route", "PreferredSource", rt.PreferredSource)
+		}
+		if rt.Table != "" {
+			m.SetKeySectionString("Route", "Table", rt.Table)
+		}
+
+		if rt.Scope != "" {
+			m.SetKeySectionString("Route", "Scope", rt.Scope)
+		}
+	}
+}
+
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	link, err := netlink.LinkByName(n.Link)
 	if err != nil {
@@ -118,7 +189,9 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 
-	n.ConfigureNetworkSection(m)
+	n.buildNetworkSection(m)
+	n.buildAddressSection(m)
+	n.buildRouteSection(m)
 
 	if err := m.Save(); err != nil {
 		return err
