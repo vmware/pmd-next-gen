@@ -12,6 +12,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/shirou/gopsutil/v3/net"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
@@ -20,84 +21,44 @@ import (
 )
 
 type UnitStatus struct {
-	Success bool `json:"success"`
-	Message struct {
-		Property               string `json:"property"`
-		Unit                   string `json:"unit"`
-		Name                   string `json:"Name"`
-		Description            string `json:"Description"`
-		MainPid                int    `json:"MainPid"`
-		LoadState              string `json:"LoadState"`
-		ActiveState            string `json:"ActiveState"`
-		SubState               string `json:"SubState"`
-		Followed               string `json:"Followed"`
-		Path                   string `json:"Path"`
-		JobID                  int    `json:"JobId"`
-		JobType                string `json:"JobType"`
-		JobPath                string `json:"JobPath"`
-		UnitFileState          string `json:"UnitFileState"`
-		StateChangeTimestamp   int64  `json:"StateChangeTimestamp"`
-		InactiveExitTimestamp  int64  `json:"InactiveExitTimestamp"`
-		ActiveEnterTimestamp   int64  `json:"ActiveEnterTimestamp"`
-		ActiveExitTimestamp    int64  `json:"ActiveExitTimestamp"`
-		InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
-	} `json:"message"`
-	Errors string `json:"errors"`
+	Success bool               `json:"success"`
+	Message systemd.UnitStatus `json:"message"`
+	Errors  string             `json:"errors"`
 }
 
 type NetDevIOCounters struct {
-	Success bool `json:"success"`
-	Message []struct {
-		Name        string `json:"name"`
-		BytesSent   int    `json:"bytesSent"`
-		BytesRecv   int    `json:"bytesRecv"`
-		PacketsSent int    `json:"packetsSent"`
-		PacketsRecv int    `json:"packetsRecv"`
-		Errin       int    `json:"errin"`
-		Errout      int    `json:"errout"`
-		Dropin      int    `json:"dropin"`
-		Dropout     int    `json:"dropout"`
-		Fifoin      int    `json:"fifoin"`
-		Fifoout     int    `json:"fifoout"`
-	} `json:"message"`
-	Errors string `json:"errors"`
+	Success bool                 `json:"success"`
+	Message []net.IOCountersStat `json:"message"`
+	Errors  string               `json:"errors"`
 }
+
 type Interface struct {
-	Success bool `json:"success"`
-	Message []struct {
-		Index        int      `json:"index"`
-		Mtu          int      `json:"mtu"`
-		Name         string   `json:"name"`
-		HardwareAddr string   `json:"hardwareAddr"`
-		Flags        []string `json:"flags"`
-		Addrs        []struct {
-			Addr string `json:"addr"`
-		} `json:"addrs"`
-	} `json:"message"`
-	Errors string `json:"errors"`
+	Success bool                `json:"success"`
+	Message []net.InterfaceStat `json:"message"`
+	Errors  string              `json:"errors"`
 }
 
 type LinkStatus struct {
 	Success bool `json:"success"`
 	Message struct {
 		Interfaces []struct {
-			AddressState     string        `json:"AddressState"`
-			AlternativeNames []interface{} `json:"AlternativeNames"`
-			CarrierState     string        `json:"CarrierState"`
-			Driver           interface{}   `json:"Driver"`
-			IPv4AddressState string        `json:"IPv4AddressState"`
-			IPv6AddressState string        `json:"IPv6AddressState"`
-			Index            int           `json:"Index"`
-			LinkFile         interface{}   `json:"LinkFile"`
-			Model            interface{}   `json:"Model"`
-			Name             string        `json:"Name"`
-			OnlineState      interface{}   `json:"OnlineState"`
-			OperationalState string        `json:"OperationalState"`
-			Path             interface{}   `json:"Path"`
-			SetupState       string        `json:"SetupState"`
-			Type             string        `json:"Type"`
-			Vendor           interface{}   `json:"Vendor"`
-			NetworkFile      string        `json:"NetworkFile,omitempty"`
+			AddressState     string   `json:"AddressState"`
+			AlternativeNames []string `json:"AlternativeNames"`
+			CarrierState     string   `json:"CarrierState"`
+			Driver           string   `json:"Driver"`
+			IPv4AddressState string   `json:"IPv4AddressState"`
+			IPv6AddressState string   `json:"IPv6AddressState"`
+			Index            int      `json:"Index"`
+			LinkFile         string   `json:"LinkFile"`
+			Model            string   `json:"Model"`
+			Name             string   `json:"Name"`
+			OnlineState      string   `json:"OnlineState"`
+			OperationalState string   `json:"OperationalState"`
+			Path             string   `json:"Path"`
+			SetupState       string   `json:"SetupState"`
+			Type             string   `json:"Type"`
+			Vendor           string   `json:"Vendor"`
+			NetworkFile      string   `json:"NetworkFile,omitempty"`
 		} `json:"Interfaces"`
 	} `json:"message"`
 	Errors string `json:"errors"`
@@ -264,7 +225,7 @@ func displayInterfaces(i *Interface) {
 	for _, n := range i.Message {
 		fmt.Printf("            Name: %v\n", n.Name)
 		fmt.Printf("           Index: %v\n", n.Index)
-		fmt.Printf("             MTU: %v\n", n.Mtu)
+		fmt.Printf("             MTU: %v\n", n.MTU)
 
 		fmt.Printf("           Flags: ")
 		for _, j := range n.Flags {
@@ -315,7 +276,6 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 
 		if n.Success {
 			displayNetworkStatus(&n)
-			return
 		}
 	case "iostat":
 		if host != "" {
@@ -337,7 +297,6 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 
 		if n.Success {
 			displayNetDevIOStatistics(&n)
-			return
 		}
 	case "interfaces":
 		if host != "" {
@@ -359,7 +318,6 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 
 		if n.Success {
 			displayInterfaces(&n)
-			return
 		}
 	}
 }
@@ -475,7 +433,6 @@ func main() {
 						acquireNetworkStatus("network", c.String("url"), token)
 						return nil
 					},
-
 					Subcommands: []*cli.Command{
 						{
 							Name:  "iostat",
