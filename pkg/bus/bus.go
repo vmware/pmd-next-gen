@@ -1,4 +1,4 @@
-package share
+package bus
 
 import (
 	"os"
@@ -7,7 +7,7 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-func GetSystemBusPrivateConn() (*dbus.Conn, error) {
+func SystemBusPrivateConn() (*dbus.Conn, error) {
 	conn, err := dbus.SystemBusPrivate()
 	if err != nil {
 		return nil, err

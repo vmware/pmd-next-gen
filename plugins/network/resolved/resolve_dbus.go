@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/pm-web/pkg/share"
+	"github.com/pm-web/pkg/bus"
 )
 
 const (
@@ -26,7 +26,7 @@ type SDConnection struct {
 }
 
 func NewSDConnection() (*SDConnection, error) {
-	conn, err := share.GetSystemBusPrivateConn()
+	conn, err := bus.SystemBusPrivateConn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to system bus: %v", err)
 	}
@@ -41,37 +41,7 @@ func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func DBusNetworkReconfigureLink(ctx context.Context, index int) error {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
-	}
-	defer c.Close()
-
-	if err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"ReconfigureLink", 0, index).Err; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DBusNetworkReload(ctx context.Context) error {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
-	}
-	defer c.Close()
-
-	if err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"Reload", 0).Err; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error) {
+func DBusNetworkLinkProperty(ctx context.Context) ([]DNS, error) {
 	c, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
@@ -81,7 +51,7 @@ func DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error
 
 	var linkPath dbus.ObjectPath
 
-	c.object.CallWithContext(ctx, "org.freedesktop.resolve1.Manager.GetLink", 0, 2).Store(&linkPath)
+	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, 2).Store(&linkPath)
 
 	linkO := c.conn.Object("org.freedesktop.resolve1", linkPath)
 	variant, err := linkO.GetProperty("org.freedesktop.resolve1.Link.DNS")
@@ -89,14 +59,17 @@ func DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error
 		return nil, fmt.Errorf("error fetching DNS property from DBus: %v", err)
 	}
 
-	variantVal := variant.Value().([][]interface{})
-	fmt.Println(variantVal)
+	var dns []DNS
+	for _, value := range variant.Value().([][]interface{}) {
+		d := DNS{
+			DNS: fmt.Sprintf("%v", value[1]),
+		}
 
-	m := make(map[interface{}]interface{})
+		d.Family, _ = value[0].(int32)
+		dns = append(dns, d)
+	}
 
-	fmt.Println(m)
-
-	return nil, nil
+	return dns, nil
 }
 
 func DBusResolveManagerDNS(ctx context.Context) ([]DNS, error) {
@@ -107,14 +80,13 @@ func DBusResolveManagerDNS(ctx context.Context) ([]DNS, error) {
 	}
 	defer c.Close()
 
-	variant, err := c.object.GetProperty("org.freedesktop.resolve1.Manager.DNS")
+	variant, err := c.object.GetProperty(dbusManagerinterface + ".DNS")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching DNS property from DBus: %v", err)
 	}
 
-	dns := variant.Value().([][]interface{})
-	var m []DNS
-	for _, value := range dns {
+	var dns []DNS
+	for _, value := range variant.Value().([][]interface{}) {
 		d := DNS{
 			Family: value[1].(int32),
 			DNS:    fmt.Sprintf("%v", value[2]),
@@ -129,8 +101,8 @@ func DBusResolveManagerDNS(ctx context.Context) ([]DNS, error) {
 			d.Link = link.Attrs().Name
 		}
 
-		m = append(m, d)
+		dns = append(dns, d)
 	}
 
-	return m, nil
+	return dns, nil
 }

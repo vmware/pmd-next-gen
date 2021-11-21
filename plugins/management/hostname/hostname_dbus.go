@@ -8,8 +8,8 @@ import (
 
 	"github.com/godbus/dbus/v5"
 
-	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/web"
+	"github.com/pm-web/pkg/bus"
 )
 
 const (
@@ -23,7 +23,7 @@ type SDConnection struct {
 }
 
 func NewSDConnection() (*SDConnection, error) {
-	conn, err := share.GetSystemBusPrivateConn()
+	conn, err := bus.SystemBusPrivateConn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to system bus: %v", err)
 	}
