@@ -15,19 +15,42 @@ type DNS struct {
 	DNS    string `json:"DNS"`
 }
 
-func AcquireLinkDNS(ctx context.Context, w http.ResponseWriter) error {
-	links, err := DBusNetworkLinkProperty(ctx)
+type Domains struct {
+	Link   string `json:"Link"`
+	Domain string `json:"DNS"`
+}
+
+func AcquireLinkDNS(ctx context.Context, link string, w http.ResponseWriter) error {
+	links, err := DBusAcquireDNSFromResolveLink(ctx, link)
 	if err != nil {
-		return err
+		return web.JSONResponseError(err, w)
 	}
 
 	return web.JSONResponse(links, w)
 }
 
-func AcquireManagerDNS(ctx context.Context, w http.ResponseWriter) error {
-	links, err := DBusResolveManagerDNS(ctx)
+func AcquireLinkDomains(ctx context.Context, link string, w http.ResponseWriter) error {
+	links, err := DBusAcquireDomainsFromResolveLink(ctx, link)
 	if err != nil {
-		return err
+		return web.JSONResponseError(err, w)
+	}
+
+	return web.JSONResponse(links, w)
+}
+
+func AcquireDNSFromResolveManager(ctx context.Context, w http.ResponseWriter) error {
+	links, err := DBusAcquireDNSFromResolveManager(ctx)
+	if err != nil {
+		return web.JSONResponseError(err, w)
+	}
+
+	return web.JSONResponse(links, w)
+}
+
+func AcquireDomainsFromResolveManager(ctx context.Context, w http.ResponseWriter) error {
+	links, err := DBusAcquireDomainsFromResolveManager(ctx)
+	if err != nil {
+		return web.JSONResponseError(err, w)
 	}
 
 	return web.JSONResponse(links, w)
