@@ -7,6 +7,7 @@ import (
 
 	"github.com/pm-web/plugins/management/group"
 	"github.com/pm-web/plugins/management/hostname"
+	"github.com/pm-web/plugins/management/login"
 	"github.com/pm-web/plugins/management/user"
 )
 
@@ -17,4 +18,5 @@ func RegisterRouterManagement(router *mux.Router) {
 	user.RegisterRouterUser(n)
 
 	hostname.RegisterRouterHostname(n)
+	login.RegisterRouterLogin(n)
 }
