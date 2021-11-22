@@ -10,6 +10,7 @@ import (
 	"github.com/pm-web/plugins/network/netlink/route"
 	"github.com/pm-web/plugins/network/networkd"
 	"github.com/pm-web/plugins/network/resolved"
+	"github.com/pm-web/plugins/network/timesyncd"
 )
 
 func RegisterRouterNetwork(router *mux.Router) {
@@ -22,6 +23,8 @@ func RegisterRouterNetwork(router *mux.Router) {
 
 	// systemd-networkd
 	networkd.RegisterRouterNetworkd(n)
-
+	// systemd-resolved
 	resolved.RegisterRouterResolved(n)
+	// systemd-timesynd
+	timesyncd.RegisterRouterTimeSyncd(n)
 }
