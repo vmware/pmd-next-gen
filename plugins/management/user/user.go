@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
+	"path"
 	"syscall"
 
 	log "github.com/sirupsen/logrus"
@@ -31,6 +33,18 @@ type User struct {
 }
 
 func (u *User) update() error {
+	if u.HomeDirectory == "" {
+		u.HomeDirectory = path.Join("/home", u.Name)
+	}
+	if u.Shell == "" {
+		path, err := exec.LookPath("bash")
+		if err != nil {
+			return err
+		}
+
+		u.Shell = path
+	}
+
 	// pw_name:pw_passwd:pw_uid:pw_gid:pw_gecos:pw_dir:pw_shell
 	line := u.Name + ":" + u.Password + ":" + u.Uid + ":" + u.Gid + ":" + u.Comment + ":" + u.HomeDirectory + ":" + u.Shell
 	if err := system.WriteOneLineFile(userFile, line); err != nil {
@@ -45,7 +59,6 @@ func (u *User) update() error {
 
 	return nil
 }
-
 
 func (u *User) Add(w http.ResponseWriter) error {
 	var c *syscall.Credential
