@@ -5,11 +5,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/v3/net"
@@ -17,6 +19,8 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pm-web/pkg/web"
+	"github.com/pm-web/plugins/network/netlink/address"
+	"github.com/pm-web/plugins/network/netlink/route"
 	"github.com/pm-web/plugins/systemd"
 )
 
@@ -62,6 +66,18 @@ type LinkStatus struct {
 		} `json:"Interfaces"`
 	} `json:"message"`
 	Errors string `json:"errors"`
+}
+
+type Addresses struct {
+	Success bool                  `json:"success"`
+	Message []address.AddressInfo `json:"message"`
+	Errors  string                `json:"errors"`
+}
+
+type Routes struct {
+	Success bool              `json:"success"`
+	Message []route.RouteInfo `json:"message"`
+	Errors  string            `json:"errors"`
 }
 
 func executeSystemdUnitCommand(command string, unit string, host string, token map[string]string) {
@@ -243,11 +259,114 @@ func displayInterfaces(i *Interface) {
 	}
 }
 
-func displayNetworkStatus(l *LinkStatus) {
+func acquireLinkAddresses(host string, token map[string]string) ([]address.AddressInfo, error) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/netlink/address", token, nil)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/netlink/address", nil)
+	}
+
+	if err != nil {
+		fmt.Printf("Failed to fetch addresses: %v\n", err)
+		return nil, err
+	}
+
+	a := Addresses{}
+	if err := json.Unmarshal(resp, &a); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return nil, err
+	}
+
+	if a.Success {
+		return a.Message, nil
+	}
+
+	return nil, errors.New(a.Errors)
+}
+
+func acquireLinkRoutes(host string, token map[string]string) ([]route.RouteInfo, error) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/netlink/route", token, nil)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/netlink/route", nil)
+	}
+
+	if err != nil {
+		fmt.Printf("Failed to fetch routes: %v\n", err)
+		return nil, err
+	}
+
+	rt := Routes{}
+	if err := json.Unmarshal(resp, &rt); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return nil, err
+	}
+
+	if rt.Success {
+		return rt.Message, nil
+	}
+
+	return nil, errors.New(rt.Errors)
+}
+
+func displayNetworkStatus(l *LinkStatus, linkAddresses []address.AddressInfo, linkRoutes []route.RouteInfo) {
 	for _, n := range l.Message.Interfaces {
-		fmt.Printf("            Name: %v\n", n.Name)
-		fmt.Printf("           Index: %v\n", n.Index)
-		fmt.Printf("     NetworkFile: %v\n", n.NetworkFile)
+		fmt.Printf("             Name: %v\n", n.Name)
+		if len(n.AlternativeNames) > 0 {
+			fmt.Printf("Alternative Names: %v\n", strings.Join(n.AlternativeNames, " "))
+		}
+		fmt.Printf("            Index: %v\n", n.Index)
+		if n.LinkFile != "" {
+			fmt.Printf("        Link File: %v\n", n.LinkFile)
+		}
+		if n.NetworkFile != "" {
+			fmt.Printf("     Network File: %v\n", n.NetworkFile)
+		}
+		fmt.Printf("             Type: %v\n", n.Type)
+		fmt.Printf("            State: %v(%v)\n", n.OperationalState, n.SetupState)
+		if n.Driver != "" {
+			fmt.Printf("           Driver: %v\n", n.Driver)
+		}
+		if n.Vendor != "" {
+			fmt.Printf("           Vendor: %v\n", n.Vendor)
+		}
+		if n.Model != "" {
+			fmt.Printf("            Model: %v\n", n.Model)
+		}
+		fmt.Printf("    Carrier State: %v\n", n.CarrierState)
+		if n.OnlineState != "" {
+			fmt.Printf("     Online State: %v\n", n.OnlineState)
+		}
+		fmt.Printf("IPv4Address State: %v\n", n.IPv4AddressState)
+		fmt.Printf("IPv6Address State: %v\n", n.IPv6AddressState)
+
+		for _, k := range linkAddresses {
+			if k.Name == n.Name {
+				if k.Mac != "" {
+					fmt.Printf("       HW Address: %v\n", k.Mac)
+				}
+				fmt.Printf("              MTU: %v\n", k.MTU)
+				fmt.Printf("        Addresses: ")
+				for _, j := range k.Addresses {
+					fmt.Printf("%v/%v ", j.IP, j.Mask)
+				}
+				fmt.Printf("\n")
+			}
+		}
+		for _, k := range linkRoutes {
+			if k.LinkIndex == n.Index && k.Gw != "" {
+				fmt.Printf("          Gateway: %v\n", k.Gw)
+				break
+			}
+		}
+
+		fmt.Printf("\n")
 	}
 }
 
@@ -274,8 +393,20 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 			return
 		}
 
+		addresses, err := acquireLinkAddresses(host, token)
+		if err != nil {
+			fmt.Printf("Failed to fetch link addresses: %v\n", err)
+			return
+		}
+
+		routes, err := acquireLinkRoutes(host, token)
+		if err != nil {
+			fmt.Printf("Failed to fetch link aroutes: %v\n", err)
+			return
+		}
+
 		if n.Success {
-			displayNetworkStatus(&n)
+			displayNetworkStatus(&n, addresses, routes)
 		}
 	case "iostat":
 		if host != "" {
