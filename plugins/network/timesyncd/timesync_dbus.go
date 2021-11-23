@@ -41,28 +41,27 @@ func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func DBusAcquireCurrentNTPServerFromTImeSync(ctx context.Context) (*NTPServer, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusAcquireCurrentNTPServerFromTimeSync(ctx context.Context) (*NTPServer, error) {
 	var wg sync.WaitGroup
+	var err error
 	wg.Add(2)
 
 	var serverName dbus.Variant
 	go func() {
 		defer wg.Done()
 		serverName, err = c.object.GetProperty(dbusManagerinterface + ".ServerName")
-
+		if err != nil {
+			log.Errorf("Failed to acquire 'ServerName': %v", err)
+		}
 	}()
 
 	var serverAddress dbus.Variant
 	go func() {
 		defer wg.Done()
 		serverAddress, err = c.object.GetProperty(dbusManagerinterface + ".ServerAddress")
+		if err != nil {
+			log.Errorf("Failed to acquire 'ServerAddress': %v", err)
+		}
 	}()
 
 	wg.Wait()
@@ -74,20 +73,24 @@ func DBusAcquireCurrentNTPServerFromTImeSync(ctx context.Context) (*NTPServer, e
 	}, nil
 }
 
-func DBusAcquireSystemNTPServerFromTImeSync(ctx context.Context) (*NTPServer, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusAcquireSystemNTPServerFromTimeSync(ctx context.Context) (*NTPServer, error) {
 	s, err := c.object.GetProperty(dbusManagerinterface + ".SystemNTPServers")
 	if err != nil {
 		return nil, err
 	}
 
 	return &NTPServer{
-		SystemNTPServers:   s.Value().([]string),
+		SystemNTPServers: s.Value().([]string),
+	}, nil
+}
+
+func (c *SDConnection) DBusAcquireLinkNTPServerFromTimeSync(ctx context.Context) (*NTPServer, error) {
+	s, err := c.object.GetProperty(dbusManagerinterface + ".LinkNTPServers")
+	if err != nil {
+		return nil, err
+	}
+
+	return &NTPServer{
+		LinkNTPServers: s.Value().([]string),
 	}, nil
 }
