@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/pm-web/pkg/bus"
 )
@@ -41,14 +40,7 @@ func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func DBusNetworkReconfigureLink(ctx context.Context, index int) error {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusNetworkReconfigureLink(ctx context.Context, index int) error {
 	if err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"ReconfigureLink", 0, index).Err; err != nil {
 		return err
 	}
@@ -56,14 +48,7 @@ func DBusNetworkReconfigureLink(ctx context.Context, index int) error {
 	return nil
 }
 
-func DBusNetworkReload(ctx context.Context) error {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusNetworkReload(ctx context.Context) error {
 	if err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"Reload", 0).Err; err != nil {
 		return err
 	}
@@ -71,16 +56,10 @@ func DBusNetworkReload(ctx context.Context) error {
 	return nil
 }
 
-func DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error) {
 	var props string
-	err = c.object.CallWithContext(ctx, dbusManagerinterface+"."+"Describe", 0).Store(&props)
+
+	err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"Describe", 0).Store(&props)
 	if err != nil {
 		return nil, err
 	}

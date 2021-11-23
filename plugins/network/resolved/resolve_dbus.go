@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
-	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
 	"github.com/pm-web/pkg/bus"
@@ -90,22 +89,10 @@ func buildDomainsMessage(variant dbus.Variant) ([]Domains, error) {
 	return domains, nil
 }
 
-func DBusAcquireDNSFromResolveLink(ctx context.Context, link string) ([]DNS, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
-	l, err := netlink.LinkByName(link)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *SDConnection) DBusAcquireDNSFromResolveLink(ctx context.Context, index int) ([]DNS, error) {	
 	var linkPath dbus.ObjectPath
 
-	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, l.Attrs().Index).Store(&linkPath)
+	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, index).Store(&linkPath)
 	variant, err := c.conn.Object("org.freedesktop.resolve1", linkPath).GetProperty("org.freedesktop.resolve1.Link.DNS")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching DNS from resolve: %v", err)
@@ -114,22 +101,10 @@ func DBusAcquireDNSFromResolveLink(ctx context.Context, link string) ([]DNS, err
 	return buildDNSMessage(variant, true)
 }
 
-func DBusAcquireDomainsFromResolveLink(ctx context.Context, link string) ([]Domains, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
-	l, err := netlink.LinkByName(link)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *SDConnection) DBusAcquireDomainsFromResolveLink(ctx context.Context, index int) ([]Domains, error) {
 	var linkPath dbus.ObjectPath
 
-	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, l.Attrs().Index).Store(&linkPath)
+	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, index).Store(&linkPath)
 	variant, err := c.conn.Object("org.freedesktop.resolve1", linkPath).GetProperty("org.freedesktop.resolve1.Link.Domains")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching Domains from resolve: %v", err)
@@ -138,14 +113,7 @@ func DBusAcquireDomainsFromResolveLink(ctx context.Context, link string) ([]Doma
 	return buildDomainsMessage(variant)
 }
 
-func DBusAcquireDNSFromResolveManager(ctx context.Context) ([]DNS, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusAcquireDNSFromResolveManager(ctx context.Context) ([]DNS, error) {
 	variant, err := c.object.GetProperty(dbusManagerinterface + ".DNS")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching DNS from resolve: %v", err)
@@ -154,14 +122,7 @@ func DBusAcquireDNSFromResolveManager(ctx context.Context) ([]DNS, error) {
 	return buildDNSMessage(variant, false)
 }
 
-func DBusAcquireDomainsFromResolveManager(ctx context.Context) ([]Domains, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusAcquireDomainsFromResolveManager(ctx context.Context) ([]Domains, error) {
 	variant, err := c.object.GetProperty(dbusManagerinterface + ".Domains")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching Domains from resolve: %v", err)

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
 	"github.com/pm-web/pkg/configfile"
@@ -99,7 +100,14 @@ func decodeJSONRequest(r *http.Request) (*Network, error) {
 }
 
 func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) error {
-	links, err := DBusNetworkLinkProperty(ctx)
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return err
+	}
+	defer c.Close()
+
+	links, err := c.DBusNetworkLinkProperty(ctx)
 	if err != nil {
 		return err
 	}
@@ -239,7 +247,14 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 
-	if err := DBusNetworkReload(ctx); err != nil {
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return err
+	}
+	defer c.Close()
+
+	if err := c.DBusNetworkReload(ctx); err != nil {
 		return err
 	}
 
