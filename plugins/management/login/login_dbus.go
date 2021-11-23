@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/pm-web/pkg/bus"
 )
@@ -37,14 +36,7 @@ func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func DBusAcquireUsersFromLogin(ctx context.Context) ([]User, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusAcquireUsersFromLogin(ctx context.Context) ([]User, error) {
 	out := [][]interface{}{}
 	if err := c.object.Call(dbusManagerinterface+".ListUsers", 0).Store(&out); err != nil {
 		return nil, err
@@ -64,14 +56,7 @@ func DBusAcquireUsersFromLogin(ctx context.Context) ([]User, error) {
 	return users, nil
 }
 
-func DBusAcquireUSessionsFromLogin(ctx context.Context) ([]Session, error) {
-	c, err := NewSDConnection()
-	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return nil, err
-	}
-	defer c.Close()
-
+func (c *SDConnection) DBusAcquireUSessionsFromLogin(ctx context.Context) ([]Session, error) {
 	out := [][]interface{}{}
 	if err := c.object.Call(dbusManagerinterface+".ListSessions", 0).Store(&out); err != nil {
 		return nil, err

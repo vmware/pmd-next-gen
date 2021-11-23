@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/pm-web/pkg/web"
 )
 
@@ -37,7 +39,14 @@ type Session struct {
 }
 
 func AcquireUsersFromLogin(ctx context.Context, w http.ResponseWriter) error {
-	users, err := DBusAcquireUsersFromLogin(ctx)
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return err
+	}
+	defer c.Close()
+
+	users, err := c.DBusAcquireUsersFromLogin(ctx)
 	if err != nil {
 		return web.JSONResponseError(err, w)
 	}
@@ -46,7 +55,14 @@ func AcquireUsersFromLogin(ctx context.Context, w http.ResponseWriter) error {
 }
 
 func AcquireSessionsFromLogin(ctx context.Context, w http.ResponseWriter) error {
-	users, err := DBusAcquireUSessionsFromLogin(ctx)
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return err
+	}
+	defer c.Close()
+
+	users, err := c.DBusAcquireUSessionsFromLogin(ctx)
 	if err != nil {
 		return web.JSONResponseError(err, w)
 	}
