@@ -5,6 +5,7 @@ package systemd
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -38,6 +39,11 @@ func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ok := strings.HasSuffix(u.Unit, ".service")
+	if !ok {
+		u.Unit += ".service"
+	}
+
 	if err := u.UnitCommands(r.Context()); err != nil {
 		web.JSONResponseError(err, w)
 		return
@@ -57,6 +63,11 @@ func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
 		Unit: mux.Vars(r)["unit"],
 	}
 
+	ok := strings.HasSuffix(u.Unit, ".service")
+	if !ok {
+		u.Unit += ".service"
+	}
+
 	if err := u.AcquireUnitStatus(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
@@ -68,6 +79,11 @@ func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
 		Property: mux.Vars(r)["property"],
 	}
 
+	ok := strings.HasSuffix(u.Unit, ".service")
+	if !ok {
+		u.Unit += ".service"
+	}
+
 	if err := u.AcquireUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
@@ -76,6 +92,11 @@ func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
 func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 	u := UnitAction{
 		Unit: mux.Vars(r)["unit"],
+	}
+
+	ok := strings.HasSuffix(u.Unit, ".service")
+	if !ok {
+		u.Unit += ".service"
 	}
 
 	if err := u.AcquireAllUnitProperty(r.Context(), w); err != nil {
