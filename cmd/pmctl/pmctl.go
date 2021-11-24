@@ -207,16 +207,16 @@ func acquireSystemdUnitStatus(unit string, host string, token map[string]string)
 
 func displayNetDevIOStatistics(netDev *NetDevIOCounters) {
 	for _, n := range netDev.Message {
-		fmt.Printf("            %v %v\n", color.CyanString ("Name:"), n.Name)
-		fmt.Printf("%v %v\n", color.CyanString ("Packets received:"), n.PacketsRecv)
-		fmt.Printf("%v %v\n", color.CyanString ("  Bytes received:"), n.PacketsSent)
-		fmt.Printf("%v %v\n", color.CyanString ("      Bytes sent:"), n.PacketsSent)
-		fmt.Printf("%v %v\n", color.CyanString ("         Drop in:"), n.PacketsSent)
-		fmt.Printf("%v %v\n", color.CyanString ("        Drop out:"), n.Dropin)
-		fmt.Printf("%v %v\n", color.CyanString ("        Error in:"), n.Dropout)
-		fmt.Printf("%v %v\n", color.CyanString ("       Error out:"), n.Errout)
-		fmt.Printf("%v %v\n", color.CyanString ("         Fifo in:"), n.Fifoin)
-		fmt.Printf("%v %v\n\n", color.CyanString ("        Fifo out:"), n.Fifoout)
+		fmt.Printf("            %v %v\n", color.HiBlueString("Name:"), n.Name)
+		fmt.Printf("%v %v\n", color.HiBlueString("Packets received:"), n.PacketsRecv)
+		fmt.Printf("%v %v\n", color.HiBlueString("  Bytes received:"), n.PacketsSent)
+		fmt.Printf("%v %v\n", color.HiBlueString("      Bytes sent:"), n.PacketsSent)
+		fmt.Printf("%v %v\n", color.HiBlueString("         Drop in:"), n.PacketsSent)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Drop out:"), n.Dropin)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Error in:"), n.Dropout)
+		fmt.Printf("%v %v\n", color.HiBlueString("       Error out:"), n.Errout)
+		fmt.Printf("%v %v\n", color.HiBlueString("         Fifo in:"), n.Fifoin)
+		fmt.Printf("%v %v\n\n", color.HiBlueString("        Fifo out:"), n.Fifoout)
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/vishvananda/netlink"
 
 	"github.com/pm-web/pkg/bus"
+	"github.com/pm-web/pkg/share"
 )
 
 const (
@@ -46,10 +47,10 @@ func buildDNSMessage(variant dbus.Variant, link bool) ([]DNS, error) {
 		d := DNS{}
 		if link {
 			d.Family = v[0].(int32)
-			d.DNS = fmt.Sprintf("%v", v[1])
+			d.DNS = share.BuildIPFromBytes(v[1].([]uint8))
 		} else {
 			d.Family = v[1].(int32)
-			d.DNS = fmt.Sprintf("%v", v[2])
+			d.DNS = share.BuildIPFromBytes(v[2].([]uint8))
 
 			index := v[0].(int32)
 			if index != 0 {
@@ -89,7 +90,7 @@ func buildDomainsMessage(variant dbus.Variant) ([]Domains, error) {
 	return domains, nil
 }
 
-func (c *SDConnection) DBusAcquireDNSFromResolveLink(ctx context.Context, index int) ([]DNS, error) {	
+func (c *SDConnection) DBusAcquireDNSFromResolveLink(ctx context.Context, index int) ([]DNS, error) {
 	var linkPath dbus.ObjectPath
 
 	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, index).Store(&linkPath)
