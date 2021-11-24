@@ -20,18 +20,19 @@ type Link struct {
 }
 
 type LinkInfo struct {
-	Index        int                     `json:"Index"`
-	Mtu          int                     `json:"MTU"`
-	TxQLen       int                     `json:"TxQLen"`
-	Name         string                  `json:"Name"`
-	HardwareAddr string                  `json:"HardwareAddr"`
-	Flags        string                  `json:"Flags"`
-	RawFlags     uint32                  `json:"RawFlags"`
-	ParentIndex  int                     `json:"ParentIndex"`
-	MasterIndex  int                     `json:"MasterIndex"`
-	Namespace    string                  `json:"Namespace"`
-	Alias        string                  `json:"Alias"`
-	Statistics   *netlink.LinkStatistics `json:"Statistics"`
+	Index            int                     `json:"Index"`
+	Mtu              int                     `json:"MTU"`
+	TxQLen           int                     `json:"TxQLen"`
+	Name             string                  `json:"Name"`
+	AlternativeNames string                  `json:"AlternativeNames"`
+	HardwareAddr     string                  `json:"HardwareAddr"`
+	Flags            string                  `json:"Flags"`
+	RawFlags         uint32                  `json:"RawFlags"`
+	ParentIndex      int                     `json:"ParentIndex"`
+	MasterIndex      int                     `json:"MasterIndex"`
+	Namespace        string                  `json:"Namespace"`
+	Alias            string                  `json:"Alias"`
+	Statistics       *netlink.LinkStatistics `json:"Statistics"`
 
 	Promisc int `json:"Promisc"`
 	Xdp     struct {
@@ -52,29 +53,28 @@ type LinkInfo struct {
 	Slave       string `json:"Slave"`
 }
 
-
 func fillOneLink(link netlink.Link) LinkInfo {
 	l := LinkInfo{
-		Index:        link.Attrs().Index,
-		Mtu:          link.Attrs().MTU,
-		TxQLen:       link.Attrs().TxQLen,
-		Name:         link.Attrs().Name,
-		HardwareAddr: link.Attrs().HardwareAddr.String(),
-		RawFlags:     link.Attrs().RawFlags,
-		ParentIndex:  link.Attrs().ParentIndex,
-		MasterIndex:  link.Attrs().MasterIndex,
-		Alias:        link.Attrs().Alias,
-		EncapType:    link.Attrs().EncapType,
-		OperState:    link.Attrs().OperState.String(),
-		NetNsID:      link.Attrs().NetNsID,
-		NumTxQueues:  link.Attrs().NumTxQueues,
-		NumRxQueues:  link.Attrs().NumRxQueues,
-		GSOMaxSize:   link.Attrs().GSOMaxSize,
-		GSOMaxSegs:   link.Attrs().GSOMaxSegs,
-		Group:        link.Attrs().Group,
-		Statistics:   link.Attrs().Statistics,
-		Promisc:      link.Attrs().Promisc,
-		Flags:        link.Attrs().Flags.String(),
+		Index:            link.Attrs().Index,
+		Mtu:              link.Attrs().MTU,
+		TxQLen:           link.Attrs().TxQLen,
+		Name:             link.Attrs().Name,
+		HardwareAddr:     link.Attrs().HardwareAddr.String(),
+		RawFlags:         link.Attrs().RawFlags,
+		ParentIndex:      link.Attrs().ParentIndex,
+		MasterIndex:      link.Attrs().MasterIndex,
+		Alias:            link.Attrs().Alias,
+		EncapType:        link.Attrs().EncapType,
+		OperState:        link.Attrs().OperState.String(),
+		NetNsID:          link.Attrs().NetNsID,
+		NumTxQueues:      link.Attrs().NumTxQueues,
+		NumRxQueues:      link.Attrs().NumRxQueues,
+		GSOMaxSize:       link.Attrs().GSOMaxSize,
+		GSOMaxSegs:       link.Attrs().GSOMaxSegs,
+		Group:            link.Attrs().Group,
+		Statistics:       link.Attrs().Statistics,
+		Promisc:          link.Attrs().Promisc,
+		Flags:            link.Attrs().Flags.String(),
 	}
 
 	if link.Attrs().Protinfo != nil {

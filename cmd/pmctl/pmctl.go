@@ -21,6 +21,7 @@ import (
 	"github.com/pm-web/pkg/web"
 	"github.com/pm-web/plugins/network/netlink/address"
 	"github.com/pm-web/plugins/network/netlink/route"
+	"github.com/pm-web/plugins/network/networkd"
 	"github.com/pm-web/plugins/systemd"
 )
 
@@ -45,25 +46,7 @@ type Interface struct {
 type LinkStatus struct {
 	Success bool `json:"success"`
 	Message struct {
-		Interfaces []struct {
-			AddressState     string   `json:"AddressState"`
-			AlternativeNames []string `json:"AlternativeNames"`
-			CarrierState     string   `json:"CarrierState"`
-			Driver           string   `json:"Driver"`
-			IPv4AddressState string   `json:"IPv4AddressState"`
-			IPv6AddressState string   `json:"IPv6AddressState"`
-			Index            int      `json:"Index"`
-			LinkFile         string   `json:"LinkFile"`
-			Model            string   `json:"Model"`
-			Name             string   `json:"Name"`
-			OnlineState      string   `json:"OnlineState"`
-			OperationalState string   `json:"OperationalState"`
-			Path             string   `json:"Path"`
-			SetupState       string   `json:"SetupState"`
-			Type             string   `json:"Type"`
-			Vendor           string   `json:"Vendor"`
-			NetworkFile      string   `json:"NetworkFile,omitempty"`
-		} `json:"Interfaces"`
+		Interfaces []networkd.LinkState `json:"Interfaces"`
 	} `json:"message"`
 	Errors string `json:"errors"`
 }
@@ -339,6 +322,9 @@ func displayNetworkStatus(l *LinkStatus, linkAddresses []address.AddressInfo, li
 		if n.Model != "" {
 			fmt.Printf("            Model: %v\n", n.Model)
 		}
+		if n.Path != "" {
+			fmt.Printf("             Path: %v\n", n.Path)
+		}
 		fmt.Printf("    Carrier State: %v\n", n.CarrierState)
 		if n.OnlineState != "" {
 			fmt.Printf("     Online State: %v\n", n.OnlineState)
@@ -383,13 +369,18 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 		}
 
 		if err != nil {
-			fmt.Printf("Failed to fetch networks status: %v\n", err)
+			fmt.Printf("Failed to fetch network status: %v\n", err)
 			return
 		}
 
 		n := LinkStatus{}
 		if err := json.Unmarshal(resp, &n); err != nil {
 			fmt.Printf("Failed to decode json message: %v\n", err)
+			return
+		}
+
+		if !n.Success {
+			fmt.Printf("Failed to fetch network status: %v\n", err)
 			return
 		}
 
@@ -401,13 +392,12 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 
 		routes, err := acquireLinkRoutes(host, token)
 		if err != nil {
-			fmt.Printf("Failed to fetch link aroutes: %v\n", err)
+			fmt.Printf("Failed to fetch link routes: %v\n", err)
 			return
 		}
 
-		if n.Success {
-			displayNetworkStatus(&n, addresses, routes)
-		}
+		displayNetworkStatus(&n, addresses, routes)
+
 	case "iostat":
 		if host != "" {
 			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", token, nil)

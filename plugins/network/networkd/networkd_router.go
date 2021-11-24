@@ -23,7 +23,7 @@ func routerConfigureNetwork(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireLinkProperty(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireNetworkLinkProperty(r.Context(), w,); err != nil {
+	if err := AcquireNetworkLinkProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }

@@ -24,11 +24,13 @@ func main() {
 	cred, err := system.GetUserCredentials("")
 	if err != nil {
 		log.Warningf("Failed to get current user credentials: %+v", err)
+		os.Exit(1)
 	} else {
 		if cred.Uid == 0 {
 			u, err := system.GetUserCredentials("pm-web")
 			if err != nil {
-				log.Warningf("Failed to get user 'pm-web' credentials: %+v", err)
+				log.Errorf("Failed to get user 'pm-web' credentials: %+v", err)
+				os.Exit(1)
 			} else {
 				if err := system.CreateStateDirs("/run/pmwebd", int(u.Uid), int(u.Gid)); err != nil {
 					log.Println(err)

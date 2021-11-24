@@ -6,8 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"path"
 	"strings"
 
+	"github.com/jaypipes/ghw"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
@@ -60,7 +62,6 @@ type DHCPv4Section struct {
 	UseGateway            string `json:"UseGateway"`
 	UseTimezone           string `json:"UUseTimezone"`
 }
-
 type Network struct {
 	Link            string           `json:"Link"`
 	MatchSection    MatchSection     `json:"MatchSection"`
@@ -81,13 +82,13 @@ type LinkState struct {
 	LinkFile         string   `json:"LinkFile"`
 	Model            string   `json:"Model"`
 	Name             string   `json:"Name"`
-	NetworkFile      string   `json:"NetworkFile"`
 	OnlineState      string   `json:"OnlineState"`
 	OperationalState string   `json:"OperationalState"`
 	Path             string   `json:"Path"`
 	SetupState       string   `json:"SetupState"`
 	Type             string   `json:"Type"`
 	Vendor           string   `json:"Vendor"`
+	NetworkFile      string   `json:"NetworkFile,omitempty"`
 }
 
 func decodeJSONRequest(r *http.Request) (*Network, error) {
@@ -99,6 +100,55 @@ func decodeJSONRequest(r *http.Request) (*Network, error) {
 	return &n, nil
 }
 
+func fillOneLink(link netlink.Link) LinkState {
+	l := LinkState{
+		Index: link.Attrs().Index,
+		Name:  link.Attrs().Name,
+		Type:  link.Attrs().EncapType,
+	}
+
+	l.AddressState, _ = ParseLinkAddressState(link.Attrs().Index)
+	l.IPv4AddressState, _ = ParseLinkIPv4AddressState(link.Attrs().Index)
+	l.IPv6AddressState, _ = ParseLinkIPv6AddressState(link.Attrs().Index)
+	l.CarrierState, _ = ParseLinkCarrierState(link.Attrs().Index)
+	l.OnlineState, _ = ParseLinkOnlineState(link.Attrs().Index)
+	l.OperationalState, _ = ParseLinkOperationalState(link.Attrs().Index)
+	l.SetupState, _ = ParseLinkSetupState(link.Attrs().Index)
+	l.NetworkFile, _ = ParseLinkNetworkFile(link.Attrs().Index)
+
+	c, err := configfile.ParseKeyFromSectionString(path.Join("/sys/class/net", link.Attrs().Name, "device/uevent"), "", "PCI_SLOT_NAME")
+	if err == nil {
+		pci, err := ghw.PCI()
+		if err == nil {
+			dev := pci.GetDevice(c)
+
+			l.Model = dev.Product.Name
+			l.Vendor = dev.Vendor.Name
+			l.Path = dev.Address
+		}
+	}
+
+	return l
+}
+
+func buildLinkMessage(w http.ResponseWriter) error {
+	links, err := netlink.LinkList()
+	if err != nil {
+		return err
+	}
+
+	var linkStates []LinkState
+	for _, l := range links {
+		linkStates = append(linkStates, fillOneLink(l))
+	}
+
+	type j struct {
+		Interfaces []LinkState
+	}
+
+	return web.JSONResponse(&j{Interfaces: linkStates}, w)
+}
+
 func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) error {
 	c, err := NewSDConnection()
 	if err != nil {
@@ -108,8 +158,8 @@ func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) erro
 	defer c.Close()
 
 	links, err := c.DBusNetworkLinkProperty(ctx)
-	if err != nil {
-		return err
+	if err == nil {
+		return buildLinkMessage(w)
 	}
 
 	return web.JSONResponse(links, w)
