@@ -88,6 +88,7 @@ type LinkState struct {
 	SetupState       string   `json:"SetupState"`
 	Type             string   `json:"Type"`
 	Vendor           string   `json:"Vendor"`
+	Manufacturer     string   `json:"Manufacturer"`
 	NetworkFile      string   `json:"NetworkFile,omitempty"`
 }
 
@@ -124,8 +125,13 @@ func fillOneLink(link netlink.Link) LinkState {
 
 			l.Model = dev.Product.Name
 			l.Vendor = dev.Vendor.Name
-			l.Path = dev.Address
+			l.Path = "pci-" + dev.Address
 		}
+	}
+
+	driver, err := configfile.ParseKeyFromSectionString(path.Join("/sys/class/net", link.Attrs().Name, "device/uevent"), "", "DRIVER")
+	if err == nil {
+		l.Driver = driver
 	}
 
 	return l
@@ -158,7 +164,7 @@ func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) erro
 	defer c.Close()
 
 	links, err := c.DBusNetworkLinkProperty(ctx)
-	if err == nil {
+	if err != nil {
 		return buildLinkMessage(w)
 	}
 

@@ -380,7 +380,7 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 		}
 
 		if !n.Success {
-			fmt.Printf("Failed to fetch network status: %v\n", err)
+			fmt.Printf("Failed to fetch links: %v\n", err)
 			return
 		}
 
