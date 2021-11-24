@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/shirou/gopsutil/v3/net"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -206,17 +207,16 @@ func acquireSystemdUnitStatus(unit string, host string, token map[string]string)
 
 func displayNetDevIOStatistics(netDev *NetDevIOCounters) {
 	for _, n := range netDev.Message {
-		fmt.Printf("            Name: %v\n", n.Name)
-		fmt.Printf("Packets received: %v\n", n.PacketsRecv)
-		fmt.Printf("    Packets sent: %v\n", n.PacketsSent)
-		fmt.Printf("  Bytes received: %v\n", n.BytesRecv)
-		fmt.Printf("      Bytes sent: %v\n", n.BytesSent)
-		fmt.Printf("         Drop in: %v\n", n.Dropin)
-		fmt.Printf("        Drop out: %v\n", n.Dropout)
-		fmt.Printf("        Error in: %v\n", n.Errin)
-		fmt.Printf("       Error out: %v\n", n.Errout)
-		fmt.Printf("         Fifo in: %v\n", n.Fifoin)
-		fmt.Printf("        Fifo out: %v\n\n", n.Fifoout)
+		fmt.Printf("            %v %v\n", color.CyanString ("Name:"), n.Name)
+		fmt.Printf("%v %v\n", color.CyanString ("Packets received:"), n.PacketsRecv)
+		fmt.Printf("%v %v\n", color.CyanString ("  Bytes received:"), n.PacketsSent)
+		fmt.Printf("%v %v\n", color.CyanString ("      Bytes sent:"), n.PacketsSent)
+		fmt.Printf("%v %v\n", color.CyanString ("         Drop in:"), n.PacketsSent)
+		fmt.Printf("%v %v\n", color.CyanString ("        Drop out:"), n.Dropin)
+		fmt.Printf("%v %v\n", color.CyanString ("        Error in:"), n.Dropout)
+		fmt.Printf("%v %v\n", color.CyanString ("       Error out:"), n.Errout)
+		fmt.Printf("%v %v\n", color.CyanString ("         Fifo in:"), n.Fifoin)
+		fmt.Printf("%v %v\n\n", color.CyanString ("        Fifo out:"), n.Fifoout)
 	}
 }
 
@@ -329,8 +329,12 @@ func displayNetworkStatus(l *LinkStatus, linkAddresses []address.AddressInfo, li
 		if n.OnlineState != "" {
 			fmt.Printf("     Online State: %v\n", n.OnlineState)
 		}
-		fmt.Printf("IPv4Address State: %v\n", n.IPv4AddressState)
-		fmt.Printf("IPv6Address State: %v\n", n.IPv6AddressState)
+		if n.IPv4AddressState != "" {
+			fmt.Printf("IPv4Address State: %v\n", n.IPv4AddressState)
+		}
+		if n.IPv6AddressState != "" {
+			fmt.Printf("IPv6Address State: %v\n", n.IPv6AddressState)
+		}
 
 		for _, k := range linkAddresses {
 			if k.Name == n.Name {

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/coreos/go-systemd/v22 v22.3.2
+	github.com/fatih/color v1.13.0
 	github.com/go-ini/ini v1.63.2
 	github.com/godbus/dbus/v5 v5.0.4
 	github.com/gorilla/mux v1.8.0
@@ -15,7 +16,7 @@ require (
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/vishvananda/netlink v1.1.0
-	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
+	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6
 )
 
 require (
@@ -27,6 +28,8 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jaypipes/pcidb v0.6.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
