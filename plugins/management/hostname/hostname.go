@@ -16,6 +16,27 @@ type Hostname struct {
 	Value  string `json:"Value"`
 }
 
+type Describe struct {
+	Chassis                   string `json:"Chassis"`
+	DefaultHostname           string `json:"DefaultHostname"`
+	Deployment                string `json:"Deployment"`
+	HardwareModel             string `json:"HardwareModel"`
+	HardwareVendor            string `json:"HardwareVendor"`
+	Hostname                  string `json:"Hostname"`
+	HostnameSource            string `json:"HostnameSource"`
+	IconName                  string `json:"IconName"`
+	KernelName                string `json:"KernelName"`
+	KernelRelease             string `json:"KernelRelease"`
+	KernelVersion             string `json:"KernelVersion"`
+	Location                  string `json:"Location"`
+	OperatingSystemCPEName    string `json:"OperatingSystemCPEName"`
+	OperatingSystemHomeURL    string `json:"OperatingSystemHomeURL"`
+	OperatingSystemPrettyName string `json:"OperatingSystemPrettyName"`
+	PrettyHostname            string `json:"PrettyHostname"`
+	ProductUUID               string `json:"ProductUUID"`
+	StaticHostname            string `json:"StaticHostname"`
+}
+
 func (h *Hostname) SetHostname(ctx context.Context) error {
 	conn, err := NewSDConnection()
 	if err != nil {
@@ -24,10 +45,10 @@ func (h *Hostname) SetHostname(ctx context.Context) error {
 	}
 	defer conn.Close()
 
-	return conn.ExecuteHostNameMethod(ctx, h.Method, h.Value)
+	return conn.DBusExecuteHostNameMethod(ctx, h.Method, h.Value)
 }
 
-func AcquireHostnameProperties(ctx context.Context, w http.ResponseWriter) error {
+func HostnameDescribe(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
@@ -35,9 +56,11 @@ func AcquireHostnameProperties(ctx context.Context, w http.ResponseWriter) error
 	}
 	defer conn.Close()
 
-	if p, err := conn.AcquireHostNameProperty(ctx, "Hostname"); err != nil {
+	desc, err := conn.DBusHostNameDescribe(ctx)
+	if err != nil {
 		return err
-	} else {
-		return web.JSONResponse(p, w)
 	}
+
+	return web.JSONResponse(desc, w)
+
 }

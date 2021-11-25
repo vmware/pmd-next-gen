@@ -56,7 +56,7 @@ func (c *SDConnection) DBusNetworkReload(ctx context.Context) error {
 	return nil
 }
 
-func (c *SDConnection) DBusNetworkLinkProperty(ctx context.Context) (map[string]interface{}, error) {
+func (c *SDConnection) DBusNetworkLinkDescribe(ctx context.Context) (map[string]interface{}, error) {
 	var props string
 
 	err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"Describe", 0).Store(&props)

@@ -69,11 +69,18 @@ func ParseIpPort(s string) (string, string, error) {
 	return ip, port, nil
 }
 
-
 func BuildIPFromBytes(ipBytes []uint8) string {
 	s := make([]string, len(ipBytes))
 	for v := range ipBytes {
 		s[v] = strconv.Itoa(int(ipBytes[v]))
 	}
 	return strings.Join(s, ".")
+}
+
+func BuildHexFromBytes(ipBytes []uint8) string {
+	s := make([]string, len(ipBytes))
+	for v := range ipBytes {
+		s[v] = strconv.FormatInt(int64(ipBytes[v]), 16)
+	}
+	return strings.Join(s, "")
 }

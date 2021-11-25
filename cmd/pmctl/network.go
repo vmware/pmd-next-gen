@@ -34,7 +34,7 @@ type Interface struct {
 type LinkStatus struct {
 	Success bool `json:"success"`
 	Message struct {
-		Interfaces []networkd.LinkState `json:"Interfaces"`
+		Interfaces []networkd.LinkDescribe `json:"Interfaces"`
 	} `json:"message"`
 	Errors string `json:"errors"`
 }
@@ -246,7 +246,7 @@ func acquireNTP(host string, token map[string]string) (*timesyncd.NTPServer, err
 	return nil, errors.New(rt.Errors)
 }
 
-func displayOneLinkNetworkStatus(l *networkd.LinkState) {
+func displayOneLinkNetworkStatus(l *networkd.LinkDescribe) {
 	fmt.Printf("             %v %v\n", color.HiBlueString("Name:"), l.Name)
 	if len(l.AlternativeNames) > 0 {
 		fmt.Printf("%v %v\n", color.HiBlueString("Alternative Names:"), strings.Join(l.AlternativeNames, " "))
@@ -404,15 +404,8 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 			return
 		}
 
-		dns, err := acquireDNS(host, token)
-		if err != nil {
-			return
-		}
-
-		ntp, err := acquireNTP(host, token)
-		if err != nil {
-			return
-		}
+		dns, _ := acquireDNS(host, token)
+		ntp, _ := acquireNTP(host, token)
 
 		displayNetworkStatus(&n, links, addresses, routes, dns, ntp)
 

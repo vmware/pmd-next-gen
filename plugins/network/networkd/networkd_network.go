@@ -71,7 +71,7 @@ type Network struct {
 	RouteSections   []RouteSection   `json:"RouteSections"`
 }
 
-type LinkState struct {
+type LinkDescribe struct {
 	AddressState     string   `json:"AddressState"`
 	AlternativeNames []string `json:"AlternativeNames"`
 	CarrierState     string   `json:"CarrierState"`
@@ -101,8 +101,8 @@ func decodeJSONRequest(r *http.Request) (*Network, error) {
 	return &n, nil
 }
 
-func fillOneLink(link netlink.Link) LinkState {
-	l := LinkState{
+func fillOneLink(link netlink.Link) LinkDescribe {
+	l := LinkDescribe{
 		Index: link.Attrs().Index,
 		Name:  link.Attrs().Name,
 		Type:  link.Attrs().EncapType,
@@ -143,19 +143,20 @@ func buildLinkMessage(w http.ResponseWriter) error {
 		return err
 	}
 
-	var linkStates []LinkState
+	var linkStates []LinkDescribe
+
 	for _, l := range links {
 		linkStates = append(linkStates, fillOneLink(l))
 	}
 
 	type j struct {
-		Interfaces []LinkState
+		Interfaces []LinkDescribe
 	}
 
 	return web.JSONResponse(&j{Interfaces: linkStates}, w)
 }
 
-func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) error {
+func AcquireNetworkLinks(ctx context.Context, w http.ResponseWriter) error {
 	c, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
@@ -163,7 +164,7 @@ func AcquireNetworkLinkProperty(ctx context.Context, w http.ResponseWriter) erro
 	}
 	defer c.Close()
 
-	links, err := c.DBusNetworkLinkProperty(ctx)
+	links, err := c.DBusNetworkLinkDescribe(ctx)
 	if err != nil {
 		return buildLinkMessage(w)
 	}

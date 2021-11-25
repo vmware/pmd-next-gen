@@ -11,16 +11,16 @@ import (
 	"github.com/pm-web/pkg/web"
 )
 
-func routerAcquireHostname(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireHostnameProperties(r.Context(), w); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+func routerHostnameDescribe(w http.ResponseWriter, r *http.Request) {
+	if err := HostnameDescribe(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
 	}
 }
 
 func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 	hostname := Hostname{}
 	if err := json.NewDecoder(r.Body).Decode(&hostname); err != nil {
-		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		web.JSONResponseError(err, w)
 		return
 	}
 
@@ -32,6 +32,6 @@ func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterHostname(router *mux.Router) {
 	s := router.PathPrefix("/hostname").Subrouter().StrictSlash(false)
 
-	s.HandleFunc("/property", routerAcquireHostname).Methods("GET")
+	s.HandleFunc("/describe", routerHostnameDescribe).Methods("GET")
 	s.HandleFunc("/method", routerSetHostname).Methods("POST")
 }
