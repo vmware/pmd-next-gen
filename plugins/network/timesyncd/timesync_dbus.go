@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pm-web/pkg/bus"
+	"github.com/pm-web/pkg/share"
 )
 
 const (
@@ -69,7 +70,7 @@ func (c *SDConnection) DBusAcquireCurrentNTPServerFromTimeSync(ctx context.Conte
 	return &NTPServer{
 		ServerName:    serverName.Value().(string),
 		Family:        serverAddress.Value().([]interface{})[0].(int32),
-		ServerAddress: fmt.Sprintf("%v", serverAddress.Value().([]interface{})[1]),
+		ServerAddress: share.BuildIPFromBytes(serverAddress.Value().([]interface{})[1].([]uint8)),
 	}, nil
 }
 
