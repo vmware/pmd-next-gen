@@ -52,7 +52,7 @@ func (c *SDConnection) DBusHostNameDescribe(ctx context.Context) (map[string]str
 	var props string
 
 	err := c.object.CallWithContext(ctx, dbusInterface+"."+"Describe", 0).Store(&props)
-	if err == nil {
+	if err != nil {
 		m, err := c.DBusHostNameDescribeFallback(ctx)
 		if err != nil {
 			return nil, err
