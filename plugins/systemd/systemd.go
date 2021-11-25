@@ -4,6 +4,7 @@ package systemd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -49,6 +50,107 @@ type UnitStatus struct {
 	ActiveEnterTimestamp   int64  `json:"ActiveEnterTimestamp"`
 	ActiveExitTimestamp    int64  `json:"ActiveExitTimestamp"`
 	InactiveEnterTimestamp int64  `json:"InactiveEnterTimestamp"`
+}
+
+type Describe struct {
+	Version        string `json:"Version"`
+	Features       string `json:"Features"`
+	Virtualization string `json:"Virtualization"`
+	Architecture   string `json:"Architecture"`
+	Tainted        string `json:"Tainted"`
+	NNames         string `json:"NNames"`
+	ControlGroup   string `json:"ControlGroup"`
+	SystemState    string `json:"SystemState"`
+}
+
+func ManagerDescribe(ctx context.Context, w http.ResponseWriter) error {
+	conn, err := sd.NewSystemdConnectionContext(ctx)
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return err
+	}
+	defer conn.Close()
+
+	d := Describe{}
+
+	var wg sync.WaitGroup
+	wg.Add(8)
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("Version")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.Version)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("Features")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.Features)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("Virtualization")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.Virtualization)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("Architecture")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.Architecture)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("Tainted")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.Tainted)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("NNames")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.NNames)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("ControlGroup")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.ControlGroup)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		v, err := conn.GetManagerProperty("SystemState")
+		if err == nil {
+			json.Unmarshal([]byte(v), &d.SystemState)
+		}
+	}()
+
+	wg.Wait()
+
+	return web.JSONResponse(d, w)
 }
 
 func ManagerAcquireSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {

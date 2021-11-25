@@ -18,6 +18,12 @@ func routerAcquireSystemdManagerProperty(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func routerSystemdManagerDescribe(w http.ResponseWriter, r *http.Request) {
+	if err := ManagerDescribe(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -122,6 +128,8 @@ func RegisterRouterSystemd(router *mux.Router) {
 
 	// systemd unit status and property
 	n.HandleFunc("/systemd/manager/property/{property}", routerAcquireSystemdManagerProperty).Methods("GET")
+	n.HandleFunc("/systemd/manager/describe", routerSystemdManagerDescribe).Methods("GET")
+
 	n.HandleFunc("/systemd/units", routerAcquireAllSystemdUnits).Methods("GET")
 	n.HandleFunc("/systemd/{unit}/status", routerAcquireUnitStatus).Methods("GET")
 	n.HandleFunc("/systemd/{unit}/property", routerAcquireUnitProperty).Methods("GET")
