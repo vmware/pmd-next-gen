@@ -120,9 +120,12 @@ func main() {
 					Name:    "network",
 					Aliases: []string{"n"},
 					Usage:   "Introspects the network status",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "interface", Aliases: []string{"i"}},
+					      },
 
 					Action: func(c *cli.Context) error {
-						acquireNetworkStatus("network", c.String("url"), token)
+						acquireNetworkStatus("network", c.String("url"), c.String("interface"), token)
 						return nil
 					},
 					Subcommands: []*cli.Command{
@@ -131,7 +134,7 @@ func main() {
 							Usage: "Show iostat of interfaces",
 
 							Action: func(c *cli.Context) error {
-								acquireNetworkStatus("iostat", c.String("url"), token)
+								acquireNetworkStatus("iostat", c.String("url"), "", token)
 								return nil
 							},
 						},
@@ -140,7 +143,7 @@ func main() {
 							Usage: "Show network interfaces",
 
 							Action: func(c *cli.Context) error {
-								acquireNetworkStatus("interfaces", c.String("url"), token)
+								acquireNetworkStatus("interfaces", c.String("url"), "", token)
 								return nil
 							},
 						},

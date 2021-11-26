@@ -12,6 +12,13 @@ import (
 	"github.com/pm-web/pkg/web"
 )
 
+func (u *UnitAction) appendSuffixIfMissing() {
+	ok := strings.HasSuffix(u.Unit, ".service")
+	if !ok {
+		u.Unit += ".service"
+	}
+}
+
 func routerAcquireSystemdManagerProperty(w http.ResponseWriter, r *http.Request) {
 	if err := ManagerAcquireSystemProperty(r.Context(), w, mux.Vars(r)["property"]); err != nil {
 		web.JSONResponseError(err, w)
@@ -45,11 +52,7 @@ func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := strings.HasSuffix(u.Unit, ".service")
-	if !ok {
-		u.Unit += ".service"
-	}
-
+	u.appendSuffixIfMissing()
 	if err := u.UnitCommands(r.Context()); err != nil {
 		web.JSONResponseError(err, w)
 		return
@@ -69,11 +72,7 @@ func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
 		Unit: mux.Vars(r)["unit"],
 	}
 
-	ok := strings.HasSuffix(u.Unit, ".service")
-	if !ok {
-		u.Unit += ".service"
-	}
-
+	u.appendSuffixIfMissing()
 	if err := u.AcquireUnitStatus(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
@@ -85,11 +84,7 @@ func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
 		Property: mux.Vars(r)["property"],
 	}
 
-	ok := strings.HasSuffix(u.Unit, ".service")
-	if !ok {
-		u.Unit += ".service"
-	}
-
+	u.appendSuffixIfMissing()
 	if err := u.AcquireUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
@@ -100,11 +95,7 @@ func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 		Unit: mux.Vars(r)["unit"],
 	}
 
-	ok := strings.HasSuffix(u.Unit, ".service")
-	if !ok {
-		u.Unit += ".service"
-	}
-
+	u.appendSuffixIfMissing()
 	if err := u.AcquireAllUnitProperty(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
@@ -117,6 +108,7 @@ func routerAcquireUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
 		Property: mux.Vars(r)["property"],
 	}
 
+	u.appendSuffixIfMissing()
 	u.AcquireUnitTypeProperty(r.Context(), w)
 }
 

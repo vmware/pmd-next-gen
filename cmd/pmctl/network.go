@@ -223,9 +223,9 @@ func acquireNTP(host string, token map[string]string) (*timesyncd.NTPServer, err
 	var err error
 
 	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/timesyncd/currentntpserver", token, nil)
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/timesyncd/linkntpserver", token, nil)
 	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/timesyncd/currentntpserver", nil)
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/timesyncd/linkntpserver", nil)
 	}
 
 	if err != nil {
@@ -285,7 +285,7 @@ func displayOneLinkNetworkStatus(l *networkd.LinkDescribe) {
 	}
 }
 
-func displayOnelink(l *link.LinkInfo) {
+func displayOneLink(l *link.LinkInfo) {
 	if l.HardwareAddr != "" {
 		fmt.Printf("       %v %v\n", color.HiBlueString("HW Address:"), l.HardwareAddr)
 	}
@@ -294,7 +294,7 @@ func displayOnelink(l *link.LinkInfo) {
 	fmt.Printf("            %v %v\n", color.HiBlueString("Flags:"), l.Flags)
 }
 
-func displayOnelinkAddresses(addInfo *address.AddressInfo) {
+func displayOneLinkAddresses(addInfo *address.AddressInfo) {
 	fmt.Printf("        %v", color.HiBlueString("Addresses:"))
 	for _, a := range addInfo.Addresses {
 		fmt.Printf(" %v/%v", a.IP, a.Mask)
@@ -302,7 +302,7 @@ func displayOnelinkAddresses(addInfo *address.AddressInfo) {
 	fmt.Printf("\n")
 }
 
-func displayOnelinkRoutes(ifIndex int, linkRoutes []route.RouteInfo) {
+func displayOneLinkRoutes(ifIndex int, linkRoutes []route.RouteInfo) {
 	gws := share.NewSet()
 	for _, rt := range linkRoutes {
 		if rt.LinkIndex == ifIndex && rt.Gw != "" {
@@ -315,7 +315,7 @@ func displayOnelinkRoutes(ifIndex int, linkRoutes []route.RouteInfo) {
 	}
 }
 
-func displayOnelinkDNS(link string, dns []resolved.DNS) {
+func displayOneLinkDNS(link string, dns []resolved.DNS) {
 	dnsServers := share.NewSet()
 	for _, d := range dns {
 		if d.Link == link {
@@ -328,33 +328,45 @@ func displayOnelinkDNS(link string, dns []resolved.DNS) {
 	}
 }
 
-func displayOnelinkNTP(link string, ntp *timesyncd.NTPServer) {
-	fmt.Printf("              %v %v (%v)\n", color.HiBlueString("NTP:"), ntp.ServerName, ntp.ServerAddress)
+func displayCurrentNTP(link string, ntp *timesyncd.NTPServer) {
+	if ntp.ServerAddress != "" && ntp.ServerName != "" {
+		fmt.Printf("              %v %v (%v)\n", color.HiBlueString("NTP:"), ntp.ServerName, ntp.ServerAddress)
+	}
 }
 
-func displayNetworkStatus(l *LinkStatus, links []link.LinkInfo, linkAddresses []address.AddressInfo, linkRoutes []route.RouteInfo, dns []resolved.DNS, ntp *timesyncd.NTPServer) {
+func displayOneLinkNTP(link string, ntp *timesyncd.NTPServer) {
+	if len(ntp.LinkNTPServers) > 0 {
+		fmt.Printf("              %v %v\n", color.HiBlueString("NTP:"), ntp.LinkNTPServers)
+	}
+}
+
+func displayNetworkStatus(l *LinkStatus, link string, links []link.LinkInfo, linkAddresses []address.AddressInfo, linkRoutes []route.RouteInfo, dns []resolved.DNS, ntp *timesyncd.NTPServer) {
 	for _, n := range l.Message.Interfaces {
+		if link != "" && link != n.Name {
+			continue
+		}
+
 		displayOneLinkNetworkStatus(&n)
 		for _, k := range links {
 			if k.Name == n.Name {
-				displayOnelink(&k)
+				displayOneLink(&k)
 			}
 		}
 		for _, k := range linkAddresses {
 			if k.Name == n.Name {
-				displayOnelinkAddresses(&k)
+				displayOneLinkAddresses(&k)
 
 			}
 		}
-		displayOnelinkRoutes(n.Index, linkRoutes)
+		displayOneLinkRoutes(n.Index, linkRoutes)
 
 		if n.Name != "lo" {
 			if len(dns) > 0 {
-				displayOnelinkDNS(n.Name, dns)
+				displayOneLinkDNS(n.Name, dns)
 			}
 
 			if ntp != nil {
-				displayOnelinkNTP(n.Name, ntp)
+				displayOneLinkNTP(n.Name, ntp)
 			}
 		}
 
@@ -362,7 +374,7 @@ func displayNetworkStatus(l *LinkStatus, links []link.LinkInfo, linkAddresses []
 	}
 }
 
-func acquireNetworkStatus(cmd string, host string, token map[string]string) {
+func acquireNetworkStatus(cmd string, host string, link string, token map[string]string) {
 	var resp []byte
 	var err error
 
@@ -407,7 +419,7 @@ func acquireNetworkStatus(cmd string, host string, token map[string]string) {
 		dns, _ := acquireDNS(host, token)
 		ntp, _ := acquireNTP(host, token)
 
-		displayNetworkStatus(&n, links, addresses, routes, dns, ntp)
+		displayNetworkStatus(&n, link, links, addresses, routes, dns, ntp)
 
 	case "iostat":
 		if host != "" {
