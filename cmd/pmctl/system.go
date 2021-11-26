@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -44,8 +45,8 @@ func acquireHostname(host string, token map[string]string) (*hostname.Describe, 
 	}
 
 	if !h.Success {
-		fmt.Printf("%v\n", err)
-		return nil, err
+		fmt.Printf("%v\n", h.Errors)
+		return nil, errors.New(h.Errors)
 	}
 
 	return &h.Message, nil
@@ -65,31 +66,37 @@ func acquireSystemd(host string, token map[string]string) (*systemd.Describe, er
 		return nil, err
 	}
 
-	s := Systemd{}
-	if err := json.Unmarshal(resp, &s); err != nil {
+	sd := Systemd{}
+	if err := json.Unmarshal(resp, &sd); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
 		return nil, err
 	}
 
-	if !s.Success {
-		fmt.Printf("%v\n", err)
-		return nil, err
+	if !sd.Success {
+		fmt.Printf("%v\n", sd.Errors)
+		return nil, errors.New(sd.Errors)
 	}
 
-	return &s.Message, nil
+	return &sd.Message, nil
 }
 
 func displayHostname(h *hostname.Describe) {
 	fmt.Printf("              %v %v\n", color.HiBlueString("System Name:"), h.StaticHostname)
 	fmt.Printf("                   %v %v (%v) %v\n", color.HiBlueString("Kernel:"), h.KernelName, h.KernelRelease, h.KernelVersion)
 	fmt.Printf("                  %v %v\n", color.HiBlueString("Chassis:"), h.Chassis)
-	fmt.Printf("           %v %v\n", color.HiBlueString("Hardware Model:"), h.HardwareModel)
-	fmt.Printf("          %v %v\n", color.HiBlueString("Hardware Vendor:"), h.HardwareVendor)
+	if h.HardwareModel != "" {
+		fmt.Printf("           %v %v\n", color.HiBlueString("Hardware Model:"), h.HardwareModel)
+	}
+	if h.HardwareVendor != "" {
+		fmt.Printf("          %v %v\n", color.HiBlueString("Hardware Vendor:"), h.HardwareVendor)
+	}
 	if h.ProductUUID != "" {
 		fmt.Printf("             %v %v\n", color.HiBlueString("Product UUID:"), h.ProductUUID)
 	}
 	fmt.Printf("         %v %v\n", color.HiBlueString("Operating System:"), h.OperatingSystemPrettyName)
-	fmt.Printf("%v %v\n", color.HiBlueString("Operating System Home URL:"), h.OperatingSystemHomeURL)
+	if h.OperatingSystemHomeURL != "" {
+		fmt.Printf("%v %v\n", color.HiBlueString("Operating System Home URL:"), h.OperatingSystemHomeURL)
+	}
 }
 
 func displaySystemd(sd *systemd.Describe) {
