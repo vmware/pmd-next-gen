@@ -381,9 +381,9 @@ func acquireNetworkStatus(cmd string, host string, link string, token map[string
 	switch cmd {
 	case "network":
 		if host != "" {
-			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/links", token, nil)
+			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/describe", token, nil)
 		} else {
-			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/links", nil)
+			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/describe", nil)
 		}
 		if err != nil {
 			fmt.Printf("Failed to fetch network status: %v\n", err)

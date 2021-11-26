@@ -92,6 +92,19 @@ type LinkDescribe struct {
 	NetworkFile      string   `json:"NetworkFile,omitempty"`
 }
 
+type NetworkDescribe struct {
+	AddressState     string   `json:"AddressState"`
+	CarrierState     string   `json:"CarrierState"`
+	OperationalState string   `json:"OperationalState"`
+	OnlineState      string   `json:"OnlineState"`
+	IPv4AddressState string   `json:"IPv4AddressState"`
+	IPv6AddressState string   `json:"IPv6AddressState"`
+	DNS              []string `json:"DNS"`
+	Domains          []string `json:"Domains"`
+	RouteDomains     []string `json:"RouteDomains"`
+	NTP              []string `json:"NTP"`
+}
+
 func decodeJSONRequest(r *http.Request) (*Network, error) {
 	n := Network{}
 	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
@@ -170,6 +183,22 @@ func AcquireNetworkLinks(ctx context.Context, w http.ResponseWriter) error {
 	}
 
 	return web.JSONResponse(links, w)
+}
+
+func AcquireNetworkState(ctx context.Context, w http.ResponseWriter) error {
+	n := NetworkDescribe{}
+	n.AddressState, _ = ParseNetworkAddressState()
+	n.IPv4AddressState, _ = ParseNetworkIPv4AddressState()
+	n.IPv6AddressState, _ = ParseNetworkIPv6AddressState()
+	n.CarrierState, _ = ParseNetworkCarrierState()
+	n.OnlineState, _ = ParseNetworkOnlineState()
+	n.OperationalState, _ = ParseNetworkOperationalState()
+	n.DNS, _ = ParseNetworkDNS()
+	n.Domains, _ = ParseNetworkDomains()
+	n.RouteDomains, _ = ParseNetworkRouteDomains()
+	n.NTP, _ = ParseNetworkNTP()
+
+	return web.JSONResponse(n, w)
 }
 
 func (n *Network) buildNetworkSection(m *configfile.Meta) {
