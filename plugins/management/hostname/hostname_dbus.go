@@ -81,7 +81,7 @@ func (c *SDConnection) DBusHostNameDescribeFallback(ctx context.Context) (map[st
 	m := make(map[string]string)
 
 	var wg sync.WaitGroup
-	wg.Add(19)
+	wg.Add(17)
 
 	go func() {
 		defer wg.Done()
@@ -199,22 +199,6 @@ func (c *SDConnection) DBusHostNameDescribeFallback(ctx context.Context) (map[st
 		s, err := c.object.GetProperty(dbusInterface + ".HardwareModel")
 		if err == nil {
 			m["HardwareModel"] = s.Value().(string)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.object.GetProperty(dbusInterface + ".Virtualization")
-		if err == nil {
-			m["Virtualization"] = s.Value().(string)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.object.GetProperty(dbusInterface + ".Architecture")
-		if err == nil {
-			m["Architecture"] = s.Value().(string)
 		}
 	}()
 

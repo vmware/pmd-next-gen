@@ -119,10 +119,10 @@ func main() {
 				{
 					Name:    "network",
 					Aliases: []string{"n"},
-					Usage:   "Introspects the network status",
+					Usage:   "Introspects network status",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "interface", Aliases: []string{"i"}},
-					      },
+					},
 
 					Action: func(c *cli.Context) error {
 						acquireNetworkStatus("network", c.String("url"), c.String("interface"), token)
@@ -147,6 +147,16 @@ func main() {
 								return nil
 							},
 						},
+					},
+				},
+				{
+					Name:    "system",
+					Aliases: []string{"s"},
+					Usage:   "Introspects system status",
+
+					Action: func(c *cli.Context) error {
+						acquireSystemStatus(c.String("url"), token)
+						return nil
 					},
 				},
 			},
