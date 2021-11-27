@@ -24,9 +24,10 @@ type Route struct {
 }
 
 type RouteInfo struct {
-	LinkIndex  int `json:"LinkIndex"`
-	ILinkIndex int `json:"ILinkIndex"`
-	Scope      int `json:"Scope"`
+	LinkName   string `json:"LinkName"`
+	LinkIndex  int    `json:"LinkIndex"`
+	ILinkIndex int    `json:"ILinkIndex"`
+	Scope      int    `json:"Scope"`
 	Dst        struct {
 		IP   string `json:"IP"`
 		Mask int    `json:"Mask"`
@@ -162,8 +163,13 @@ func (rt *Route) RemoveGateWay() error {
 	return nil
 }
 
-func fillOneRoute(rt *netlink.Route) RouteInfo {
+func fillOneRoute(rt *netlink.Route) *RouteInfo {
+	link, err := netlink.LinkByIndex(rt.LinkIndex)
+	if err != nil {
+		return nil
+	}
 	route := RouteInfo{
+		LinkName:   link.Attrs().Name,
 		LinkIndex:  rt.LinkIndex,
 		ILinkIndex: rt.ILinkIndex,
 		Scope:      int(rt.Scope),
@@ -194,14 +200,14 @@ func fillOneRoute(rt *netlink.Route) RouteInfo {
 		route.Flags = rt.ListFlags()
 	}
 
-	return route
+	return &route
 }
 
 func buildRouteList(routes []netlink.Route) []RouteInfo {
 	var rts []RouteInfo
 	for _, rt := range routes {
 		route := fillOneRoute(&rt)
-		rts = append(rts, route)
+		rts = append(rts, *route)
 	}
 
 	return rts
