@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/pm-web/pkg/web"
 	"github.com/pm-web/plugins/management/hostname"
+	"github.com/pm-web/plugins/network/networkd"
 	"github.com/pm-web/plugins/systemd"
 )
 
@@ -80,6 +82,34 @@ func acquireSystemd(host string, token map[string]string) (*systemd.Describe, er
 	return &sd.Message, nil
 }
 
+func acquireNetworkState(host string, token map[string]string) (*networkd.NetworkDescribe, error) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/describestate", token, nil)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/describestate", nil)
+	}
+	if err != nil {
+		fmt.Printf("Failed to fetch network state: %v\n", err)
+		return nil, err
+	}
+
+	n := NetworkState{}
+	if err := json.Unmarshal(resp, &n); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return nil, err
+	}
+
+	if !n.Success {
+		fmt.Printf("%v\n", n.Errors)
+		return nil, errors.New(n.Errors)
+	}
+
+	return &n.Message, nil
+}
+
 func displayHostname(h *hostname.Describe) {
 	fmt.Printf("              %v %v\n", color.HiBlueString("System Name:"), h.StaticHostname)
 	fmt.Printf("                   %v %v (%v) %v\n", color.HiBlueString("Kernel:"), h.KernelName, h.KernelRelease, h.KernelVersion)
@@ -101,10 +131,26 @@ func displayHostname(h *hostname.Describe) {
 
 func displaySystemd(sd *systemd.Describe) {
 	fmt.Printf("          %v %v\n", color.HiBlueString("Systemd Version:"), sd.Version)
-	fmt.Printf("          %v %v\n", color.HiBlueString("   Architecture:"), sd.Architecture)
-	fmt.Printf("          %v %v\n", color.HiBlueString(" Virtualization:"), sd.Virtualization)
-
+	fmt.Printf("            %v %v\n", color.HiBlueString("Architecture:"), sd.Architecture)
+	fmt.Printf("          %v %v\n", color.HiBlueString("Virtualization:"), sd.Virtualization)
 }
+
+func displayNetworkState(n *networkd.NetworkDescribe) {
+	fmt.Printf("           %v %v (%v)\n", color.HiBlueString("Network State:"), n.OperationalState, n.CarrierState)
+	if n.OnlineState != "" {
+		fmt.Printf("    %v %v\n", color.HiBlueString("Network Online State:"), n.OnlineState)
+	}
+	if len(n.DNS) > 0 {
+		fmt.Printf("                     %v %v\n", color.HiBlueString("DNS:"), strings.Join(n.DNS, " "))
+	}
+	if len(n.Domains) > 0 {
+		fmt.Printf("                 %v %v\n", color.HiBlueString("Domains:"), strings.Join(n.Domains, " "))
+	}
+	if len(n.NTP) > 0 {
+		fmt.Printf("                     %v %v\n", color.HiBlueString("NTP:"), strings.Join(n.NTP, " "))
+	}
+}
+
 func acquireSystemStatus(host string, token map[string]string) {
 	h, err := acquireHostname(host, token)
 	if err != nil {
@@ -116,6 +162,12 @@ func acquireSystemStatus(host string, token map[string]string) {
 		return
 	}
 
+	n, err := acquireNetworkState(host, token)
+	if err != nil {
+		return
+	}
+
 	displayHostname(h)
 	displaySystemd(sd)
+	displayNetworkState(n)
 }

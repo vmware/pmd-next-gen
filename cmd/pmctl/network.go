@@ -69,6 +69,12 @@ type NTP struct {
 	Errors  string              `json:"errors"`
 }
 
+type NetworkState struct {
+	Success bool                     `json:"success"`
+	Message networkd.NetworkDescribe `json:"message"`
+	Errors  string                   `json:"errors"`
+}
+
 func displayInterfaces(i *Interface) {
 	for _, n := range i.Message {
 		fmt.Printf("            Name: %v\n", n.Name)
