@@ -3,6 +3,7 @@
 package proc
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -160,22 +161,13 @@ func AcquireInterfaces(w http.ResponseWriter) error {
 	return web.JSONResponse(interfaces, w)
 }
 
-func AcquireSwapMemoryStat(w http.ResponseWriter) error {
-	swap, err := mem.SwapMemory()
+func AcquireVirtualMemoryStat(c context.Context, w http.ResponseWriter) error {
+	m, err := mem.VirtualMemoryWithContext(c)
 	if err != nil {
 		return err
 	}
 
-	return web.JSONResponse(swap, w)
-}
-
-func AcquireVirtualMemoryStat(w http.ResponseWriter) error {
-	virt, err := mem.VirtualMemory()
-	if err != nil {
-		return err
-	}
-
-	return web.JSONResponse(virt, w)
+	return web.JSONResponse(m, w)
 }
 
 func AcquireCPUInfo(w http.ResponseWriter) error {

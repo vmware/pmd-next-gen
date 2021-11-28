@@ -17,6 +17,7 @@ import (
 	"github.com/pm-web/plugins/network/networkd"
 	"github.com/pm-web/plugins/systemd"
 	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 type Hostname struct {
@@ -41,6 +42,12 @@ type UserStat struct {
 	Success bool            `json:"success"`
 	Message []host.UserStat `json:"message"`
 	Errors  string          `json:"errors"`
+}
+
+type VMStat struct {
+	Success bool                  `json:"success"`
+	Message mem.VirtualMemoryStat `json:"message"`
+	Errors  string                `json:"errors"`
 }
 
 func acquireHostname(host string, token map[string]string) (*hostname.Describe, error) {
@@ -183,6 +190,34 @@ func acquireUserStat(host string, token map[string]string) ([]host.UserStat, err
 	return h.Message, nil
 }
 
+func acquireVirtualMemoryStat(host string, token map[string]string) (*mem.VirtualMemoryStat, error) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/virtualmemory", token, nil)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/virtualmemory", nil)
+	}
+	if err != nil {
+		fmt.Printf("Failed to userstat information: %v\n", err)
+		return nil, err
+	}
+
+	h := VMStat{}
+	if err := json.Unmarshal(resp, &h); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return nil, err
+	}
+
+	if !h.Success {
+		fmt.Printf("%v\n", h.Errors)
+		return nil, errors.New(h.Errors)
+	}
+
+	return &h.Message, nil
+}
+
 func displayHostname(h *hostname.Describe) {
 	fmt.Printf("              %v %v\n", color.HiBlueString("System Name:"), h.StaticHostname)
 	fmt.Printf("                   %v %v (%v) %v\n", color.HiBlueString("Kernel:"), h.KernelName, h.KernelRelease, h.KernelVersion)
@@ -267,7 +302,13 @@ func displayRoutes(linkRoutes []route.RouteInfo) {
 func displayHostInfo(h *host.InfoStat, u []host.UserStat) {
 	t := time.Unix(int64(h.BootTime), 0)
 	d, _ := share.SecondsToDuration(h.Uptime)
-	fmt.Printf("                   %v %v %v %v %v %v", color.HiBlueString("Uptime:"), d, color.HiBlueString("Booted:"), t.Format(time.UnixDate), color.HiBlueString("Users:"), len(u))
+	fmt.Printf("                   %v %v (%v) %v (%v) %v (%v) %v (%v)\n", color.HiBlueString("Uptime:"), color.HiYellowString("Running Since"), d,
+		color.HiYellowString("Booted"), t.Format(time.UnixDate), color.HiYellowString("Users"), len(u), color.HiYellowString("Proc"), h.Procs)
+}
+
+func displayHVMStat(v *mem.VirtualMemoryStat) {
+	fmt.Printf("                   %v %v (%v) %v (%v) %v (%v) %v (%v)\n", color.HiBlueString("Memory:"), color.HiYellowString("Total"), v.Total,
+		color.HiYellowString("Used"), v.Total, color.HiYellowString("Free"), v.Free, color.HiYellowString("Available"), v.Available)
 }
 
 func acquireSystemStatus(host string, token map[string]string) {
@@ -301,7 +342,12 @@ func acquireSystemStatus(host string, token map[string]string) {
 		return
 	}
 
-	u, err:= acquireUserStat(host, token)
+	u, err := acquireUserStat(host, token)
+	if err != nil {
+		return
+	}
+
+	v, err := acquireVirtualMemoryStat(host, token)
 	if err != nil {
 		return
 	}
@@ -312,4 +358,5 @@ func acquireSystemStatus(host string, token map[string]string) {
 	displayNetworkAddresses(addrs)
 	displayRoutes(rts)
 	displayHostInfo(hInfo, u)
+	displayHVMStat(v)
 }

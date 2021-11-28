@@ -57,7 +57,7 @@ func SecondsToDuration(seconds uint64) (string, error) {
 		msg = "%d %s, %d %s, %d %s"
 		msg = fmt.Sprintf(msg, days, daysStr, hours, hoursStr, minutes, minutesStr)
 	} else {
-		msg = "%d %s and %d %s"
+		msg = "%d %s %d %s"
 		msg = fmt.Sprintf(msg, hours, hoursStr, minutes, minutesStr)
 	}
 

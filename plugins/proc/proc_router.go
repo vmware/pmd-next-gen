@@ -127,13 +127,11 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 	case "hostinfo":
 		err = AcquireHostInfo(w)
 	case "virtualmemory":
-		err = AcquireVirtualMemoryStat(w)
+		err = AcquireVirtualMemoryStat(r.Context(), w)
 	case "virtualization":
 		err = AcquireVirtualization(w)
 	case "platform":
 		err = AcquirePlatformInformation(w)
-	case "swapmemory":
-		err = AcquireSwapMemoryStat(w)
 	case "interfaces":
 		err = AcquireInterfaces(w)
 	case "netdeviocounters":
