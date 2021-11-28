@@ -44,7 +44,7 @@ type Modules struct {
 	State      string `json:"State"`
 }
 
-func AcquireVersion(w http.ResponseWriter) error {
+func AcquireHostInfo(w http.ResponseWriter) error {
 	infoStat, err := host.Info()
 	if err != nil {
 		return err

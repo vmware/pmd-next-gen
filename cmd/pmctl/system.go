@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/pm-web/pkg/share"
@@ -15,6 +16,7 @@ import (
 	"github.com/pm-web/plugins/network/netlink/route"
 	"github.com/pm-web/plugins/network/networkd"
 	"github.com/pm-web/plugins/systemd"
+	"github.com/shirou/gopsutil/v3/host"
 )
 
 type Hostname struct {
@@ -27,6 +29,18 @@ type Systemd struct {
 	Success bool             `json:"success"`
 	Message systemd.Describe `json:"message"`
 	Errors  string           `json:"errors"`
+}
+
+type HostInfo struct {
+	Success bool          `json:"success"`
+	Message host.InfoStat `json:"message"`
+	Errors  string        `json:"errors"`
+}
+
+type UserStat struct {
+	Success bool            `json:"success"`
+	Message []host.UserStat `json:"message"`
+	Errors  string          `json:"errors"`
 }
 
 func acquireHostname(host string, token map[string]string) (*hostname.Describe, error) {
@@ -113,6 +127,62 @@ func acquireNetworkState(host string, token map[string]string) (*networkd.Networ
 	return &n.Message, nil
 }
 
+func acquireHostInfo(host string, token map[string]string) (*host.InfoStat, error) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/hostinfo", token, nil)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/hostinfo", nil)
+	}
+	if err != nil {
+		fmt.Printf("Failed to host information: %v\n", err)
+		return nil, err
+	}
+
+	h := HostInfo{}
+	if err := json.Unmarshal(resp, &h); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return nil, err
+	}
+
+	if !h.Success {
+		fmt.Printf("%v\n", h.Errors)
+		return nil, errors.New(h.Errors)
+	}
+
+	return &h.Message, nil
+}
+
+func acquireUserStat(host string, token map[string]string) ([]host.UserStat, error) {
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/userstat", token, nil)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/userstat", nil)
+	}
+	if err != nil {
+		fmt.Printf("Failed to userstat information: %v\n", err)
+		return nil, err
+	}
+
+	h := UserStat{}
+	if err := json.Unmarshal(resp, &h); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return nil, err
+	}
+
+	if !h.Success {
+		fmt.Printf("%v\n", h.Errors)
+		return nil, errors.New(h.Errors)
+	}
+
+	return h.Message, nil
+}
+
 func displayHostname(h *hostname.Describe) {
 	fmt.Printf("              %v %v\n", color.HiBlueString("System Name:"), h.StaticHostname)
 	fmt.Printf("                   %v %v (%v) %v\n", color.HiBlueString("Kernel:"), h.KernelName, h.KernelRelease, h.KernelVersion)
@@ -174,7 +244,7 @@ func displayNetworkAddresses(addInfo []address.AddressInfo) {
 }
 
 func displayRoutes(linkRoutes []route.RouteInfo) {
-	fmt.Printf("                   %v", color.HiBlueString("Gateway:"))
+	fmt.Printf("                  %v", color.HiBlueString("Gateway:"))
 
 	b := true
 	gws := share.NewSet()
@@ -186,12 +256,18 @@ func displayRoutes(linkRoutes []route.RouteInfo) {
 				b = false
 			} else {
 				if !gws.Contains(rt.LinkName) {
-					fmt.Printf("                            %v %v %v\n", rt.Gw, color.HiGreenString("on link"), rt.LinkName)
+					fmt.Printf("                           %v %v %v\n", rt.Gw, color.HiGreenString("on link"), rt.LinkName)
 					gws.Add(rt.LinkName)
 				}
 			}
 		}
 	}
+}
+
+func displayHostInfo(h *host.InfoStat, u []host.UserStat) {
+	t := time.Unix(int64(h.BootTime), 0)
+	d, _ := share.SecondsToDuration(h.Uptime)
+	fmt.Printf("                   %v %v %v %v %v %v", color.HiBlueString("Uptime:"), d, color.HiBlueString("Booted:"), t.Format(time.UnixDate), color.HiBlueString("Users:"), len(u))
 }
 
 func acquireSystemStatus(host string, token map[string]string) {
@@ -220,9 +296,20 @@ func acquireSystemStatus(host string, token map[string]string) {
 		return
 	}
 
+	hInfo, err := acquireHostInfo(host, token)
+	if err != nil {
+		return
+	}
+
+	u, err:= acquireUserStat(host, token)
+	if err != nil {
+		return
+	}
+
 	displayHostname(h)
 	displaySystemd(sd)
 	displayNetworkState(n)
 	displayNetworkAddresses(addrs)
 	displayRoutes(rts)
+	displayHostInfo(hInfo, u)
 }

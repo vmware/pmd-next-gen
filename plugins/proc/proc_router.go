@@ -124,8 +124,8 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 		err = AcquireMisc(w)
 	case "userstat":
 		err = AcquireUserStat(w)
-	case "version":
-		err = AcquireVersion(w)
+	case "hostinfo":
+		err = AcquireHostInfo(w)
 	case "virtualmemory":
 		err = AcquireVirtualMemoryStat(w)
 	case "virtualization":
