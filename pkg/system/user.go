@@ -59,7 +59,6 @@ func SwitchUser(c *syscall.Credential) (err error) {
 	return nil
 }
 
-
 func GetGroupCredentials(grp string) (*user.Group, error) {
 	group, err := user.LookupGroup(grp)
 	if err != nil {

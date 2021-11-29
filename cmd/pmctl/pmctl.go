@@ -161,6 +161,74 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:    "user",
+			Aliases: []string{"u"},
+			Usage:   "create a new user or update user information",
+			Subcommands: []*cli.Command{
+				{
+					Name:    "add",
+					Aliases: []string{"n"},
+					Usage:   "Add a new user",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "home-dir", Aliases: []string{"d"}},
+						&cli.StringFlag{Name: "groups", Usage: "Separate by ,"},
+						&cli.StringFlag{Name: "uid"},
+						&cli.StringFlag{Name: "gid"},
+						&cli.StringFlag{Name: "shell"},
+						&cli.StringFlag{Name: "password"},
+					},
+
+					Action: func(c *cli.Context) error {
+						userAdd(c.Args().First(), c.String("uid"), c.String("groups"), c.String("gid"), c.String("shell"), c.String("home-dir"), c.String("password"), c.String("gid"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:    "remove",
+					Aliases: []string{"n"},
+					Usage:   "Remove an existing user",
+
+					Action: func(c *cli.Context) error {
+						userRemove(c.Args().First(), c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "group",
+			Aliases: []string{"g"},
+			Usage:   "create a new group or update group information",
+			Subcommands: []*cli.Command{
+				{
+					Name:    "add",
+					Aliases: []string{"a"},
+					Usage:   "Add a new group",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "gid"},
+					},
+
+					Action: func(c *cli.Context) error {
+						groupAdd(c.Args().First(), c.String("gid"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:    "remove",
+					Aliases: []string{"a"},
+					Usage:   "Remove an existing group",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "gid"},
+					},
+
+					Action: func(c *cli.Context) error {
+						groupRemove(c.Args().First(), c.String("gid"), c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

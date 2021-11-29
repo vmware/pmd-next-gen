@@ -46,10 +46,15 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 		}
 	}
 
-	if s, err := system.ExecAndCapture("groupadd", g.Name, "-g", g.Gid); err != nil {
-		return fmt.Errorf("%s (%v)", s, err)
+	if g.Gid != "" {
+		if s, err := system.ExecAndCapture("groupadd", g.Name, "-g", g.Gid); err != nil {
+			return fmt.Errorf("%s (%v)", s, err)
+		}
+	} else {
+		if s, err := system.ExecAndCapture("groupadd", g.Name); err != nil {
+			return fmt.Errorf("%s (%v)", s, err)
+		}
 	}
-
 	return web.JSONResponse("group added", w)
 }
 
