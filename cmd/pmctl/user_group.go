@@ -121,7 +121,7 @@ func userRemove(name string, host string, token map[string]string) {
 	var err error
 
 	u := user.User{
-		Name:          name,
+		Name: name,
 	}
 
 	if host != "" {
@@ -147,4 +147,3 @@ func userRemove(name string, host string, token map[string]string) {
 
 	fmt.Println(m.Message)
 }
-

@@ -37,7 +37,7 @@ type Describe struct {
 	StaticHostname            string `json:"StaticHostname"`
 }
 
-func (h *Hostname) SetHostname(ctx context.Context) error {
+func (h *Hostname) SetHostname(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
@@ -45,7 +45,11 @@ func (h *Hostname) SetHostname(ctx context.Context) error {
 	}
 	defer conn.Close()
 
-	return conn.DBusExecuteHostNameMethod(ctx, h.Method, h.Value)
+	if err := conn.DBusExecuteHostNameMethod(ctx, h.Method, h.Value); err != nil {
+		return err
+	}
+
+	return web.JSONResponse("hostname set to: " + h.Value , w)
 }
 
 func HostnameDescribe(ctx context.Context, w http.ResponseWriter) error {

@@ -306,7 +306,7 @@ func displayHostInfo(h *host.InfoStat, u []host.UserStat) {
 		color.HiYellowString("Booted"), t.Format(time.UnixDate), color.HiYellowString("Users"), len(u), color.HiYellowString("Proc"), h.Procs)
 }
 
-func displayHVMStat(v *mem.VirtualMemoryStat) {
+func displayVMStat(v *mem.VirtualMemoryStat) {
 	fmt.Printf("                   %v %v (%v) %v (%v) %v (%v) %v (%v)\n", color.HiBlueString("Memory:"), color.HiYellowString("Total"), v.Total,
 		color.HiYellowString("Used"), v.Total, color.HiYellowString("Free"), v.Free, color.HiYellowString("Available"), v.Available)
 }
@@ -358,5 +358,37 @@ func acquireSystemStatus(host string, token map[string]string) {
 	displayNetworkAddresses(addrs)
 	displayRoutes(rts)
 	displayHostInfo(hInfo, u)
-	displayHVMStat(v)
+	displayVMStat(v)
+}
+
+func SetHostname(hostName string, host string, token map[string]string) {
+	var resp []byte
+	var err error
+
+	h := hostname.Hostname {
+		Method: "SetStaticHostname",
+		Value: hostName,
+	}
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/hostname/method", token, h)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/hostname/method", h)
+	}
+	if err != nil {
+		fmt.Printf("Failed set hostname: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed set hostname: %v\n", m.Errors)
+	}
+
+	fmt.Println(m.Message)
 }

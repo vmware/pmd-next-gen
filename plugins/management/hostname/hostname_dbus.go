@@ -41,7 +41,7 @@ func (c *SDConnection) Close() {
 }
 
 func (c *SDConnection) DBusExecuteHostNameMethod(ctx context.Context, method string, value string) error {
-	if err := c.object.CallWithContext(ctx, dbusInterface+"."+method, 0, value, false).Err; err != nil {
+	if err := c.object.CallWithContext(ctx, dbusInterface+"."+method, 0, value, true).Err; err != nil {
 		return err
 	}
 

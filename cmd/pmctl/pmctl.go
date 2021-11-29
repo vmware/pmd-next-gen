@@ -164,7 +164,7 @@ func main() {
 		{
 			Name:    "user",
 			Aliases: []string{"u"},
-			Usage:   "create a new user or update user information",
+			Usage:   "Create a new user or update user information",
 			Subcommands: []*cli.Command{
 				{
 					Name:    "add",
@@ -180,6 +180,10 @@ func main() {
 					},
 
 					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("No user name suppplied\n")
+							return nil
+						}
 						userAdd(c.Args().First(), c.String("uid"), c.String("groups"), c.String("gid"), c.String("shell"), c.String("home-dir"), c.String("password"), c.String("gid"), c.String("url"), token)
 						return nil
 					},
@@ -190,6 +194,10 @@ func main() {
 					Usage:   "Remove an existing user",
 
 					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("No user name suppplied\n")
+							return nil
+						}
 						userRemove(c.Args().First(), c.String("url"), token)
 						return nil
 					},
@@ -199,7 +207,7 @@ func main() {
 		{
 			Name:    "group",
 			Aliases: []string{"g"},
-			Usage:   "create a new group or update group information",
+			Usage:   "Create a new group or update group information",
 			Subcommands: []*cli.Command{
 				{
 					Name:    "add",
@@ -210,6 +218,10 @@ func main() {
 					},
 
 					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("No group name suppplied\n")
+							return nil
+						}
 						groupAdd(c.Args().First(), c.String("gid"), c.String("url"), token)
 						return nil
 					},
@@ -223,10 +235,28 @@ func main() {
 					},
 
 					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("No group name suppplied\n")
+							return nil
+						}
 						groupRemove(c.Args().First(), c.String("gid"), c.String("url"), token)
 						return nil
 					},
 				},
+			},
+		},
+		{
+			Name:  "set-hostname",
+			Usage: "Set system hostname",
+
+			Action: func(c *cli.Context) error {
+				if c.NArg() < 1 {
+					fmt.Printf("No hostname suppplied\n")
+					return nil
+				}
+
+				SetHostname(c.Args().First(), c.String("url"), token)
+				return nil
 			},
 		},
 	}

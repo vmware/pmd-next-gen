@@ -24,7 +24,7 @@ func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := hostname.SetHostname(r.Context()); err != nil {
+	if err := hostname.SetHostname(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
