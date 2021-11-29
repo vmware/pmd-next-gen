@@ -3,7 +3,6 @@
 package group
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os/user"
@@ -56,7 +55,7 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 }
 
 func (g *Group) GroupRemove(w http.ResponseWriter) error {
-	if _, err := system.GetUserCredentials(g.Name); err != nil {
+	if _, err := system.GetGroupCredentials(g.Name); err != nil {
 		return err
 	}
 
@@ -69,12 +68,8 @@ func (g *Group) GroupRemove(w http.ResponseWriter) error {
 }
 
 func (g *Group) GroupModify(w http.ResponseWriter) error {
-	if _, err := system.GetUserCredentials(g.Name); err != nil {
+	if _, err := system.GetGroupCredentials(g.Name); err != nil {
 		return err
-	}
-
-	if g, err := user.LookupGroup(g.NewName); err != nil || g != nil {
-		return errors.New("new group exists")
 	}
 
 	if s, err := system.ExecAndCapture("groupmod", "-n", g.NewName, g.Name); err != nil {
