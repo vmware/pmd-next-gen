@@ -18,11 +18,11 @@ import (
 )
 
 type UnitAction struct {
-	Action   string `json:"action"`
+	Action   string `json:"Action"`
 	Unit     string `json:"unit"`
-	UnitType string `json:"unit_type"`
-	Property string `json:"property"`
-	Value    string `json:"value"`
+	UnitType string `json:"UnitType"`
+	Property string `json:"Property"`
+	Value    string `json:"Value"`
 }
 
 type Property struct {
@@ -31,8 +31,8 @@ type Property struct {
 }
 
 type UnitStatus struct {
-	Status                 string `json:"property"`
-	Unit                   string `json:"unit"`
+	Status                 string `json:"Property"`
+	Unit                   string `json:"Unit"`
 	Name                   string `json:"Name"`
 	Description            string `json:"Description"`
 	MainPid                uint32 `json:"MainPid"`
@@ -100,6 +100,7 @@ func ManagerDescribe(ctx context.Context, w http.ResponseWriter) error {
 		v, err := conn.GetManagerProperty("Virtualization")
 		if err == nil {
 			json.Unmarshal([]byte(v), &d.Virtualization)
+
 		}
 	}()
 
@@ -117,7 +118,7 @@ func ManagerDescribe(ctx context.Context, w http.ResponseWriter) error {
 
 		v, err := conn.GetManagerProperty("Tainted")
 		if err == nil {
-			json.Unmarshal([]byte(v), &d.Tainted)
+			json.Unmarshal([]byte(v), &d.Tainted )
 		}
 	}()
 
