@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/pm-web/pkg/web"
 	"github.com/pm-web/plugins/systemd"
 )
@@ -18,37 +18,32 @@ type UnitStatus struct {
 }
 
 func executeSystemdUnitCommand(command string, unit string, host string, token map[string]string) {
+	var resp []byte
+	var err error
+
 	c := systemd.UnitAction{
 		Action: command,
 		Unit:   unit,
 	}
 
-	var resp []byte
-	var err error
-
 	if host != "" {
 		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/service/systemd", token, c)
-		if err != nil {
-			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
-			return
-		}
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/service/systemd", c)
-		if err != nil {
-			fmt.Printf("Failed to execute '%s': %v\n", command, err)
-			os.Exit(1)
-		}
+	}
+	if err != nil {
+		fmt.Printf("Failed to execute systemd command: %v\n", err)
+		return
 	}
 
 	m := web.JSONResponseMessage{}
 	if err := json.Unmarshal(resp, &m); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
-		os.Exit(1)
+		return
 	}
 
 	if !m.Success {
-		fmt.Printf("Failed to execute command: %v\n", m.Errors)
-		os.Exit(1)
+		fmt.Printf("Failed to execute systemd command: %v\n", m.Errors)
 	}
 }
 
@@ -58,16 +53,12 @@ func acquireSystemdUnitStatus(unit string, host string, token map[string]string)
 
 	if host != "" {
 		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/service/systemd/"+unit+"/status", token, nil)
-		if err != nil {
-			fmt.Printf("Failed to fetch unit status from remote host: %v\n", err)
-			return
-		}
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/service/systemd/"+unit+"/status", nil)
-		if err != nil {
-			fmt.Printf("Failed to fetch unit status from unix domain socket: %v\n", err)
-			return
-		}
+	}
+	if err != nil {
+		fmt.Printf("Failed to fetch unit status: %v\n", err)
+		return
 	}
 
 	u := UnitStatus{}
@@ -77,63 +68,63 @@ func acquireSystemdUnitStatus(unit string, host string, token map[string]string)
 	}
 
 	if u.Success {
-		fmt.Printf("                  Name: %+v \n", u.Message.Name)
-		fmt.Printf("           Description: %+v \n", u.Message.Description)
-		fmt.Printf("               MainPid: %+v \n", u.Message.MainPid)
-		fmt.Printf("             LoadState: %+v \n", u.Message.LoadState)
-		fmt.Printf("           ActiveState: %+v \n", u.Message.ActiveState)
-		fmt.Printf("              SubState: %+v \n", u.Message.SubState)
-		fmt.Printf("         UnitFileState: %+v \n", u.Message.UnitFileState)
+		fmt.Printf("                   %v %+v \n", color.HiBlueString("Name:"), u.Message.Name)
+		fmt.Printf("            %v %+v \n", color.HiBlueString("Description:"), u.Message.Description)
+		fmt.Printf("               %v %+v \n", color.HiBlueString("Main Pid:"), u.Message.MainPid)
+		fmt.Printf("             %v %+v \n", color.HiBlueString("Load State:"), u.Message.LoadState)
+		fmt.Printf("           %v %+v \n", color.HiBlueString("Active State:"), u.Message.ActiveState)
+		fmt.Printf("              %v %+v \n", color.HiBlueString("Sub State:"), u.Message.SubState)
+		fmt.Printf("        %v %+v \n", color.HiBlueString("Unit File State:"), u.Message.UnitFileState)
 
 		if u.Message.StateChangeTimestamp > 0 {
 			t := time.Unix(int64(u.Message.StateChangeTimestamp), 0)
-			fmt.Printf("  StateChangeTimeStamp: %+v \n", t.Format(time.UnixDate))
+			fmt.Printf(" %v %+v \n", color.HiBlueString("State Change TimeStamp:"), t.Format(time.UnixDate))
 		} else {
-			fmt.Printf("  StateChangeTimeStamp: %+v \n", 0)
+			fmt.Printf(" %v %+v \n", color.HiBlueString("State Change TimeStamp:"), 0)
 		}
 
 		if u.Message.ActiveEnterTimestamp > 0 {
 			t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-			fmt.Printf("  ActiveEnterTimestamp: %+v \n", t.Format(time.UnixDate))
+			fmt.Printf(" %v %+v \n", color.HiBlueString("Active Enter Timestamp:"), t.Format(time.UnixDate))
 		} else {
-			fmt.Printf("  ActiveEnterTimestamp: %+v \n", 0)
+			fmt.Printf(" %v %+v \n", color.HiBlueString("Active Enter Timestamp:"), 0)
 		}
 
 		if u.Message.ActiveEnterTimestamp > 0 {
 			t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
-			fmt.Printf(" InactiveExitTimestamp: %+v \n", t.Format(time.UnixDate))
+			fmt.Printf("%v %+v \n", color.HiBlueString("Inactive Exit Timestamp:"), t.Format(time.UnixDate))
 		} else {
-			fmt.Printf(" InactiveExitTimestamp: %+v \n", 0)
+			fmt.Printf("%v %+v \n", color.HiBlueString("Inactive Exit Timestamp:"), 0)
 		}
 
 		if u.Message.ActiveExitTimestamp > 0 {
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
-			fmt.Printf("   ActiveExitTimestamp: %+v \n", t.Format(time.UnixDate))
+			fmt.Printf("  %v %+v \n", color.HiBlueString("Active Exit Timestamp:"), t.Format(time.UnixDate))
 		} else {
-			fmt.Printf("   ActiveExitTimestamp: %+v \n", 0)
+			fmt.Printf("  %v %+v \n", color.HiBlueString("Active Exit Timestamp:"), 0)
 		}
 
 		if u.Message.InactiveExitTimestamp > 0 {
 			t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
-			fmt.Printf(" InactiveExitTimestamp: %+v \n", t.Format(time.UnixDate))
+			fmt.Printf("%v %+v \n", color.HiBlueString("Inactive Exit Timestamp:"), t.Format(time.UnixDate))
 		} else {
-			fmt.Printf(" InactiveExitTimestamp: %+v \n", 0)
+			fmt.Printf("%v %+v \n", color.HiBlueString("Inactive Exit Timestamp:"), 0)
 		}
 
 		switch u.Message.ActiveState {
 		case "active", "reloading":
 			if u.Message.ActiveEnterTimestamp > 0 {
 				t := time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
-				fmt.Printf("                Active: %s (%s) since %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+				fmt.Printf("                 %v %s (%s) since %v\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
-				fmt.Printf("                Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
+				fmt.Printf("                 %v %s (%s)\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState)
 			}
 		case "inactive", "failed":
 			if u.Message.ActiveExitTimestamp != 0 {
 				t := time.Unix(int64(u.Message.InactiveExitTimestamp), 0)
-				fmt.Printf("                Active: %s (%s) since %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+				fmt.Printf("                 %v %s (%s) since %v\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
-				fmt.Printf("                Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
+				fmt.Printf("                 %v %s (%s)\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState)
 			}
 		case "activating":
 			var t time.Time
@@ -145,13 +136,13 @@ func acquireSystemdUnitStatus(unit string, host string, token map[string]string)
 					t = time.Unix(int64(u.Message.ActiveEnterTimestamp), 0)
 				}
 
-				fmt.Printf("               Active: %s (%s) %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+				fmt.Printf("                %v %s (%s) %v\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 			} else {
-				fmt.Printf("               Active: %s (%s)\n", u.Message.ActiveState, u.Message.SubState)
+				fmt.Printf("                %v %s (%s)\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState)
 			}
 		default:
 			t := time.Unix(int64(u.Message.ActiveExitTimestamp), 0)
-			fmt.Printf("               Active: %s (%s) ago %v\n", u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
+			fmt.Printf("                %v %s (%s) ago %v\n", color.HiBlueString("Active:"), u.Message.ActiveState, u.Message.SubState, t.Format(time.UnixDate))
 		}
 	} else {
 		fmt.Println(u.Errors)
