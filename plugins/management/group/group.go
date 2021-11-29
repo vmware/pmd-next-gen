@@ -24,30 +24,29 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 	var err error
 
 	if grp, err = user.LookupGroup(g.Name); err != nil {
-		_, ok := err.(user.UnknownUserError)
+		_, ok := err.(user.UnknownGroupError)
 		if !ok {
 			return err
 		}
 	}
 	if grp != nil {
-		return fmt.Errorf("group '%s', gid '%s' already exists", grp.Name, grp.Gid)
+		return fmt.Errorf("group %s already exists", grp.Name)
 	}
 
 	if g.Gid != "" {
 		id, err := user.LookupGroupId(g.Gid)
 		if err != nil {
-			_, ok := err.(user.UnknownUserError)
+			_, ok := err.(user.UnknownGroupIdError)
 			if !ok {
 				return err
 			}
 		}
 		if id != nil {
-			return fmt.Errorf("group '%s', gid '%s' already exists", g.Name, g.Gid)
+			return fmt.Errorf(" gid '%v' already exists", grp.Gid)
 		}
 	}
 
 	if s, err := system.ExecAndCapture("groupadd", g.Name, "-g", g.Gid); err != nil {
-		log.Errorf("Failed to add group '%s': %s (%v)", g.Name, s, err)
 		return fmt.Errorf("%s (%v)", s, err)
 	}
 
