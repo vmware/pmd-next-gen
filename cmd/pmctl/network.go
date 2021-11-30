@@ -69,12 +69,6 @@ type NTP struct {
 	Errors  string              `json:"errors"`
 }
 
-type NetworkState struct {
-	Success bool                     `json:"success"`
-	Message networkd.NetworkDescribe `json:"message"`
-	Errors  string                   `json:"errors"`
-}
-
 func displayInterfaces(i *Interface) {
 	for _, n := range i.Message {
 		fmt.Printf("            Name: %v\n", n.Name)
@@ -334,12 +328,6 @@ func displayOneLinkDNS(link string, dns []resolved.DNS) {
 	}
 }
 
-func displayCurrentNTP(link string, ntp *timesyncd.NTPServer) {
-	if ntp.ServerAddress != "" && ntp.ServerName != "" {
-		fmt.Printf("              %v %v (%v)\n", color.HiBlueString("NTP:"), ntp.ServerName, ntp.ServerAddress)
-	}
-}
-
 func displayOneLinkNTP(link string, ntp *timesyncd.NTPServer) {
 	if len(ntp.LinkNTPServers) > 0 {
 		fmt.Printf("              %v %v\n", color.HiBlueString("NTP:"), ntp.LinkNTPServers)
@@ -387,9 +375,9 @@ func acquireNetworkStatus(cmd string, host string, link string, token map[string
 	switch cmd {
 	case "network":
 		if host != "" {
-			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/describe", token, nil)
+			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/describelinks", token, nil)
 		} else {
-			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/describe", nil)
+			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/describelinks", nil)
 		}
 		if err != nil {
 			fmt.Printf("Failed to fetch network status: %v\n", err)

@@ -12,9 +12,12 @@ import (
 )
 
 func routerHostnameDescribe(w http.ResponseWriter, r *http.Request) {
-	if err := HostnameDescribe(r.Context(), w); err != nil {
+	desc, err := MethodDescribe(r.Context())
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
+
+	web.JSONResponse(desc, w)
 }
 
 func routerSetHostname(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +27,7 @@ func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := hostname.SetHostname(r.Context(), w); err != nil {
+	if err := hostname.Set(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }

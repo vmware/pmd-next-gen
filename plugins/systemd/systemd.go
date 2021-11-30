@@ -63,11 +63,11 @@ type Describe struct {
 	SystemState    string `json:"SystemState"`
 }
 
-func ManagerDescribe(ctx context.Context, w http.ResponseWriter) error {
+func ManagerDescribe(ctx context.Context) (*Describe, error) {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -118,7 +118,7 @@ func ManagerDescribe(ctx context.Context, w http.ResponseWriter) error {
 
 		v, err := conn.GetManagerProperty("Tainted")
 		if err == nil {
-			json.Unmarshal([]byte(v), &d.Tainted )
+			json.Unmarshal([]byte(v), &d.Tainted)
 		}
 	}()
 
@@ -151,7 +151,7 @@ func ManagerDescribe(ctx context.Context, w http.ResponseWriter) error {
 
 	wg.Wait()
 
-	return web.JSONResponse(d, w)
+	return &d, nil
 }
 
 func ManagerAcquireSystemProperty(ctx context.Context, w http.ResponseWriter, property string) error {

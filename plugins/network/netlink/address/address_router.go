@@ -9,18 +9,16 @@ import (
 )
 
 func routerAcquireAddress(w http.ResponseWriter, r *http.Request) {
-	link := AddressAction{
-		Link: mux.Vars(r)["link"],
-	}
-
-	if err := link.AcquireAddresses(w); err != nil {
+	addrs, err := AcquireAddresses()
+	if  err != nil {
 		web.JSONResponseError(err, w)
 	}
+
+	web.JSONResponse(addrs, w)
 }
 
 func RegisterRouterAddress(router *mux.Router) {
 	s := router.PathPrefix("/netlink").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/address", routerAcquireAddress).Methods("GET")
-	s.HandleFunc("/address/{link}", routerAcquireAddress).Methods("GET")
 }

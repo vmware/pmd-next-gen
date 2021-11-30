@@ -26,9 +26,12 @@ func routerAcquireSystemdManagerProperty(w http.ResponseWriter, r *http.Request)
 }
 
 func routerSystemdManagerDescribe(w http.ResponseWriter, r *http.Request) {
-	if err := ManagerDescribe(r.Context(), w); err != nil {
+	d, err := ManagerDescribe(r.Context())
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
+
+	web.JSONResponse(d, w)
 }
 
 func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {

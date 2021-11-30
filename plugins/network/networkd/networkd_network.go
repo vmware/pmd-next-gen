@@ -92,6 +92,10 @@ type LinkDescribe struct {
 	NetworkFile      string   `json:"NetworkFile,omitempty"`
 }
 
+type LinksDescribe struct {
+	Interfaces []LinkDescribe
+}
+
 type NetworkDescribe struct {
 	AddressState     string   `json:"AddressState"`
 	CarrierState     string   `json:"CarrierState"`
@@ -150,42 +154,37 @@ func fillOneLink(link netlink.Link) LinkDescribe {
 	return l
 }
 
-func buildLinkMessage(w http.ResponseWriter) error {
+func buildLinkMessageFallback() (*LinksDescribe, error) {
 	links, err := netlink.LinkList()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var linkStates []LinkDescribe
-
+	linkDesc := LinksDescribe{}
 	for _, l := range links {
-		linkStates = append(linkStates, fillOneLink(l))
+		linkDesc.Interfaces = append(linkDesc.Interfaces, fillOneLink(l))
 	}
 
-	type j struct {
-		Interfaces []LinkDescribe
-	}
-
-	return web.JSONResponse(&j{Interfaces: linkStates}, w)
+	return &linkDesc, nil
 }
 
-func AcquireNetworkLinks(ctx context.Context, w http.ResponseWriter) error {
+func AcquireLinks(ctx context.Context) (*LinksDescribe, error) {
 	c, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
+		return nil, err
 	}
 	defer c.Close()
 
-	links, err := c.DBusNetworkLinkDescribe(ctx)
+	links, err := c.DBusLinkDescribe(ctx)
 	if err != nil {
-		return buildLinkMessage(w)
+		return buildLinkMessageFallback()
 	}
 
-	return web.JSONResponse(links, w)
+	return links, nil
 }
 
-func AcquireNetworkState(ctx context.Context, w http.ResponseWriter) error {
+func AcquireNetworkState(ctx context.Context) (*NetworkDescribe, error) {
 	n := NetworkDescribe{}
 	n.AddressState, _ = ParseNetworkAddressState()
 	n.IPv4AddressState, _ = ParseNetworkIPv4AddressState()
@@ -198,7 +197,7 @@ func AcquireNetworkState(ctx context.Context, w http.ResponseWriter) error {
 	n.RouteDomains, _ = ParseNetworkRouteDomains()
 	n.NTP, _ = ParseNetworkNTP()
 
-	return web.JSONResponse(n, w)
+	return &n, nil
 }
 
 func (n *Network) buildNetworkSection(m *configfile.Meta) {

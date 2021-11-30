@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/pm-web/pkg/share"
 	"github.com/pm-web/pkg/web"
+	"github.com/pm-web/plugins/management"
 	"github.com/pm-web/plugins/management/hostname"
 	"github.com/pm-web/plugins/network/netlink/address"
 	"github.com/pm-web/plugins/network/netlink/route"
@@ -20,191 +21,27 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
-type Hostname struct {
-	Success bool              `json:"success"`
-	Message hostname.Describe `json:"message"`
-	Errors  string            `json:"errors"`
+type SystemDescribe struct {
+	Success bool                `json:"success"`
+	Message management.Describe `json:"message"`
+	Errors  string              `json:"errors"`
 }
 
-type Systemd struct {
-	Success bool             `json:"success"`
-	Message systemd.Describe `json:"message"`
-	Errors  string           `json:"errors"`
-}
-
-type HostInfo struct {
-	Success bool          `json:"success"`
-	Message host.InfoStat `json:"message"`
-	Errors  string        `json:"errors"`
-}
-
-type UserStat struct {
-	Success bool            `json:"success"`
-	Message []host.UserStat `json:"message"`
-	Errors  string          `json:"errors"`
-}
-
-type VMStat struct {
-	Success bool                  `json:"success"`
-	Message mem.VirtualMemoryStat `json:"message"`
-	Errors  string                `json:"errors"`
-}
-
-func acquireHostname(host string, token map[string]string) (*hostname.Describe, error) {
+func acquireSystemInfo(host string, token map[string]string) (*management.Describe, error) {
 	var resp []byte
 	var err error
 
 	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/system/hostname/describe", token, nil)
+		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/system/describe", token, nil)
 	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/system/hostname/describe", nil)
+		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/system/describe", nil)
 	}
 	if err != nil {
-		fmt.Printf("Failed to fetch hostname: %v\n", err)
+		fmt.Printf("Failed to fetch system info: %v\n", err)
 		return nil, err
 	}
 
-	h := Hostname{}
-	if err := json.Unmarshal(resp, &h); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
-		return nil, err
-	}
-
-	if !h.Success {
-		fmt.Printf("%v\n", h.Errors)
-		return nil, errors.New(h.Errors)
-	}
-
-	return &h.Message, nil
-}
-
-func acquireSystemd(host string, token map[string]string) (*systemd.Describe, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/service/systemd/manager/describe", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/service/systemd/manager/describe", nil)
-	}
-	if err != nil {
-		fmt.Printf("Failed to fetch hostname: %v\n", err)
-		return nil, err
-	}
-
-	sd := Systemd{}
-	if err := json.Unmarshal(resp, &sd); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
-		return nil, err
-	}
-
-	if !sd.Success {
-		fmt.Printf("%v\n", sd.Errors)
-		return nil, errors.New(sd.Errors)
-	}
-
-	return &sd.Message, nil
-}
-
-func acquireNetworkState(host string, token map[string]string) (*networkd.NetworkDescribe, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/networkd/network/describestate", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/networkd/network/describestate", nil)
-	}
-	if err != nil {
-		fmt.Printf("Failed to fetch network state: %v\n", err)
-		return nil, err
-	}
-
-	n := NetworkState{}
-	if err := json.Unmarshal(resp, &n); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
-		return nil, err
-	}
-
-	if !n.Success {
-		fmt.Printf("%v\n", n.Errors)
-		return nil, errors.New(n.Errors)
-	}
-
-	return &n.Message, nil
-}
-
-func acquireHostInfo(host string, token map[string]string) (*host.InfoStat, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/hostinfo", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/hostinfo", nil)
-	}
-	if err != nil {
-		fmt.Printf("Failed to host information: %v\n", err)
-		return nil, err
-	}
-
-	h := HostInfo{}
-	if err := json.Unmarshal(resp, &h); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
-		return nil, err
-	}
-
-	if !h.Success {
-		fmt.Printf("%v\n", h.Errors)
-		return nil, errors.New(h.Errors)
-	}
-
-	return &h.Message, nil
-}
-
-func acquireUserStat(host string, token map[string]string) ([]host.UserStat, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/userstat", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/userstat", nil)
-	}
-	if err != nil {
-		fmt.Printf("Failed to userstat information: %v\n", err)
-		return nil, err
-	}
-
-	h := UserStat{}
-	if err := json.Unmarshal(resp, &h); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
-		return nil, err
-	}
-
-	if !h.Success {
-		fmt.Printf("%v\n", h.Errors)
-		return nil, errors.New(h.Errors)
-	}
-
-	return h.Message, nil
-}
-
-func acquireVirtualMemoryStat(host string, token map[string]string) (*mem.VirtualMemoryStat, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/virtualmemory", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/virtualmemory", nil)
-	}
-	if err != nil {
-		fmt.Printf("Failed to userstat information: %v\n", err)
-		return nil, err
-	}
-
-	h := VMStat{}
+	h := SystemDescribe{}
 	if err := json.Unmarshal(resp, &h); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
 		return nil, err
@@ -312,62 +149,27 @@ func displayVMStat(v *mem.VirtualMemoryStat) {
 }
 
 func acquireSystemStatus(host string, token map[string]string) {
-	h, err := acquireHostname(host, token)
+	s, err := acquireSystemInfo(host, token)
 	if err != nil {
 		return
 	}
 
-	sd, err := acquireSystemd(host, token)
-	if err != nil {
-		return
-	}
-
-	n, err := acquireNetworkState(host, token)
-	if err != nil {
-		return
-	}
-
-	addrs, err := acquireLinkAddresses(host, token)
-	if err != nil {
-		return
-	}
-
-	rts, err := acquireLinkRoutes(host, token)
-	if err != nil {
-		return
-	}
-
-	hInfo, err := acquireHostInfo(host, token)
-	if err != nil {
-		return
-	}
-
-	u, err := acquireUserStat(host, token)
-	if err != nil {
-		return
-	}
-
-	v, err := acquireVirtualMemoryStat(host, token)
-	if err != nil {
-		return
-	}
-
-	displayHostname(h)
-	displaySystemd(sd)
-	displayNetworkState(n)
-	displayNetworkAddresses(addrs)
-	displayRoutes(rts)
-	displayHostInfo(hInfo, u)
-	displayVMStat(v)
+	displayHostname(s.Hostname)
+	displaySystemd(s.Systemd)
+	displayNetworkState(s.NetworkDescribe)
+	displayNetworkAddresses(s.Addresses)
+	displayRoutes(s.Routes)
+	displayHostInfo(s.HostInfo, s.UserStat)
+	displayVMStat(s.VirtualMemoryStat)
 }
 
 func SetHostname(hostName string, host string, token map[string]string) {
 	var resp []byte
 	var err error
 
-	h := hostname.Hostname {
+	h := hostname.Hostname{
 		Method: "SetStaticHostname",
-		Value: hostName,
+		Value:  hostName,
 	}
 
 	if host != "" {

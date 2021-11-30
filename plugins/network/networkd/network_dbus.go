@@ -56,7 +56,7 @@ func (c *SDConnection) DBusNetworkReload(ctx context.Context) error {
 	return nil
 }
 
-func (c *SDConnection) DBusNetworkLinkDescribe(ctx context.Context) (map[string]interface{}, error) {
+func (c *SDConnection) DBusLinkDescribe(ctx context.Context) (*LinksDescribe, error) {
 	var props string
 
 	err := c.object.CallWithContext(ctx, dbusManagerinterface+"."+"Describe", 0).Store(&props)
@@ -64,10 +64,10 @@ func (c *SDConnection) DBusNetworkLinkDescribe(ctx context.Context) (map[string]
 		return nil, err
 	}
 
-	m := make(map[string]interface{})
+	m := LinksDescribe{}
 	if err := json.Unmarshal([]byte(props), &m); err != nil {
 		return nil, err
 	}
 
-	return m, nil
+	return &m, nil
 }

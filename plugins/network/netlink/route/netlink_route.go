@@ -13,7 +13,6 @@ import (
 	"github.com/vishvananda/netlink"
 
 	"github.com/pm-web/pkg/share"
-	"github.com/pm-web/pkg/web"
 )
 
 type Route struct {
@@ -213,26 +212,13 @@ func buildRouteList(routes []netlink.Route) []RouteInfo {
 	return rts
 }
 
-func (rt *Route) AcquireRoutes(w http.ResponseWriter) error {
-	if rt.Link != "" {
-		link, err := netlink.LinkByName(rt.Link)
-		if err != nil {
-			return err
-		}
-
-		routes, err := netlink.RouteList(link, netlink.FAMILY_ALL)
-		if err != nil {
-			return err
-		}
-		return web.JSONResponse(buildRouteList(routes), w)
-	}
-
+func AcquireRoutes() ([]RouteInfo, error) {
 	routes, err := netlink.RouteList(nil, netlink.FAMILY_ALL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return web.JSONResponse(buildRouteList(routes), w)
+	return buildRouteList(routes), nil
 }
 
 func (rt *Route) Configure() error {

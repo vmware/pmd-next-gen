@@ -7,8 +7,6 @@ import (
 	"net/http"
 
 	"github.com/vishvananda/netlink"
-
-	"github.com/pm-web/pkg/web"
 )
 
 type Address struct {
@@ -118,38 +116,26 @@ func buildAddressList(link netlink.Link, addrs []netlink.Addr) AddressInfo {
 	for _, a := range addrs {
 		addr.Addresses = append(addr.Addresses, fillOneAddress(&a))
 	}
+
 	return addr
 }
 
-func (a *AddressAction) AcquireAddresses(w http.ResponseWriter) error {
-	if a.Link != "" {
-		link, err := netlink.LinkByName(a.Link)
-		if err != nil {
-			return err
-		}
-
-		addrs, err := netlink.AddrList(link, netlink.FAMILY_ALL)
-		if err != nil {
-			return err
-		}
-		return web.JSONResponse(buildAddressList(link, addrs), w)
-	}
-
+func AcquireAddresses() ([]AddressInfo, error) {
 	linkList, err := netlink.LinkList()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var addrs []AddressInfo
 	for _, link := range linkList {
 		a, err := netlink.AddrList(link, netlink.FAMILY_ALL)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		ad := buildAddressList(link, a)
 		addrs = append(addrs, ad)
 	}
 
-	return web.JSONResponse(addrs, w)
+	return addrs, nil
 }
