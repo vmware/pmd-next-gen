@@ -3,11 +3,7 @@
 package link
 
 import (
-	"net/http"
-
 	"github.com/vishvananda/netlink"
-
-	"github.com/pm-web/pkg/web"
 )
 
 type Link struct {
@@ -55,26 +51,26 @@ type LinkInfo struct {
 
 func fillOneLink(link netlink.Link) LinkInfo {
 	l := LinkInfo{
-		Index:            link.Attrs().Index,
-		Mtu:              link.Attrs().MTU,
-		TxQLen:           link.Attrs().TxQLen,
-		Name:             link.Attrs().Name,
-		HardwareAddr:     link.Attrs().HardwareAddr.String(),
-		RawFlags:         link.Attrs().RawFlags,
-		ParentIndex:      link.Attrs().ParentIndex,
-		MasterIndex:      link.Attrs().MasterIndex,
-		Alias:            link.Attrs().Alias,
-		EncapType:        link.Attrs().EncapType,
-		OperState:        link.Attrs().OperState.String(),
-		NetNsID:          link.Attrs().NetNsID,
-		NumTxQueues:      link.Attrs().NumTxQueues,
-		NumRxQueues:      link.Attrs().NumRxQueues,
-		GSOMaxSize:       link.Attrs().GSOMaxSize,
-		GSOMaxSegs:       link.Attrs().GSOMaxSegs,
-		Group:            link.Attrs().Group,
-		Statistics:       link.Attrs().Statistics,
-		Promisc:          link.Attrs().Promisc,
-		Flags:            link.Attrs().Flags.String(),
+		Index:        link.Attrs().Index,
+		Mtu:          link.Attrs().MTU,
+		TxQLen:       link.Attrs().TxQLen,
+		Name:         link.Attrs().Name,
+		HardwareAddr: link.Attrs().HardwareAddr.String(),
+		RawFlags:     link.Attrs().RawFlags,
+		ParentIndex:  link.Attrs().ParentIndex,
+		MasterIndex:  link.Attrs().MasterIndex,
+		Alias:        link.Attrs().Alias,
+		EncapType:    link.Attrs().EncapType,
+		OperState:    link.Attrs().OperState.String(),
+		NetNsID:      link.Attrs().NetNsID,
+		NumTxQueues:  link.Attrs().NumTxQueues,
+		NumRxQueues:  link.Attrs().NumRxQueues,
+		GSOMaxSize:   link.Attrs().GSOMaxSize,
+		GSOMaxSegs:   link.Attrs().GSOMaxSegs,
+		Group:        link.Attrs().Group,
+		Statistics:   link.Attrs().Statistics,
+		Promisc:      link.Attrs().Promisc,
+		Flags:        link.Attrs().Flags.String(),
 	}
 
 	if link.Attrs().Protinfo != nil {
@@ -84,19 +80,10 @@ func fillOneLink(link netlink.Link) LinkInfo {
 	return l
 }
 
-func (link *Link) AcquireLink(w http.ResponseWriter) error {
-	if link.Name != "" {
-		l, err := netlink.LinkByName(link.Name)
-		if err != nil {
-			return err
-		}
-
-		return web.JSONResponse(fillOneLink(l), w)
-	}
-
+func AcquireLinks() ([]LinkInfo, error) {
 	links, err := netlink.LinkList()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	j := []LinkInfo{}
@@ -104,5 +91,5 @@ func (link *Link) AcquireLink(w http.ResponseWriter) error {
 		j = append(j, fillOneLink(l))
 	}
 
-	return web.JSONResponse(j, w)
+	return j, nil
 }

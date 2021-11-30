@@ -11,18 +11,16 @@ import (
 )
 
 func routerAcquireLink(w http.ResponseWriter, r *http.Request) {
-	link := Link{
-		Name: mux.Vars(r)["link"],
-	}
-
-	if err := link.AcquireLink(w); err != nil {
+	links, err := AcquireLinks()
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
+
+	web.JSONResponse(links, w)
 }
 
 func RegisterRouterLink(router *mux.Router) {
 	s := router.PathPrefix("/netlink").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/link", routerAcquireLink).Methods("GET")
-	s.HandleFunc("/link/{link}", routerAcquireLink).Methods("GET")
 }

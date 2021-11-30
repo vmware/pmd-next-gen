@@ -41,16 +41,16 @@ func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func buildDNSMessage(variant dbus.Variant, link bool) ([]DNS, error) {
-	var dns []DNS
+func buildDNSMessage(variant dbus.Variant, link bool) ([]Dns, error) {
+	var dns []Dns
 	for _, v := range variant.Value().([][]interface{}) {
-		d := DNS{}
+		d := Dns{}
 		if link {
 			d.Family = v[0].(int32)
-			d.DNS = share.BuildIPFromBytes(v[1].([]uint8))
+			d.Dns = share.BuildIPFromBytes(v[1].([]uint8))
 		} else {
 			d.Family = v[1].(int32)
-			d.DNS = share.BuildIPFromBytes(v[2].([]uint8))
+			d.Dns = share.BuildIPFromBytes(v[2].([]uint8))
 
 			index := v[0].(int32)
 			if index != 0 {
@@ -90,7 +90,7 @@ func buildDomainsMessage(variant dbus.Variant) ([]Domains, error) {
 	return domains, nil
 }
 
-func (c *SDConnection) DBusAcquireDNSFromResolveLink(ctx context.Context, index int) ([]DNS, error) {
+func (c *SDConnection) DBusAcquireDnsFromResolveLink(ctx context.Context, index int) ([]Dns, error) {
 	var linkPath dbus.ObjectPath
 
 	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, index).Store(&linkPath)
@@ -114,7 +114,7 @@ func (c *SDConnection) DBusAcquireDomainsFromResolveLink(ctx context.Context, in
 	return buildDomainsMessage(variant)
 }
 
-func (c *SDConnection) DBusAcquireDNSFromResolveManager(ctx context.Context) ([]DNS, error) {
+func (c *SDConnection) DBusAcquireDnsFromResolveManager(ctx context.Context) ([]Dns, error) {
 	variant, err := c.object.GetProperty(dbusManagerinterface + ".DNS")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching DNS from resolve: %v", err)

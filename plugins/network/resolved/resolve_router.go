@@ -11,7 +11,7 @@ import (
 )
 
 func routerAcquireLinkDNS(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireLinkDNS(r.Context(), mux.Vars(r)["link"], w); err != nil {
+	if err := AcquireLinkDns(r.Context(), mux.Vars(r)["link"], w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -23,15 +23,21 @@ func routerAcquireLinkDomains(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireDNS(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireDNSFromResolveManager(r.Context(), w); err != nil {
+	dns, err := AcquireDns(r.Context())
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
+
+	web.JSONResponse(dns, w)
 }
 
 func routerAcquireDomains(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireDomainsFromResolveManager(r.Context(), w); err != nil {
+	domains, err := AcquireDomains(r.Context())
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
+
+	web.JSONResponse(domains, w)
 }
 
 func RegisterRouterResolved(router *mux.Router) {
