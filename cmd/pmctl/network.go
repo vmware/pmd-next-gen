@@ -150,7 +150,7 @@ func displayOneLinkRoutes(ifIndex int, linkRoutes []route.RouteInfo) {
 	}
 }
 
-func displayOneLinkDNS(link string, dns []resolved.Dns) {
+func displayOneLinkDnsAndDomains(link string, dns []resolved.Dns, domains []resolved.Domains) {
 	dnsServers := share.NewSet()
 	for _, d := range dns {
 		if d.Link == link {
@@ -160,6 +160,17 @@ func displayOneLinkDNS(link string, dns []resolved.Dns) {
 
 	if dnsServers.Length() > 0 {
 		fmt.Printf("              %v %v\n", color.HiBlueString("DNS:"), strings.Join(dnsServers.Values(), " "))
+	}
+
+	domain := share.NewSet()
+	for _, d := range domains {
+		if d.Link == link {
+			domain.Add(d.Domain)
+		}
+	}
+
+	if domain.Length() > 0 {
+		fmt.Printf("           %v %v\n", color.HiBlueString("Domains:"), strings.Join(dnsServers.Values(), " "))
 	}
 }
 
@@ -194,7 +205,7 @@ func displayNetworkStatus(ifName string, network *network.Describe, ntp *timesyn
 
 		if link.Name != "lo" {
 			if len(network.Dns) > 0 {
-				displayOneLinkDNS(link.Name, network.Dns)
+				displayOneLinkDnsAndDomains(link.Name, network.Dns, network.Domains)
 			}
 
 			if ntp != nil {
@@ -206,7 +217,7 @@ func displayNetworkStatus(ifName string, network *network.Describe, ntp *timesyn
 	}
 }
 
-func acquireLNetwork(host string, token map[string]string) (*network.Describe, error) {
+func acquireNetworkDescribe(host string, token map[string]string) (*network.Describe, error) {
 	var resp []byte
 	var err error
 
@@ -268,8 +279,7 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 
 	switch cmd {
 	case "network":
-
-		n, err := acquireLNetwork(host, token)
+		n, err := acquireNetworkDescribe(host, token)
 		if err != nil {
 			fmt.Printf("Failed to fetch network status: %v\n", err)
 			return
