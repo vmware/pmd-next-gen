@@ -197,7 +197,6 @@ func displayNetworkStatus(ifName string, network *network.Describe, ntp *timesyn
 		for _, l := range network.Addresses {
 			if l.Name == link.Name {
 				displayOneLinkAddresses(&l)
-
 			}
 		}
 

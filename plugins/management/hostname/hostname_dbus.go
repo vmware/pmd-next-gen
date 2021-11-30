@@ -11,7 +11,6 @@ import (
 
 	"github.com/pm-web/pkg/bus"
 	"github.com/pm-web/pkg/share"
-	"github.com/pm-web/pkg/web"
 )
 
 const (
@@ -49,60 +48,15 @@ func (c *SDConnection) DBusExecuteMethod(ctx context.Context, method string, val
 }
 
 func (c *SDConnection) DBusDescribe(ctx context.Context) (*Describe, error) {
-	var props string
+	desc := Describe{}
 
-	err := c.object.CallWithContext(ctx, dbusInterface+"."+"Describe", 0).Store(&props)
+	err := c.object.CallWithContext(ctx, dbusInterface+"."+"Describe", 0).Store(&desc)
 	if err != nil {
 		m, err := c.DBusDescribeFallback(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return m, nil
-	}
-
-	msg, err := web.JSONUnmarshal([]byte(props))
-	if err != nil {
-		return nil, err
-	}
-
-	desc := Describe{}
-	for k, v := range msg {
-		if v != nil {
-			switch k {
-			case "Chassis":
-				desc.Chassis = msg["Chassis"].(string)
-			case "DefaultHostname":
-				desc.DefaultHostname = msg["DefaultHostname"].(string)
-			case "Deployment":
-				desc.Deployment = msg["Deployment"].(string)
-			case "HardwareModel":
-				desc.HardwareModel = msg["HardwareModel"].(string)
-			case "HardwareVendor":
-				desc.HardwareVendor = msg["HardwareVendor"].(string)
-			case "Hostname":
-				desc.Hostname = msg["Hostname"].(string)
-			case "HostnameSource":
-				desc.HostnameSource = msg["HostnameSource"].(string)
-			case "IconName":
-				desc.IconName = msg["IconName"].(string)
-			case "KernelName":
-				desc.KernelName = msg["KernelName"].(string)
-			case "KernelRelease":
-				desc.KernelRelease = msg["KernelRelease"].(string)
-			case "Location":
-				desc.Location = msg["Location"].(string)
-			case "OperatingSystemCPEName":
-				desc.OperatingSystemCPEName = msg["OperatingSystemCPEName"].(string)
-			case "OperatingSystemHomeURL":
-				desc.OperatingSystemHomeURL = msg["OperatingSystemHomeURL"].(string)
-			case "OperatingSystemPrettyName":
-				desc.OperatingSystemPrettyName = msg["OperatingSystemPrettyName"].(string)
-			case "ProductUUID":
-				desc.ProductUUID = msg["ProductUUID"].(string)
-			case "StaticHostname":
-				desc.StaticHostname = msg["StaticHostname"].(string)
-			}
-		}
 	}
 
 	return &desc, nil
