@@ -38,29 +38,23 @@ type NetworkDescribe struct {
 	Errors  string           `json:"errors"`
 }
 
-type NTP struct {
-	Success bool                `json:"success"`
-	Message timesyncd.NTPServer `json:"message"`
-	Errors  string              `json:"errors"`
-}
-
 func displayInterfaces(i *Interface) {
 	for _, n := range i.Message {
-		fmt.Printf("            Name: %v\n", n.Name)
-		fmt.Printf("           Index: %v\n", n.Index)
-		fmt.Printf("             MTU: %v\n", n.MTU)
+		fmt.Printf("            %v %v\n", color.HiBlueString("Name:"), n.Name)
+		fmt.Printf("           %v %v\n", color.HiBlueString("Index:"), n.Index)
+		fmt.Printf("             %v %v\n", color.HiBlueString("MTU:"), n.MTU)
 
-		fmt.Printf("           Flags: ")
+		fmt.Printf("           %v", color.HiBlueString("Flags:"))
 		for _, j := range n.Flags {
-			fmt.Printf("%v ", j)
+			fmt.Printf(" %v", j)
 		}
 		fmt.Printf("\n")
 
-		fmt.Printf("Hardware Address: %v\n", n.HardwareAddr)
+		fmt.Printf("%v %v\n", color.HiBlueString("Hardware Address:"), n.HardwareAddr)
 
-		fmt.Printf("       Addresses: ")
+		fmt.Printf("       %v", color.HiBlueString("Addresses:"))
 		for _, j := range n.Addrs {
-			fmt.Printf("%v ", j.Addr)
+			fmt.Printf(" %v", j.Addr)
 		}
 		fmt.Printf("\n\n")
 	}

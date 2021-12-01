@@ -27,7 +27,7 @@ type SystemDescribe struct {
 	Errors  string              `json:"errors"`
 }
 
-func acquireSystemInfo(host string, token map[string]string) (*management.Describe, error) {
+func acquireSystemDescribe(host string, token map[string]string) (*management.Describe, error) {
 	var resp []byte
 	var err error
 
@@ -149,7 +149,7 @@ func displayVMStat(v *mem.VirtualMemoryStat) {
 }
 
 func acquireSystemStatus(host string, token map[string]string) {
-	s, err := acquireSystemInfo(host, token)
+	s, err := acquireSystemDescribe(host, token)
 	if err != nil {
 		return
 	}
