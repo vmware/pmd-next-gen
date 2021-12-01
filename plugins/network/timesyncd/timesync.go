@@ -4,11 +4,8 @@ package timesyncd
 
 import (
 	"context"
-	"net/http"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/pm-web/pkg/web"
 )
 
 type NTPServer struct {
@@ -19,15 +16,15 @@ type NTPServer struct {
 	LinkNTPServers   []string `json:"LinkNTPServers"`
 }
 
-func AcquireNTPServer(kind string, ctx context.Context, w http.ResponseWriter) error {
+func AcquireNTPServer(kind string, ctx context.Context) (*NTPServer, error) {
 	c, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %s", err)
-		return err
+		return nil, err
 	}
 	defer c.Close()
 
-	var s interface{}
+	var s *NTPServer
 	switch kind {
 	case "currentntpserver":
 		s, err = c.DBusAcquireCurrentNTPServerFromTimeSync(ctx)
@@ -38,8 +35,8 @@ func AcquireNTPServer(kind string, ctx context.Context, w http.ResponseWriter) e
 	}
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return web.JSONResponse(s, w)
+	return s, nil
 }

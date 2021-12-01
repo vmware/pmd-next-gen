@@ -11,9 +11,13 @@ import (
 )
 
 func routerAcquireNTPServers(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireNTPServer(mux.Vars(r)["ntpserver"], r.Context(), w); err != nil {
+	ntp, err := AcquireNTPServer(mux.Vars(r)["ntpserver"], r.Context())
+	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
+
+	web.JSONResponse(ntp, w)
 }
 
 func RegisterRouterTimeSyncd(router *mux.Router) {

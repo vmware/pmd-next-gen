@@ -180,7 +180,7 @@ func displayOneLinkNTP(link string, ntp *timesyncd.NTPServer) {
 	}
 }
 
-func displayNetworkStatus(ifName string, network *network.Describe, ntp *timesyncd.NTPServer) {
+func displayNetworkStatus(ifName string, network *network.Describe) {
 	for _, link := range network.Links {
 		if ifName != "" && link.Name != ifName {
 			continue
@@ -207,9 +207,7 @@ func displayNetworkStatus(ifName string, network *network.Describe, ntp *timesyn
 				displayOneLinkDnsAndDomains(link.Name, network.Dns, network.Domains)
 			}
 
-			if ntp != nil {
-				displayOneLinkNTP(link.Name, ntp)
-			}
+			displayOneLinkNTP(link.Name, network.NTP)
 		}
 
 		fmt.Printf("\n")
@@ -244,34 +242,6 @@ func acquireNetworkDescribe(host string, token map[string]string) (*network.Desc
 	return nil, errors.New(n.Errors)
 }
 
-func acquireNTP(host string, token map[string]string) (*timesyncd.NTPServer, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/timesyncd/linkntpserver", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/timesyncd/linkntpserver", nil)
-	}
-
-	if err != nil {
-		fmt.Printf("Failed to fetch NTP: %v\n", err)
-		return nil, err
-	}
-
-	rt := NTP{}
-	if err := json.Unmarshal(resp, &rt); err != nil {
-		fmt.Printf("Failed to decode NTP json message: %v\n", err)
-		return nil, err
-	}
-
-	if rt.Success {
-		return &rt.Message, nil
-	}
-
-	return nil, errors.New(rt.Errors)
-}
-
 func acquireNetworkStatus(cmd string, host string, ifName string, token map[string]string) {
 	var resp []byte
 	var err error
@@ -284,8 +254,7 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 			return
 		}
 
-		ntp, _ := acquireNTP(host, token)
-		displayNetworkStatus(ifName, n, ntp)
+		displayNetworkStatus(ifName, n)
 
 	case "iostat":
 		if host != "" {

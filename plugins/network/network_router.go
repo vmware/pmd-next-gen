@@ -24,48 +24,62 @@ type Describe struct {
 	Routes          []route.RouteInfo         `json:"Routes"`
 	Dns             []resolved.Dns            `json:"Dns"`
 	Domains         []resolved.Domains        `json:"Domains"`
+	NTP             *timesyncd.NTPServer      `json:"NTP"`
 }
 
 func routerDescribeNetwork(w http.ResponseWriter, r *http.Request) {
 	var err error
-	s := Describe{}
+	n := Describe{}
 
-	s.NetworkDescribe, err = networkd.AcquireNetworkState(r.Context())
+	n.NetworkDescribe, err = networkd.AcquireNetworkState(r.Context())
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	s.LinksDescribe, err = networkd.AcquireLinks(r.Context())
+	n.LinksDescribe, err = networkd.AcquireLinks(r.Context())
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	s.Addresses, err = address.AcquireAddresses()
+	n.Addresses, err = address.AcquireAddresses()
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	s.Routes, err = route.AcquireRoutes()
+	n.Routes, err = route.AcquireRoutes()
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	s.Links, err = link.AcquireLinks()
+	n.Links, err = link.AcquireLinks()
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	s.Dns, err = resolved.AcquireDns(r.Context())
+	n.Dns, err = resolved.AcquireDns(r.Context())
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	s.Domains, err = resolved.AcquireDomains(r.Context())
+	n.Domains, err = resolved.AcquireDomains(r.Context())
 	if err != nil {
 		web.JSONResponseError(err, w)
+		return
 	}
 
-	web.JSONResponse(s, w)
+	n.NTP, err = timesyncd.AcquireNTPServer("linkntpservers", r.Context())
+	if err != nil {
+		web.JSONResponseError(err, w)
+		return
+	}
+
+	web.JSONResponse(n, w)
 }
 
 func RegisterRouterNetwork(router *mux.Router) {
