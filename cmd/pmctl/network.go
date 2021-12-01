@@ -294,3 +294,35 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 		}
 	}
 }
+
+func networkConfigureDHCP(link string, dhcp string, host string, token map[string]string) {
+	var resp []byte
+	var err error
+
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			DHCP: dhcp,
+		},
+	}
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network", token, n)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/network", n)
+	}
+	if err != nil {
+		fmt.Printf("Failed to execute systemd command: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to execute command: %v\n", m.Errors)
+	}
+}

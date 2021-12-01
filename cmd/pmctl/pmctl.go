@@ -45,8 +45,8 @@ func main() {
 			Usage: "Introspects and controls the systemd services",
 			Subcommands: []*cli.Command{
 				{
-					Name:  "status",
-					Usage: "Show terse runtime status information about one unit",
+					Name:        "status",
+					Description: "Show terse runtime status information about one unit",
 
 					Action: func(c *cli.Context) error {
 						acquireSystemdUnitStatus(c.Args().First(), c.String("url"), token)
@@ -54,56 +54,56 @@ func main() {
 					},
 				},
 				{
-					Name:  "start",
-					Usage: "Start (activate) one unit specified on the command line",
+					Name:        "start",
+					Description: "Start (activate) one unit specified on the command line",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("start", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:  "stop",
-					Usage: "Stop (deactivate) one specified on the command line.",
+					Name:        "stop",
+					Description: "Stop (deactivate) one specified on the command line.",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("stop", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:  "restart",
-					Usage: "Stop and then start one unit specified on the command line. If the unit is not running yet, it will be started.",
+					Name:        "restart",
+					Description: "Stop and then start one unit specified on the command line. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("restart", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:  "mask",
-					Usage: "Mask one unit, as specified on the command line",
+					Name:        "mask",
+					Description: "Mask one unit, as specified on the command line",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("mask", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:  "unmask",
-					Usage: "Unmask one unit file, as specified on the command line",
+					Name:        "unmask",
+					Description: "Unmask one unit file, as specified on the command line",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("unmask", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:  "try-restart",
-					Usage: "Stop and then start one unit specified on the command line if the unit are running. This does nothing if unit is not running.",
+					Name:        "try-restart",
+					Description: "Stop and then start one unit specified on the command line if the unit are running. This does nothing if unit is not running.",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("try-restart", c.Args().First(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:  "reload-or-restart",
-					Usage: "Reload one unit if they support it. If not, stop and then start instead. If the unit is not running yet, it will be started.",
+					Name:        "reload-or-restart",
+					Description: "Reload one unit if they support it. If not, stop and then start instead. If the unit is not running yet, it will be started.",
 					Action: func(c *cli.Context) error {
 						executeSystemdUnitCommand("reload-or-restart", c.Args().First(), c.String("url"), token)
 						return nil
@@ -117,9 +117,9 @@ func main() {
 			Usage:   "Introspects of system or network status",
 			Subcommands: []*cli.Command{
 				{
-					Name:    "network",
-					Aliases: []string{"n"},
-					Usage:   "Introspects network status",
+					Name:        "network",
+					Aliases:     []string{"n"},
+					Description: "Introspects network status",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "interface", Aliases: []string{"i"}},
 					},
@@ -130,8 +130,8 @@ func main() {
 					},
 					Subcommands: []*cli.Command{
 						{
-							Name:  "iostat",
-							Usage: "Show iostat of interfaces",
+							Name:        "iostat",
+							Description: "Show iostat of interfaces",
 
 							Action: func(c *cli.Context) error {
 								acquireNetworkStatus("iostat", c.String("url"), "", token)
@@ -139,8 +139,8 @@ func main() {
 							},
 						},
 						{
-							Name:  "interfaces",
-							Usage: "Show network interfaces",
+							Name:        "interfaces",
+							Description: "Show network interfaces",
 
 							Action: func(c *cli.Context) error {
 								acquireNetworkStatus("interfaces", c.String("url"), "", token)
@@ -150,12 +150,55 @@ func main() {
 					},
 				},
 				{
-					Name:    "system",
-					Aliases: []string{"s"},
-					Usage:   "Introspects system status",
+					Name:        "system",
+					Aliases:     []string{"s"},
+					Description: "Introspects system status",
 
 					Action: func(c *cli.Context) error {
 						acquireSystemStatus(c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "system",
+			Aliases: []string{"s"},
+			Usage:   "Configures system",
+			Subcommands: []*cli.Command{
+				{
+					Name:        "set-hostname",
+					Description: "Set system hostname",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("No hostname suppplied\n")
+							return nil
+						}
+
+						SetHostname(c.Args().First(), c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "network",
+			Aliases: []string{"n"},
+			Usage:   "Configures network",
+			Subcommands: []*cli.Command{
+				{
+					Name:        "set-dhcp",
+					UsageText:   "set-dhcp [LINK] [DHCP-MODE {yes|no|ipv4|ipv6}]",
+					Description: "Enables DHCPv4 and/or DHCPv6 client support. Accepts \"yes\", \"no\", \"ipv4\", or \"ipv6\".",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCP(c.Args().First(), c.Args().Get(1), c.String("url"), token)
 						return nil
 					},
 				},
@@ -167,9 +210,9 @@ func main() {
 			Usage:   "Create a new user or update user information",
 			Subcommands: []*cli.Command{
 				{
-					Name:    "add",
-					Aliases: []string{"n"},
-					Usage:   "Add a new user",
+					Name:        "add",
+					Aliases:     []string{"n"},
+					Description: "Add a new user",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "home-dir", Aliases: []string{"d"}},
 						&cli.StringFlag{Name: "groups", Usage: "Separate by ,"},
@@ -189,9 +232,9 @@ func main() {
 					},
 				},
 				{
-					Name:    "remove",
-					Aliases: []string{"n"},
-					Usage:   "Remove an existing user",
+					Name:        "remove",
+					Aliases:     []string{"n"},
+					Description: "Remove an existing user",
 
 					Action: func(c *cli.Context) error {
 						if c.NArg() < 1 {
@@ -210,9 +253,9 @@ func main() {
 			Usage:   "Create a new group or update group information",
 			Subcommands: []*cli.Command{
 				{
-					Name:    "add",
-					Aliases: []string{"a"},
-					Usage:   "Add a new group",
+					Name:        "add",
+					Aliases:     []string{"a"},
+					Description: "Add a new group",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "gid"},
 					},
@@ -227,9 +270,9 @@ func main() {
 					},
 				},
 				{
-					Name:    "remove",
-					Aliases: []string{"a"},
-					Usage:   "Remove an existing group",
+					Name:        "remove",
+					Aliases:     []string{"a"},
+					Description: "Remove an existing group",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "gid"},
 					},
@@ -243,20 +286,6 @@ func main() {
 						return nil
 					},
 				},
-			},
-		},
-		{
-			Name:  "set-hostname",
-			Usage: "Set system hostname",
-
-			Action: func(c *cli.Context) error {
-				if c.NArg() < 1 {
-					fmt.Printf("No hostname suppplied\n")
-					return nil
-				}
-
-				SetHostname(c.Args().First(), c.String("url"), token)
-				return nil
 			},
 		},
 	}
