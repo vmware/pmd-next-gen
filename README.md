@@ -1,7 +1,7 @@
 ## pm-webd
 
 
-pm-webd is a cloud-enabled, mobile-ready, a super light weight remote management tool which uses REST API for real time configuration and performance as well as health monitoring for systems (containers) and applications. It provides fast API based monitoring without affecting the system it's running on.
+ppm-webd is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture.It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
   pm-webd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
@@ -15,8 +15,6 @@ pm-webd is a cloud-enabled, mobile-ready, a super light weight remote management
 | ------ | ------ |
 |systemd  | information, services (start, stop, restart, status), service properties for example CPUShares
 see information from ```/proc``` fs| netstat, netdev, memory and much more
-configure ```/proc/sys/net``` | (core/ipv4/ipv6), VM
-ethtool | see information and configure offload features
 
 
 ### Dependencies
@@ -105,8 +103,8 @@ LogLevel="debug"
 UseAuthentication="false"
 
 [Network]
-Listen="127.0.0.1:5208"
-ListenUnixSocket="false"
+#Listen="127.0.0.1:5208"
+ListenUnixSocket="true"
 ```
 
 ```bash
