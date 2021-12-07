@@ -1,7 +1,7 @@
 ## pm-webd
 
 
-ppm-webd is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture.It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
+pm-webd is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture.It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
   pm-webd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
