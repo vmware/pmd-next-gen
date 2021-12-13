@@ -103,29 +103,30 @@ LogLevel="debug"
 UseAuthentication="false"
 
 [Network]
-#Listen="127.0.0.1:5208"
 ListenUnixSocket="true"
 ```
 
 ```bash
-❯ > sudo systemctl status pm-webd.service
+❯ sudo systemctl status pm-webd.service
 ● pm-webd.service - A REST API Microservice Gateway
      Loaded: loaded (/usr/lib/systemd/system/pm-webd.service; disabled; vendor preset: disabled)
-     Active: active (running) since Thu 2021-11-04 13:12:00 IST; 4s ago
+     Active: active (running) since Mon 2021-12-13 14:07:46 IST; 22s ago
        Docs: man:pm-webd.conf(5)
-   Main PID: 466647 (pm-webd)
+   Main PID: 27981 (pm-webd)
       Tasks: 6 (limit: 15473)
-     Memory: 1.9M
+     Memory: 2.1M
         CPU: 8ms
      CGroup: /system.slice/pm-webd.service
-             └─466647 /usr/bin/pm-webd
+             └─27981 /usr/bin/pm-webd
 
-Nov 04 13:12:00 Zeus1 systemd[1]: pm-webd.service: Job 59058 pm-webd.service/start finished, result=done
-Nov 04 13:12:00 Zeus1 systemd[1]: Started A REST API Microservice Gateway.
-Nov 04 13:12:00 Zeus1 pm-webd[466647]: time="2021-11-04T13:12:00+05:30" level=debug msg="Log level set to 'debug'"
-Nov 04 13:12:00 Zeus1 pm-webd[466647]: time="2021-11-04T13:12:00+05:30" level=info msg="pm-webd: v0.1 (built go1.17)"
-Nov 04 13:12:00 Zeus1 pm-webd[466647]: time="2021-11-04T13:12:00+05:30" level=info msg="Starting pm-webd server at unix domain socket='/run/pmwebd/pmwebd.sock' in HTTP mode"
-        
+Dec 13 14:07:46 Zeus systemd[1]: pm-webd.service: Forked /usr/bin/pm-webd as 27981
+Dec 13 14:07:46 Zeus pm-webd[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="pm-webd: v0.1 (built go1.17.4)"
+Dec 13 14:07:46 Zeus systemd[1]: pm-webd.service: Changed dead -> running
+Dec 13 14:07:46 Zeus systemd[1]: pm-webd.service: Job 23713 pm-webd.service/start finished, result=done
+Dec 13 14:07:46 Zeus systemd[1]: Started A REST API Microservice Gateway.
+Dec 13 14:07:46 Zeus systemd[27981]: pm-webd.service: Executing: /usr/bin/pm-webd
+Dec 13 14:07:46 Zeus pm-webd[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="Starting pm-webd server at unix domain socket='/run/pmwebd/pmwebd.sock' in HTTP mode"
+                                  
 ```
 
 #### pmctl
