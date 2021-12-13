@@ -7,6 +7,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/pm-web/pkg/web"
 	"github.com/pm-web/plugins/network/netlink/address"
 	"github.com/pm-web/plugins/network/netlink/link"
@@ -33,48 +35,56 @@ func routerDescribeNetwork(w http.ResponseWriter, r *http.Request) {
 
 	n.NetworkDescribe, err = networkd.AcquireNetworkState(r.Context())
 	if err != nil {
+		log.Errorf("Failed to acquire network state from systemd-networkd: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.LinksDescribe, err = networkd.AcquireLinks(r.Context())
 	if err != nil {
+		log.Errorf("Failed to acquire link state from systemd-networkd: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.Addresses, err = address.AcquireAddresses()
 	if err != nil {
+		log.Errorf("Failed to acquire addresses: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.Routes, err = route.AcquireRoutes()
 	if err != nil {
+		log.Errorf("Failed to acquire routes: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.Links, err = link.AcquireLinks()
 	if err != nil {
+		log.Errorf("Failed to acquire links: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.Dns, err = resolved.AcquireDns(r.Context())
 	if err != nil {
+		log.Errorf("Failed to acquire dDNS from systemd-resolved: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.Domains, err = resolved.AcquireDomains(r.Context())
 	if err != nil {
+		log.Errorf("Failed to acquire domains from systemd-resolved: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
 
 	n.NTP, err = timesyncd.AcquireNTPServer("linkntpservers", r.Context())
 	if err != nil {
+		log.Errorf("Failed to acquire NTP servers from systemd-timesyncd: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
