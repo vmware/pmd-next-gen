@@ -42,7 +42,7 @@ func (g *Group) GroupAdd(w http.ResponseWriter) error {
 			}
 		}
 		if id != nil {
-			return fmt.Errorf(" gid '%v' already exists", grp.Gid)
+			return fmt.Errorf(" gid '%v' already exists", id.Gid)
 		}
 	}
 
