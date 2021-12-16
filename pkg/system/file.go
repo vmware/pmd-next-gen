@@ -134,7 +134,7 @@ func ChangeUnixDomainSocketPermission(file string) (err error) {
 		return err
 	}
 
-	if err := os.Chmod(file, 0700); err != nil {
+	if err := os.Chmod(file, 0770); err != nil {
 		return err
 	}
 
