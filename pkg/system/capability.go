@@ -4,24 +4,68 @@
 package system
 
 import (
+	"fmt"
+	"strings"
 	"syscall"
 
 	"github.com/syndtr/gocapability/capability"
 	"golang.org/x/sys/unix"
 )
 
-func ApplyCapability(c *syscall.Credential) error {
+func AllowedCapabilities() ([]capability.Cap, error) {
+	return capSlice([]string{
+		"CAP_CHOWN",
+		"CAP_SYS_ADMIN",
+		"CAP_NET_ADMIN",
+		"CAP_NET_BIND_SERVICE",
+	})
+}
+
+var capabilityMap map[string]capability.Cap
+
+func init() {
+	capabilityMap = make(map[string]capability.Cap, capability.CAP_LAST_CAP+1)
+	for _, c := range capability.List() {
+		if c > capability.CAP_LAST_CAP {
+			continue
+		}
+		capabilityMap["CAP_"+strings.ToUpper(c.String())] = c
+	}
+}
+
+func capSlice(caps []string) ([]capability.Cap, error) {
+	out := make([]capability.Cap, len(caps))
+	for i, c := range caps {
+		v, ok := capabilityMap[c]
+		if !ok {
+			return nil, fmt.Errorf("unknown capability %q", c)
+		}
+		out[i] = v
+	}
+	return out, nil
+}
+
+func ApplyCapability(cred *syscall.Credential) error {
 	caps, err := capability.NewPid2(0)
 	if err != nil {
 		return err
 	}
 
-	caps.Set(capability.CAPS|capability.BOUNDS|capability.AMBIENT, capability.CAP_NET_ADMIN | capability.CAP_SYS_ADMIN)
-	if err := caps.Apply(capability.CAPS | capability.BOUNDS | capability.AMBIENT); err != nil {
+	allCapabilityTypes := capability.CAPS | capability.BOUNDS | capability.AMBS
+	allowedCap, err := AllowedCapabilities()
+	if err != nil {
 		return err
 	}
 
-	return nil
+	caps.Clear(capability.CAPS | capability.BOUNDS | capability.AMBS)
+	caps.Set(capability.BOUNDS, allowedCap...)
+	caps.Set(capability.PERMITTED, allowedCap...)
+	caps.Set(capability.INHERITABLE, allowedCap...)
+	caps.Set(capability.EFFECTIVE, allowedCap...)
+
+	caps.Clear(capability.AMBIENT)
+
+	return caps.Apply(allCapabilityTypes)
 }
 
 func EnableKeepCapability() error {

@@ -21,6 +21,8 @@ func main() {
 
 	log.Infof("pm-webd: v%s (built %s)", conf.Version, runtime.Version())
 
+	runtime.LockOSThread()
+
 	cred, err := system.GetUserCredentials("")
 	if err != nil {
 		log.Warningf("Failed to get current user credentials: %+v", err)
@@ -33,7 +35,7 @@ func main() {
 				os.Exit(1)
 			} else {
 				if err := system.CreateStateDirs("/run/pmwebd", int(u.Uid), int(u.Gid)); err != nil {
-					log.Println(err)
+					log.Errorf("Failed to create runtime dir '/run/pmwebd': %+v", err)
 					os.Exit(1)
 				}
 
