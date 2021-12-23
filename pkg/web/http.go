@@ -15,7 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/pm-web/pkg/conf"
+	"github.com/distro-management-api/pkg/conf"
 )
 
 const (

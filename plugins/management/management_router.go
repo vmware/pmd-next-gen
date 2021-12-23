@@ -9,16 +9,16 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 
-	"github.com/pm-web/pkg/web"
-	"github.com/pm-web/plugins/management/group"
-	"github.com/pm-web/plugins/management/hostname"
-	"github.com/pm-web/plugins/management/login"
-	"github.com/pm-web/plugins/management/user"
-	"github.com/pm-web/plugins/network/netlink/address"
-	"github.com/pm-web/plugins/network/netlink/route"
-	"github.com/pm-web/plugins/network/networkd"
-	"github.com/pm-web/plugins/network/timesyncd"
-	"github.com/pm-web/plugins/systemd"
+	"github.com/distro-management-api/pkg/web"
+	"github.com/distro-management-api/plugins/management/group"
+	"github.com/distro-management-api/plugins/management/hostname"
+	"github.com/distro-management-api/plugins/management/login"
+	"github.com/distro-management-api/plugins/management/user"
+	"github.com/distro-management-api/plugins/network/netlink/address"
+	"github.com/distro-management-api/plugins/network/netlink/route"
+	"github.com/distro-management-api/plugins/network/networkd"
+	"github.com/distro-management-api/plugins/network/timesyncd"
+	"github.com/distro-management-api/plugins/systemd"
 )
 
 type Describe struct {

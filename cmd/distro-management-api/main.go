@@ -8,9 +8,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pm-web/pkg/conf"
-	"github.com/pm-web/pkg/server"
-	"github.com/pm-web/pkg/system"
+	"github.com/distro-management-api/pkg/conf"
+	"github.com/distro-management-api/pkg/server"
+	"github.com/distro-management-api/pkg/system"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		log.Errorf("Failed to parse conf file %s: %s", conf.ConfFile, err)
 	}
 
-	log.Infof("pm-webd: v%s (built %s)", conf.Version, runtime.Version())
+	log.Infof("distro-management-apid: v%s (built %s)", conf.Version, runtime.Version())
 
 	runtime.LockOSThread()
 
@@ -29,13 +29,13 @@ func main() {
 		os.Exit(1)
 	} else {
 		if cred.Uid == 0 {
-			u, err := system.GetUserCredentials("pm-web")
+			u, err := system.GetUserCredentials("distro-management-api")
 			if err != nil {
-				log.Errorf("Failed to get user 'pm-web' credentials: %+v", err)
+				log.Errorf("Failed to get user 'distro-management-api' credentials: %+v", err)
 				os.Exit(1)
 			} else {
-				if err := system.CreateStateDirs("/run/pmwebd", int(u.Uid), int(u.Gid)); err != nil {
-					log.Errorf("Failed to create runtime dir '/run/pmwebd': %+v", err)
+				if err := system.CreateStateDirs("/run/distro-management-api", int(u.Uid), int(u.Gid)); err != nil {
+					log.Errorf("Failed to create runtime dir '/run/distro-management-api': %+v", err)
 					os.Exit(1)
 				}
 
@@ -60,7 +60,7 @@ func main() {
 	}
 
 	if err := server.Run(c); err != nil {
-		log.Fatalf("Failed to start pm-webd: %v", err)
+		log.Fatalf("Failed to start distro-management-apid: %v", err)
 		os.Exit(1)
 	}
 }

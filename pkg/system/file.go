@@ -12,7 +12,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pm-web/pkg/conf"
+	"github.com/distro-management-api/pkg/conf"
 )
 
 func PathExists(path string) bool {
@@ -119,7 +119,7 @@ func TLSFilePathExits() bool {
 }
 
 func ChangeUnixDomainSocketPermission(file string) (err error) {
-	usr, err := user.Lookup("pm-web")
+	usr, err := user.Lookup("distro-management-api")
 	if err != nil {
 		_, ok := err.(user.UnknownGroupError)
 		if !ok {
@@ -134,7 +134,7 @@ func ChangeUnixDomainSocketPermission(file string) (err error) {
 		return err
 	}
 
-	if err := os.Chmod(file, 0770); err != nil {
+	if err := os.Chmod(file, 0660); err != nil {
 		return err
 	}
 

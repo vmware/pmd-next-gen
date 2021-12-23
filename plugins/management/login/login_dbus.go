@@ -6,7 +6,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 
-	"github.com/pm-web/pkg/bus"
+	"github.com/distro-management-api/pkg/bus"
 )
 
 const (

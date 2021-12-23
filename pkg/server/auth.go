@@ -11,13 +11,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/pm-web/pkg/share"
-	"github.com/pm-web/pkg/system"
-	"github.com/pm-web/pkg/web"
+	"github.com/distro-management-api/pkg/share"
+	"github.com/distro-management-api/pkg/system"
+	"github.com/distro-management-api/pkg/web"
 )
 
 const (
-	authConfPath = "/etc/pm-web/pmweb-auth.conf"
+	authConfPath = "/etc/distro-management-api/pmweb-auth.conf"
 )
 
 type TokenDB struct {
@@ -58,9 +58,9 @@ func InitAuthMiddleware() (TokenDB, error) {
 
 func authenticateLocalUser(credentials *unix.Ucred) error {
 	if credentials.Uid != 0 {
-		pmUser, err := system.GetUserCredentials("pm-web")
+		pmUser, err := system.GetUserCredentials("distro-management-api")
 		if err != nil {
-			log.Infof("Failed to get user 'pm-web' credentials: %+v", err)
+			log.Infof("Failed to get user 'distro-management-api' credentials: %+v", err)
 			return err
 		}
 
@@ -68,7 +68,7 @@ func authenticateLocalUser(credentials *unix.Ucred) error {
 
 		groups, _ := u.GroupIds()
 		if !share.StringContains(groups, strconv.Itoa(int(pmUser.Gid))) {
-			return errors.New("user's gid not same as pm-web's gid")
+			return errors.New("user's gid not same as distro-management-api's gid")
 		}
 
 		log.Debugf("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)

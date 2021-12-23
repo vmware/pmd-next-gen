@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pm-web/pkg/web"
+	"github.com/distro-management-api/pkg/web"
 )
 
 func routerAcquireLinkDNS(w http.ResponseWriter, r *http.Request) {

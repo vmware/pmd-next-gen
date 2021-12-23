@@ -18,8 +18,8 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pm-web/pkg/system"
-	"github.com/pm-web/pkg/web"
+	"github.com/distro-management-api/pkg/system"
+	"github.com/distro-management-api/pkg/web"
 )
 
 const (

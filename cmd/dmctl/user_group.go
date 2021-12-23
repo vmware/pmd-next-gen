@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pm-web/pkg/web"
-	"github.com/pm-web/plugins/management/group"
-	"github.com/pm-web/plugins/management/user"
+	"github.com/distro-management-api/pkg/web"
+	"github.com/distro-management-api/plugins/management/group"
+	"github.com/distro-management-api/plugins/management/user"
 )
 
 func groupAdd(name string, gid string, host string, token map[string]string) {

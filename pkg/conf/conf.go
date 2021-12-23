@@ -6,13 +6,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/pm-web/pkg/share"
+	"github.com/distro-management-api/pkg/share"
 )
 
 const (
 	Version  = "0.1"
-	ConfPath = "/etc/pm-web"
-	ConfFile = "pmweb"
+	ConfPath = "/etc/distro-management-api"
+	ConfFile = "distro-management-api"
 	TLSCert  = "cert/server.crt"
 	TLSKey   = "cert/server.key"
 
@@ -23,7 +23,7 @@ const (
 	DefaultPort      = "5208"
 	ListenUnixSocket = "true"
 
-	UnixDomainSocketPath = "/run/pmwebd/pmwebd.sock"
+	UnixDomainSocketPath = "/run/distro-management-api/distro-management-api.sock"
 )
 
 type Config struct {

@@ -5,7 +5,7 @@ package hello
 import (
 	"net/http"
 
-	"github.com/pm-web/pkg/web"
+	"github.com/distro-management-api/pkg/web"
 )
 
 // Hello JSON message

@@ -16,13 +16,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/pm-web/pkg/conf"
-	"github.com/pm-web/pkg/share"
-	"github.com/pm-web/pkg/system"
-	"github.com/pm-web/plugins/management"
-	"github.com/pm-web/plugins/network"
-	"github.com/pm-web/plugins/proc"
-	"github.com/pm-web/plugins/systemd"
+	"github.com/distro-management-api/pkg/conf"
+	"github.com/distro-management-api/pkg/share"
+	"github.com/distro-management-api/pkg/system"
+	"github.com/distro-management-api/plugins/management"
+	"github.com/distro-management-api/plugins/network"
+	"github.com/distro-management-api/plugins/proc"
+	"github.com/distro-management-api/plugins/systemd"
 )
 
 var httpSrv *http.Server
@@ -58,7 +58,7 @@ func runUnixDomainHttpServer(c *conf.Config, r *mux.Router) error {
 		},
 	}
 
-	log.Infof("Starting pm-webd server at unix domain socket='%s' in HTTP mode pid=%d", conf.UnixDomainSocketPath, os.Getpid())
+	log.Infof("Starting distro-management-apid server at unix domain socket='%s' in HTTP mode pid=%d", conf.UnixDomainSocketPath, os.Getpid())
 
 	os.Remove(conf.UnixDomainSocketPath)
 	unixListener, err := net.ListenUnix("unix", &net.UnixAddr{Name: conf.UnixDomainSocketPath, Net: "unix"})
@@ -103,7 +103,7 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 		}
 
-		log.Infof("Starting pm-webd server at %s:%s in HTTPS mode pid=%d", ip, port, os.Getpid())
+		log.Infof("Starting distro-management-apid server at %s:%s in HTTPS mode pid=%d", ip, port, os.Getpid())
 
 		httpSrv.ListenAndServeTLS(path.Join(conf.ConfPath, conf.TLSCert), path.Join(conf.ConfPath, conf.TLSKey))
 	} else {
@@ -112,7 +112,7 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 			Handler: r,
 		}
 
-		log.Infof("Starting pm-webd server at %s:%s in HTTP mode pid=%d", ip, port, os.Getpid())
+		log.Infof("Starting distro-management-apid server at %s:%s in HTTP mode pid=%d", ip, port, os.Getpid())
 
 		httpSrv.ListenAndServe()
 	}
@@ -130,7 +130,7 @@ func Run(c *conf.Config) error {
 	go func() {
 		select {
 		case sig := <-sigs:
-			log.Printf("Signal received='%v'. Shutting down pm-webd ...", sig)
+			log.Printf("Signal received='%v'. Shutting down distro-management-apid ...", sig)
 
 			if err := httpSrv.Shutdown(ctx); err != nil {
 				os.Exit(1)

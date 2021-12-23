@@ -13,8 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/pm-web/pkg/configfile"
-	"github.com/pm-web/pkg/web"
+	"github.com/distro-management-api/pkg/configfile"
+	"github.com/distro-management-api/pkg/web"
 )
 
 type MatchSection struct {

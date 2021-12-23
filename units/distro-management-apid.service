@@ -2,11 +2,11 @@
 
 [Unit]
 Description=A REST API Microservice Gateway
-Documentation=man:pm-webd.conf(5)
+Documentation=man:distro-management-apid.conf(5)
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/pm-webd
+ExecStart=!!/usr/bin/distro-management-apid
 Restart=always
 
 [Install]

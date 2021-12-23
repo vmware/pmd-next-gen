@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/pm-web/pkg/web"
-	"github.com/pm-web/plugins/systemd"
+	"github.com/distro-management-api/pkg/web"
+	"github.com/distro-management-api/plugins/systemd"
 )
 
 type UnitStatus struct {

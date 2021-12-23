@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/pm-web/pkg/share"
+	"github.com/distro-management-api/pkg/share"
 )
 
 type Route struct {

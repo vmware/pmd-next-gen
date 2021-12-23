@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pm-web/pkg/web"
+	"github.com/distro-management-api/pkg/web"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 	}
 
 	app := &cli.App{
-		Name:    "pmctl",
+		Name:    "dmctl",
 		Version: "v0.1",
 		Usage:   "Introspects and controls the system",
 	}

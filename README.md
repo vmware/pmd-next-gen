@@ -1,10 +1,10 @@
-## pm-webd
+## distro-management-apid
 
 
-pm-webd is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture.It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
+distro-management-apid is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture.It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
-  pm-webd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
+  distro-management-apid saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
 - Platform independent REST APIs can be accessed via any application (curl, chrome, PostMan ...) from any OS (Linux, IOS, Android, Windows ...)
 - Minimal data transfer using JSON.
 - Plugin based Architechture. See how to write plugin section for more information.
@@ -19,7 +19,7 @@ see information from ```/proc``` fs| netstat, netdev, memory and much more
 
 ### Dependencies
 
-pm-webd uses a following open source projects to work properly:
+distro-management-apid uses a following open source projects to work properly:
 
 * [logrus](https://github.com/sirupsen/logrus)
 * [gorilla mux](https://github.com/gorilla/mux)
@@ -62,17 +62,17 @@ $ pwd
 ❯ sudo make install
 ```
 
-Due to security `pm-webd` runs in non root user `pm-web`. It drops all privileges except `CAP_NET_ADMIN` and `CAP_SYS_ADMIN`.
+Due to security `distro-management-apid` runs in non root user `distro-management-api`. It drops all privileges except `CAP_NET_ADMIN` and `CAP_SYS_ADMIN`.
 
 ```bash
 
-❯  useradd -M -s /usr/bin/nologin pm-web
+❯  useradd -M -s /usr/bin/nologin distro-management-api
 ```
 
 #### Configuration
 ----
 
-Configuration file `pmweb.toml` located in `/etc/pm-web/` directory to manage the configuration.
+Configuration file `distro-management-api.toml` located in `/etc/distro-management-api/` directory to manage the configuration.
 
 The `[System]` section takes following Keys:
 
@@ -93,11 +93,11 @@ Specifies the IP address and port which the REST API server will listen to. When
 
 `ListenUnixSocket=`
 
-A boolean. Specifies whether the server would listen on a unix domain socket `/run/pmwebd/pmwebd.sock`. Defaults to `true`.
+A boolean. Specifies whether the server would listen on a unix domain socket `/run/distro-management-api/distro-management-api.sock`. Defaults to `true`.
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
-❯ sudo cat /etc/pm-web/pmweb.toml                                     
+❯ sudo cat /etc/distro-management-api/pmweb.toml                                     
 [System]
 LogLevel="debug"
 UseAuthentication="false"
@@ -107,25 +107,25 @@ ListenUnixSocket="true"
 ```
 
 ```bash
-❯ sudo systemctl status pm-webd.service
-● pm-webd.service - A REST API Microservice Gateway
-     Loaded: loaded (/usr/lib/systemd/system/pm-webd.service; disabled; vendor preset: disabled)
+❯ sudo systemctl status distro-management-apid.service
+● distro-management-apid.service - A REST API Microservice Gateway
+     Loaded: loaded (/usr/lib/systemd/system/distro-management-apid.service; disabled; vendor preset: disabled)
      Active: active (running) since Mon 2021-12-13 14:07:46 IST; 22s ago
-       Docs: man:pm-webd.conf(5)
-   Main PID: 27981 (pm-webd)
+       Docs: man:distro-management-apid.conf(5)
+   Main PID: 27981 (distro-management-apid)
       Tasks: 6 (limit: 15473)
      Memory: 2.1M
         CPU: 8ms
-     CGroup: /system.slice/pm-webd.service
-             └─27981 /usr/bin/pm-webd
+     CGroup: /system.slice/distro-management-apid.service
+             └─27981 /usr/bin/distro-management-apid
 
-Dec 13 14:07:46 Zeus systemd[1]: pm-webd.service: Forked /usr/bin/pm-webd as 27981
-Dec 13 14:07:46 Zeus pm-webd[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="pm-webd: v0.1 (built go1.17.4)"
-Dec 13 14:07:46 Zeus systemd[1]: pm-webd.service: Changed dead -> running
-Dec 13 14:07:46 Zeus systemd[1]: pm-webd.service: Job 23713 pm-webd.service/start finished, result=done
+Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Forked /usr/bin/distro-management-apid as 27981
+Dec 13 14:07:46 Zeus distro-management-apid[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="distro-management-apid: v0.1 (built go1.17.4)"
+Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Changed dead -> running
+Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Job 23713 distro-management-apid.service/start finished, result=done
 Dec 13 14:07:46 Zeus systemd[1]: Started A REST API Microservice Gateway.
-Dec 13 14:07:46 Zeus systemd[27981]: pm-webd.service: Executing: /usr/bin/pm-webd
-Dec 13 14:07:46 Zeus pm-webd[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="Starting pm-webd server at unix domain socket='/run/pmwebd/pmwebd.sock' in HTTP mode"
+Dec 13 14:07:46 Zeus systemd[27981]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
+Dec 13 14:07:46 Zeus distro-management-apid[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/pmwebd/pmwebd.sock' in HTTP mode"
                                   
 ```
 
@@ -156,9 +156,9 @@ Dec 13 14:07:46 Zeus pm-webd[27981]: time="2021-12-13T14:07:46+05:30" level=info
 
 ##### Unix domain socket
 
-Any users added to the group pm-web, they are allowed to access the unix socket.
+Any users added to the group distro-management-api, they are allowed to access the unix socket.
 ```sh
-# usermod -a -G pm-web exampleusername
+# usermod -a -G distro-management-api exampleusername
 ```
 
 ##### Web users via pmctl
@@ -198,13 +198,13 @@ Country Name (2 letter code) [XX]:
 
 ```
 
-Place ```server.crt``` and ```server.key``` in the dir ```/etc/pm-web/tls```
+Place ```server.crt``` and ```server.key``` in the dir ```/etc/distro-management-api/tls```
 
 ```bash
 [root@Zeus tls]# ls
 server.crt  server.key
 [root@Zeus tls]# pwd
-/etc/pm-web/cert
+/etc/distro-management-api/cert
 
 ```
 
@@ -217,7 +217,7 @@ $ curl --header "X-Session-Token: secret" --request GET https://localhost:5208/a
 
 ## How to write your own plugin ?
 
-pm-webd is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
+distro-management-apid is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
 You can implement and incorporate application features very quickly. Because plug-ins are separate modules with well-defined interfaces,
 you can quickly isolate and solve problems. You can create custom versions of an application with minimal source code modifications.
 
@@ -238,9 +238,3 @@ License
 ----
 
 Apache 2.0
-
-
-[//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
-
-   [git-repo-url]: <https://github.com/api-routerd/api-routerd.git>
-

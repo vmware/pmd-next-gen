@@ -9,13 +9,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pm-web/pkg/web"
-	"github.com/pm-web/plugins/network/netlink/address"
-	"github.com/pm-web/plugins/network/netlink/link"
-	"github.com/pm-web/plugins/network/netlink/route"
-	"github.com/pm-web/plugins/network/networkd"
-	"github.com/pm-web/plugins/network/resolved"
-	"github.com/pm-web/plugins/network/timesyncd"
+	"github.com/distro-management-api/pkg/web"
+	"github.com/distro-management-api/plugins/network/netlink/address"
+	"github.com/distro-management-api/plugins/network/netlink/link"
+	"github.com/distro-management-api/plugins/network/netlink/route"
+	"github.com/distro-management-api/plugins/network/networkd"
+	"github.com/distro-management-api/plugins/network/resolved"
+	"github.com/distro-management-api/plugins/network/timesyncd"
 )
 
 type Describe struct {
