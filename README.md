@@ -97,7 +97,7 @@ A boolean. Specifies whether the server would listen on a unix domain socket `/r
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
-❯ sudo cat /etc/distro-management-api/pmweb.toml                                     
+❯ sudo cat /etc/distro-management-api/distro-management-api.toml
 [System]
 LogLevel="debug"
 UseAuthentication="false"
@@ -125,31 +125,31 @@ Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Changed dead ->
 Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Job 23713 distro-management-apid.service/start finished, result=done
 Dec 13 14:07:46 Zeus systemd[1]: Started A REST API Microservice Gateway.
 Dec 13 14:07:46 Zeus systemd[27981]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
-Dec 13 14:07:46 Zeus distro-management-apid[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/pmwebd/pmwebd.sock' in HTTP mode"
-                                  
+Dec 13 14:07:46 Zeus distro-management-apid[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/distro-management-apid/distro-management-apid.sock' in HTTP mode"
+
 ```
 
-#### pmctl
+#### dmctl
 ----
 
-`pmctl` is a CLI tool allows to view system/service status.
+`dmctl` is a CLI tool allows to view system/service status.
 
 ```bash
-❯ pmctl service status nginx.service
-                  Name: nginx.service 
-           Description: The nginx HTTP and reverse proxy server 
-               MainPid: 45732 
-             LoadState: loaded 
-           ActiveState: active 
-              SubState: running 
-         UnitFileState: disabled 
-  StateChangeTimeStamp: Sun Oct 31 12:02:02 IST 2021 
-  ActiveEnterTimestamp: Sun Oct 31 12:02:02 IST 2021 
- InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021 
-   ActiveExitTimestamp: 0 
- InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021 
+❯ dmctl service status nginx.service
+                  Name: nginx.service
+           Description: The nginx HTTP and reverse proxy server
+               MainPid: 45732
+             LoadState: loaded
+           ActiveState: active
+              SubState: running
+         UnitFileState: disabled
+  StateChangeTimeStamp: Sun Oct 31 12:02:02 IST 2021
+  ActiveEnterTimestamp: Sun Oct 31 12:02:02 IST 2021
+ InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
+   ActiveExitTimestamp: 0
+ InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
                 Active: active (running) since Sun Oct 31 12:02:02 IST 2021
- 
+
 ```
 
 ### How to configure users ?
@@ -161,11 +161,11 @@ Any users added to the group distro-management-api, they are allowed to access t
 # usermod -a -G distro-management-api exampleusername
 ```
 
-##### Web users via pmctl
+##### Web users via dmctl
 
 Export the token key to the enviroment as below
 ```
-❯ export PM_WEB_AUTH_TOKEN=secret
+❯ export DM_WEB_AUTH_TOKEN=secret
 ```
 
 ### How to configure TLS ?

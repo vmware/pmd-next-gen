@@ -98,7 +98,7 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 }
 
 func BuildAuthTokenFromEnv() (map[string]string, error) {
-	token := os.Getenv("PM_WEB_AUTH_TOKEN")
+	token := os.Getenv("DM_WEB_AUTH_TOKEN")
 	if token == "" {
 		return nil, errors.New("authentication token not found")
 	}
