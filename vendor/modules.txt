@@ -1,5 +1,5 @@
-# github.com/StackExchange/wmi v1.2.1
-## explicit; go 1.13
+# github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
+## explicit
 github.com/StackExchange/wmi
 # github.com/coreos/go-systemd/v22 v22.3.2
 ## explicit; go 1.12
@@ -16,14 +16,14 @@ github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
 ## explicit
 github.com/ghodss/yaml
-# github.com/go-ini/ini v1.63.2
+# github.com/go-ini/ini v1.66.2
 ## explicit
 github.com/go-ini/ini
-# github.com/go-ole/go-ole v1.2.5
+# github.com/go-ole/go-ole v1.2.6
 ## explicit; go 1.12
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/godbus/dbus/v5 v5.0.4
+# github.com/godbus/dbus/v5 v5.0.6
 ## explicit; go 1.12
 github.com/godbus/dbus/v5
 # github.com/gorilla/mux v1.8.0
@@ -67,6 +67,9 @@ github.com/jaypipes/ghw/pkg/util
 # github.com/jaypipes/pcidb v0.6.0
 ## explicit; go 1.11
 github.com/jaypipes/pcidb
+# github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0
+## explicit; go 1.16
+github.com/lufia/plan9stats
 # github.com/magiconair/properties v1.8.5
 ## explicit; go 1.13
 github.com/magiconair/properties
@@ -79,7 +82,7 @@ github.com/mattn/go-isatty
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/mapstructure v1.4.2
+# github.com/mitchellh/mapstructure v1.4.3
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
 # github.com/pelletier/go-toml v1.9.4
@@ -88,10 +91,13 @@ github.com/pelletier/go-toml
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
+# github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c
+## explicit; go 1.14
+github.com/power-devops/perfstat
 # github.com/russross/blackfriday/v2 v2.0.1
 ## explicit
 github.com/russross/blackfriday/v2
-# github.com/shirou/gopsutil/v3 v3.21.9
+# github.com/shirou/gopsutil/v3 v3.21.11
 ## explicit; go 1.15
 github.com/shirou/gopsutil/v3/cpu
 github.com/shirou/gopsutil/v3/disk
@@ -120,8 +126,8 @@ github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/spf13/viper v1.9.0
-## explicit; go 1.12
+# github.com/spf13/viper v1.10.1
+## explicit; go 1.17
 github.com/spf13/viper
 github.com/spf13/viper/internal/encoding
 github.com/spf13/viper/internal/encoding/hcl
@@ -150,16 +156,19 @@ github.com/vishvananda/netlink/nl
 # github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df
 ## explicit; go 1.12
 github.com/vishvananda/netns
-# golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6
+# github.com/yusufpapurcu/wmi v1.2.2
+## explicit; go 1.16
+github.com/yusufpapurcu/wmi
+# golang.org/x/sys v0.0.0-20211210111614-af8b64212486
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.6
-## explicit; go 1.11
+# golang.org/x/text v0.3.7
+## explicit; go 1.17
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
-# gopkg.in/ini.v1 v1.64.0
+# gopkg.in/ini.v1 v1.66.2
 ## explicit
 gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.4.0
