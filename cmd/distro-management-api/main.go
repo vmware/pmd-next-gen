@@ -22,8 +22,6 @@ func main() {
 
 	log.Infof("distro-management-apid: v%s (built %s)", conf.Version, runtime.Version())
 
-	runtime.LockOSThread()
-
 	cred, err := system.GetUserCredentials("")
 	if err != nil {
 		log.Warningf("Failed to get current user credentials: %+v", err)

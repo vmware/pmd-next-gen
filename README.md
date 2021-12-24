@@ -108,28 +108,27 @@ ListenUnixSocket="true"
 
 ```bash
 ❯ sudo systemctl status distro-management-apid.service
-● distro-management-apid.service - A REST API Microservice Gateway
+● distro-management-apid.service - A REST API based configuration management microservice gateway
      Loaded: loaded (/usr/lib/systemd/system/distro-management-apid.service; disabled; vendor preset: disabled)
-     Active: active (running) since Thu 2021-12-23 14:10:08 IST; 1 day 4h ago
+     Active: active (running) since Fri 2021-12-24 18:51:29 IST; 5s ago
        Docs: man:distro-management-apid.conf(5)
-   Main PID: 488763 (distro-manageme)
-      Tasks: 9 (limit: 15473)
-     Memory: 3.9M
-        CPU: 33ms
+   Main PID: 559287 (distro-manageme)
+      Tasks: 6 (limit: 15473)
+     Memory: 2.9M
+        CPU: 9ms
      CGroup: /system.slice/distro-management-apid.service
-             └─488763 /usr/bin/distro-management-apid
+             └─559287 /usr/bin/distro-management-apid
 
-Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Passing 0 fds to service
-Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: About to execute /usr/bin/distro-management-apid
-Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Forked /usr/bin/distro-management-apid as 488763
-Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Changed failed -> running
-Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Job 232649 distro-management-apid.service/start finished, result=done
-Dec 23 14:10:08 Zeus systemd[1]: Started A REST API Microservice Gateway.
-Dec 23 14:10:08 Zeus systemd[488763]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
-Dec 23 14:10:08 Zeus distro-management-apid[488763]: time="2021-12-23T14:10:08+05:30" level=info msg="distro-management-apid: v0.1 (built go1.18beta1)"
-Dec 23 14:10:08 Zeus distro-management-apid[488763]: time="2021-12-23T14:10:08+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/distro-ma>
-lines 1-20/20 (END)
-
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Consumed 37ms CPU time.
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Control group is empty.
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Passing 0 fds to service
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: About to execute /usr/bin/distro-management-apid
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Forked /usr/bin/distro-management-apid as 559287
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Changed failed -> running
+Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Job 255260 distro-management-apid.service/start finished, result=done
+Dec 24 18:51:29 Zeus systemd[1]: Started A REST API based configuration management microservice gateway.
+Dec 24 18:51:29 Zeus distro-management-apid[559287]: time="2021-12-24T18:51:29+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/distro-ma>
+Dec 24 18:51:29 Zeus systemd[559287]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
 
 ```
 

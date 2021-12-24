@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [Unit]
-Description=A REST API Microservice Gateway
+Description=A REST API based configuration management microservice gateway
 Documentation=man:distro-management-apid.conf(5)
 After=network.target
 
