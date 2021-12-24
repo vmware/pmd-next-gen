@@ -1,7 +1,7 @@
 ## distro-management-apid
 
 
-distro-management-apid is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture.It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
+distro-management-apid is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
   distro-management-apid saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
@@ -110,22 +110,26 @@ ListenUnixSocket="true"
 ❯ sudo systemctl status distro-management-apid.service
 ● distro-management-apid.service - A REST API Microservice Gateway
      Loaded: loaded (/usr/lib/systemd/system/distro-management-apid.service; disabled; vendor preset: disabled)
-     Active: active (running) since Mon 2021-12-13 14:07:46 IST; 22s ago
+     Active: active (running) since Thu 2021-12-23 14:10:08 IST; 1 day 4h ago
        Docs: man:distro-management-apid.conf(5)
-   Main PID: 27981 (distro-management-apid)
-      Tasks: 6 (limit: 15473)
-     Memory: 2.1M
-        CPU: 8ms
+   Main PID: 488763 (distro-manageme)
+      Tasks: 9 (limit: 15473)
+     Memory: 3.9M
+        CPU: 33ms
      CGroup: /system.slice/distro-management-apid.service
-             └─27981 /usr/bin/distro-management-apid
+             └─488763 /usr/bin/distro-management-apid
 
-Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Forked /usr/bin/distro-management-apid as 27981
-Dec 13 14:07:46 Zeus distro-management-apid[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="distro-management-apid: v0.1 (built go1.17.4)"
-Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Changed dead -> running
-Dec 13 14:07:46 Zeus systemd[1]: distro-management-apid.service: Job 23713 distro-management-apid.service/start finished, result=done
-Dec 13 14:07:46 Zeus systemd[1]: Started A REST API Microservice Gateway.
-Dec 13 14:07:46 Zeus systemd[27981]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
-Dec 13 14:07:46 Zeus distro-management-apid[27981]: time="2021-12-13T14:07:46+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/distro-management-apid/distro-management-apid.sock' in HTTP mode"
+Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Passing 0 fds to service
+Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: About to execute /usr/bin/distro-management-apid
+Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Forked /usr/bin/distro-management-apid as 488763
+Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Changed failed -> running
+Dec 23 14:10:08 Zeus systemd[1]: distro-management-apid.service: Job 232649 distro-management-apid.service/start finished, result=done
+Dec 23 14:10:08 Zeus systemd[1]: Started A REST API Microservice Gateway.
+Dec 23 14:10:08 Zeus systemd[488763]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
+Dec 23 14:10:08 Zeus distro-management-apid[488763]: time="2021-12-23T14:10:08+05:30" level=info msg="distro-management-apid: v0.1 (built go1.18beta1)"
+Dec 23 14:10:08 Zeus distro-management-apid[488763]: time="2021-12-23T14:10:08+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/distro-ma>
+lines 1-20/20 (END)
+
 
 ```
 
