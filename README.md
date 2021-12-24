@@ -135,7 +135,7 @@ Dec 24 18:51:29 Zeus systemd[559287]: distro-management-apid.service: Executing:
 #### dmctl
 ----
 
-`dmctl` is a CLI tool allows to view system/service status.
+`dmctl` is a CLI tool allows to view and configure system/network/service status.
 
 ```bash
 ❯ dmctl service status nginx.service
@@ -153,6 +153,60 @@ Dec 24 18:51:29 Zeus systemd[559287]: distro-management-apid.service: Executing:
  InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
                 Active: active (running) since Sun Oct 31 12:02:02 IST 2021
 
+```
+
+
+```bash
+❯ dmctl status  system
+              System Name: Zeus
+                   Kernel: Linux (5.14.0-0.rc7.54.fc36.x86_64) #1 SMP Mon Aug 23 13:55:32 UTC 2021
+                  Chassis: vm
+           Hardware Model: VMware Virtual Platform
+          Hardware Vendor: VMware, Inc.
+             Product UUID: a3c14d56298489d2ebe15c6f105fd139
+         Operating System: Fedora Linux 36 (Workstation Edition Prerelease)
+Operating System Home URL: https://fedoraproject.org/
+          Systemd Version: v250~rc1-3.fc36
+             Architecture: x86-64
+           Virtualization: vmware
+            Network State: routable (carrier)
+     Network Online State: online
+                      DNS: 172.16.130.2
+                  Address: 172.16.130.132/24 on link ens33
+                           172.16.130.131/24 on link ens33
+                           fe80::3279:c56d:55f9:aed7/64 on link ens33
+                           172.16.130.138/24 on link ens37
+                  Gateway: 172.16.130.2 on link ens37
+                           172.16.130.2 on link ens33
+                   Uptime: Running Since (2 days, 3 hours, 8 minutes) Booted (Wed Dec 22 15:57:24 IST 2021) Users (9) Proc (284)
+                   Memory: Total (13564788736) Used (13564788736) Free (589791232) Available (9723891712)
+```
+
+
+```
+❯ dmctl status network -i ens33
+             Name: ens33
+Alternative Names: enp2s1
+            Index: 2
+        Link File: /usr/lib/systemd/network/99-default.link
+     Network File: /etc/systemd/network/10-ens33.network
+             Type: ether
+            State: routable (configured)
+           Driver: e1000
+           Vendor: Intel Corporation
+            Model: 82545EM Gigabit Ethernet Controller (Copper) (PRO/1000 MT Single Port Adapter)
+             Path: pci-0000:02:01.0
+    Carrier State: carrier
+     Online State: online
+IPv4Address State: routable
+IPv6Address State: degraded
+       HW Address: 00:0c:29:5f:d1:39
+              MTU: 1500
+        OperState: up
+            Flags: up|broadcast|multicast
+        Addresses: 172.16.130.132/24 172.16.130.131/24 fe80::3279:c56d:55f9:aed7/64
+          Gateway: 172.16.130.2
+              DNS: 172.16.130.2
 ```
 
 ### How to configure users ?
