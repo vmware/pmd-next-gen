@@ -1,10 +1,10 @@
 ## photon-mgmtd
 
 
-photon-mgmtd is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
+`photon-mgmtd` is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
-  photon-mgmtd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
+  `photon-mgmtd` saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
 - Platform independent REST APIs can be accessed via any application (curl, chrome, PostMan ...) from any OS (Linux, IOS, Android, Windows ...)
 - Minimal data transfer using JSON.
 - Plugin based Architechture. See how to write plugin section for more information.
@@ -110,25 +110,23 @@ ListenUnixSocket="true"
 ❯ sudo systemctl status photon-mgmtd.service
 ● photon-mgmtd.service - A REST API based configuration management microservice gateway
      Loaded: loaded (/usr/lib/systemd/system/photon-mgmtd.service; disabled; vendor preset: disabled)
-     Active: active (running) since Fri 2021-12-24 18:51:29 IST; 5s ago
-   Main PID: 559287 (photon-mgmt)
+     Active: active (running) since Thu 2022-01-06 16:32:19 IST; 4s ago
+   Main PID: 230041 (photon-mgmtd)
       Tasks: 6 (limit: 15473)
      Memory: 2.9M
-        CPU: 9ms
+        CPU: 7ms
      CGroup: /system.slice/photon-mgmtd.service
-             └─559287 /usr/bin/photon-mgmtd
+             └─230041 /usr/bin/photon-mgmtd
 
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Consumed 37ms CPU time.
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Control group is empty.
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Passing 0 fds to service
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: About to execute /usr/bin/photon-mgmtd
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Forked /usr/bin/photon-mgmtd as 559287
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Changed failed -> running
-Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Job 255260 photon-mgmtd.service/start finished, result=done
-Dec 24 18:51:29 Zeus systemd[1]: Started A REST API based configuration management microservice gateway.
-Dec 24 18:51:29 Zeus photon-mgmtd[559287]: time="2021-12-24T18:51:29+05:30" level=info msg="Starting photon-mgmtd server at unix domain socket='/run/distro-ma>
-Dec 24 18:51:29 Zeus systemd[559287]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
-
+Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Passing 0 fds to service
+Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: About to execute /usr/bin/photon-mgmtd
+Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Forked /usr/bin/photon-mgmtd as 230041
+Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Changed failed -> running
+Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Job 56328 photon-mgmtd.service/start finished, result=done
+Jan 06 16:32:19 Zeus systemd[1]: Started photon-mgmtd.service - A REST API based configuration management microservice gateway.
+Jan 06 16:32:19 Zeus systemd[230041]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
+Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" level=info msg="photon-mgmtd: v0.1 (built go1.18beta1)"
+Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" level=info msg="Starting photon-mgmtd... Listening on unix domain socket='/run/photon-mgmt/photon-mgmt>
 ```
 
 #### pmctl
@@ -162,10 +160,10 @@ Dec 24 18:51:29 Zeus systemd[559287]: photon-mgmtd.service: Executing: /usr/bin/
                   Chassis: vm
            Hardware Model: VMware Virtual Platform
           Hardware Vendor: VMware, Inc.
-             Product UUID: a3c14d56298489d2ebe15c6f105fd139
-         Operating System: Fedora Linux 36 (Workstation Edition Prerelease)
-Operating System Home URL: https://fedoraproject.org/
-          Systemd Version: v250~rc1-3.fc36
+             Product UUID: 979e4d56b63718b18534e112e64cb18
+         Operating System: VMware Photon OS/Linux
+Operating System Home URL: https://vmware.github.io/photon/
+          Systemd Version: v247.10-3.ph4
              Architecture: x86-64
            Virtualization: vmware
             Network State: routable (carrier)
@@ -221,7 +219,7 @@ Any users added to the group photon-mgmt, they are allowed to access the unix so
 
 Export the token key to the enviroment as below
 ```
-❯ export DM_WEB_AUTH_TOKEN=secret
+❯ export PHOTON_MGMT_AUTH_TOKEN=secret
 ```
 
 ### How to configure TLS ?
