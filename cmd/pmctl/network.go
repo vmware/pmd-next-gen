@@ -11,15 +11,15 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/distro-management-api/pkg/share"
-	"github.com/distro-management-api/pkg/web"
-	"github.com/distro-management-api/plugins/network"
-	"github.com/distro-management-api/plugins/network/netlink/address"
-	"github.com/distro-management-api/plugins/network/netlink/link"
-	"github.com/distro-management-api/plugins/network/netlink/route"
-	"github.com/distro-management-api/plugins/network/networkd"
-	"github.com/distro-management-api/plugins/network/resolved"
-	"github.com/distro-management-api/plugins/network/timesyncd"
+	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/web"
+	"github.com/pmd-nextgen/plugins/network"
+	"github.com/pmd-nextgen/plugins/network/netlink/address"
+	"github.com/pmd-nextgen/plugins/network/netlink/link"
+	"github.com/pmd-nextgen/plugins/network/netlink/route"
+	"github.com/pmd-nextgen/plugins/network/networkd"
+	"github.com/pmd-nextgen/plugins/network/resolved"
+	"github.com/pmd-nextgen/plugins/network/timesyncd"
 	"github.com/shirou/gopsutil/v3/net"
 )
 
@@ -203,8 +203,6 @@ func displayNetworkStatus(ifName string, network *network.Describe) {
 			if len(network.Dns) > 0 {
 				displayOneLinkDnsAndDomains(link.Name, network.Dns, network.Domains)
 			}
-
-			displayOneLinkNTP(link.Name, network.NTP)
 		}
 
 		fmt.Printf("\n")

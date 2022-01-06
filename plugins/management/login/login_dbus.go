@@ -9,7 +9,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 
-	"github.com/distro-management-api/pkg/bus"
+	"github.com/pmd-nextgen/pkg/bus"
 )
 
 const (

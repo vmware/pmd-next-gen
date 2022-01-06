@@ -1,10 +1,10 @@
-## distro-management-apid
+## photon-mgmtd
 
 
-distro-management-apid is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
+photon-mgmtd is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
-  distro-management-apid saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
+  photon-mgmtd saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
 - Platform independent REST APIs can be accessed via any application (curl, chrome, PostMan ...) from any OS (Linux, IOS, Android, Windows ...)
 - Minimal data transfer using JSON.
 - Plugin based Architechture. See how to write plugin section for more information.
@@ -19,7 +19,7 @@ see information from ```/proc``` fs| netstat, netdev, memory and much more
 
 ### Dependencies
 
-distro-management-apid uses a following open source projects to work properly:
+photon-mgmtd uses a following open source projects to work properly:
 
 * [logrus](https://github.com/sirupsen/logrus)
 * [gorilla mux](https://github.com/gorilla/mux)
@@ -62,17 +62,17 @@ $ pwd
 ❯ sudo make install
 ```
 
-Due to security `distro-management-apid` runs in non root user `distro-management-api`. It drops all privileges except `CAP_NET_ADMIN` and `CAP_SYS_ADMIN`.
+Due to security `photon-mgmtd` runs in non root user `photon-mgmt`. It drops all privileges except `CAP_NET_ADMIN` and `CAP_SYS_ADMIN`.
 
 ```bash
 
-❯  useradd -M -s /usr/bin/nologin distro-management-api
+❯  useradd -M -s /usr/bin/nologin photon-mgmt
 ```
 
 #### Configuration
 ----
 
-Configuration file `distro-management-api.toml` located in `/etc/distro-management-api/` directory to manage the configuration.
+Configuration file `photon-mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
 
 The `[System]` section takes following Keys:
 
@@ -93,11 +93,11 @@ Specifies the IP address and port which the REST API server will listen to. When
 
 `ListenUnixSocket=`
 
-A boolean. Specifies whether the server would listen on a unix domain socket `/run/distro-management-api/distro-management-api.sock`. Defaults to `true`.
+A boolean. Specifies whether the server would listen on a unix domain socket `/run/photon-mgmt/photon-mgmt.sock`. Defaults to `true`.
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
-❯ sudo cat /etc/distro-management-api/distro-management-api.toml
+❯ sudo cat /etc/photon-mgmt/photon-mgmt.toml
 [System]
 LogLevel="debug"
 UseAuthentication="false"
@@ -107,38 +107,37 @@ ListenUnixSocket="true"
 ```
 
 ```bash
-❯ sudo systemctl status distro-management-apid.service
-● distro-management-apid.service - A REST API based configuration management microservice gateway
-     Loaded: loaded (/usr/lib/systemd/system/distro-management-apid.service; disabled; vendor preset: disabled)
+❯ sudo systemctl status photon-mgmtd.service
+● photon-mgmtd.service - A REST API based configuration management microservice gateway
+     Loaded: loaded (/usr/lib/systemd/system/photon-mgmtd.service; disabled; vendor preset: disabled)
      Active: active (running) since Fri 2021-12-24 18:51:29 IST; 5s ago
-       Docs: man:distro-management-apid.conf(5)
-   Main PID: 559287 (distro-manageme)
+   Main PID: 559287 (photon-mgmt)
       Tasks: 6 (limit: 15473)
      Memory: 2.9M
         CPU: 9ms
-     CGroup: /system.slice/distro-management-apid.service
-             └─559287 /usr/bin/distro-management-apid
+     CGroup: /system.slice/photon-mgmtd.service
+             └─559287 /usr/bin/photon-mgmtd
 
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Consumed 37ms CPU time.
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Control group is empty.
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Passing 0 fds to service
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: About to execute /usr/bin/distro-management-apid
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Forked /usr/bin/distro-management-apid as 559287
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Changed failed -> running
-Dec 24 18:51:29 Zeus systemd[1]: distro-management-apid.service: Job 255260 distro-management-apid.service/start finished, result=done
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Consumed 37ms CPU time.
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Control group is empty.
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Passing 0 fds to service
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: About to execute /usr/bin/photon-mgmtd
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Forked /usr/bin/photon-mgmtd as 559287
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Changed failed -> running
+Dec 24 18:51:29 Zeus systemd[1]: photon-mgmtd.service: Job 255260 photon-mgmtd.service/start finished, result=done
 Dec 24 18:51:29 Zeus systemd[1]: Started A REST API based configuration management microservice gateway.
-Dec 24 18:51:29 Zeus distro-management-apid[559287]: time="2021-12-24T18:51:29+05:30" level=info msg="Starting distro-management-apid server at unix domain socket='/run/distro-ma>
-Dec 24 18:51:29 Zeus systemd[559287]: distro-management-apid.service: Executing: /usr/bin/distro-management-apid
+Dec 24 18:51:29 Zeus photon-mgmtd[559287]: time="2021-12-24T18:51:29+05:30" level=info msg="Starting photon-mgmtd server at unix domain socket='/run/distro-ma>
+Dec 24 18:51:29 Zeus systemd[559287]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
 
 ```
 
-#### dmctl
+#### pmctl
 ----
 
-`dmctl` is a CLI tool allows to view and configure system/network/service status.
+`pmctl` is a CLI tool allows to view and configure system/network/service status.
 
 ```bash
-❯ dmctl service status nginx.service
+❯ pmctl service status nginx.service
                   Name: nginx.service
            Description: The nginx HTTP and reverse proxy server
                MainPid: 45732
@@ -157,7 +156,7 @@ Dec 24 18:51:29 Zeus systemd[559287]: distro-management-apid.service: Executing:
 
 
 ```bash
-❯ dmctl status  system
+❯ pmctl status  system
               System Name: Zeus
                    Kernel: Linux (5.14.0-0.rc7.54.fc36.x86_64) #1 SMP Mon Aug 23 13:55:32 UTC 2021
                   Chassis: vm
@@ -184,7 +183,7 @@ Operating System Home URL: https://fedoraproject.org/
 
 
 ```
-❯ dmctl status network -i ens33
+❯ pmctl status network -i ens33
              Name: ens33
 Alternative Names: enp2s1
             Index: 2
@@ -213,12 +212,12 @@ IPv6Address State: degraded
 
 ##### Unix domain socket
 
-Any users added to the group distro-management-api, they are allowed to access the unix socket.
+Any users added to the group photon-mgmt, they are allowed to access the unix socket.
 ```sh
-# usermod -a -G distro-management-api exampleusername
+# usermod -a -G photon-mgmt exampleusername
 ```
 
-##### Web users via dmctl
+##### Web users via pmctl
 
 Export the token key to the enviroment as below
 ```
@@ -255,13 +254,13 @@ Country Name (2 letter code) [XX]:
 
 ```
 
-Place ```server.crt``` and ```server.key``` in the dir ```/etc/distro-management-api/tls```
+Place ```server.crt``` and ```server.key``` in the dir ```/etc/photon-mgmt/tls```
 
 ```bash
 [root@Zeus tls]# ls
 server.crt  server.key
 [root@Zeus tls]# pwd
-/etc/distro-management-api/cert
+/etc/photon-mgmt/cert
 
 ```
 
@@ -274,7 +273,7 @@ $ curl --header "X-Session-Token: secret" --request GET https://localhost:5208/a
 
 ## How to write your own plugin ?
 
-distro-management-apid is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
+photon-mgmtd is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
 You can implement and incorporate application features very quickly. Because plug-ins are separate modules with well-defined interfaces,
 you can quickly isolate and solve problems. You can create custom versions of an application with minimal source code modifications.
 

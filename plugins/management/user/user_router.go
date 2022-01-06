@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 func routerAddUser(w http.ResponseWriter, r *http.Request) {

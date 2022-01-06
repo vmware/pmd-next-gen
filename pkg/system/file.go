@@ -13,7 +13,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/distro-management-api/pkg/conf"
+	"github.com/pmd-nextgen/pkg/conf"
 )
 
 func PathExists(path string) bool {
@@ -120,7 +120,7 @@ func TLSFilePathExits() bool {
 }
 
 func ChangeUnixDomainSocketPermission(file string) (err error) {
-	usr, err := user.Lookup("distro-management-api")
+	usr, err := user.Lookup("photon-mgmt")
 	if err != nil {
 		_, ok := err.(user.UnknownGroupError)
 		if !ok {

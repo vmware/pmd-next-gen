@@ -10,16 +10,15 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 
-	"github.com/distro-management-api/pkg/web"
-	"github.com/distro-management-api/plugins/management/group"
-	"github.com/distro-management-api/plugins/management/hostname"
-	"github.com/distro-management-api/plugins/management/login"
-	"github.com/distro-management-api/plugins/management/user"
-	"github.com/distro-management-api/plugins/network/netlink/address"
-	"github.com/distro-management-api/plugins/network/netlink/route"
-	"github.com/distro-management-api/plugins/network/networkd"
-	"github.com/distro-management-api/plugins/network/timesyncd"
-	"github.com/distro-management-api/plugins/systemd"
+	"github.com/pmd-nextgen/pkg/web"
+	"github.com/pmd-nextgen/plugins/management/group"
+	"github.com/pmd-nextgen/plugins/management/hostname"
+	"github.com/pmd-nextgen/plugins/management/login"
+	"github.com/pmd-nextgen/plugins/management/user"
+	"github.com/pmd-nextgen/plugins/network/netlink/address"
+	"github.com/pmd-nextgen/plugins/network/netlink/route"
+	"github.com/pmd-nextgen/plugins/network/networkd"
+	"github.com/pmd-nextgen/plugins/systemd"
 )
 
 type Describe struct {
@@ -29,7 +28,6 @@ type Describe struct {
 	LinksDescribe     *networkd.LinksDescribe   `json:"LinksDescribe"`
 	Addresses         []address.AddressInfo     `json:"Addresses"`
 	Routes            []route.RouteInfo         `json:"Routes"`
-	NTP               *timesyncd.NTPServer      `json:"NTP"`
 	HostInfo          *host.InfoStat            `json:"HostInfo"`
 	UserStat          []host.UserStat           `json:"UserStat"`
 	VirtualMemoryStat *mem.VirtualMemoryStat    `json:"VirtualMemoryStat"`
@@ -70,12 +68,6 @@ func routerDescribeSystem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.Routes, err = route.AcquireRoutes()
-	if err != nil {
-		web.JSONResponseError(err, w)
-		return
-	}
-
-	s.NTP, err = timesyncd.AcquireNTPServer("currentntpserver", r.Context())
 	if err != nil {
 		web.JSONResponseError(err, w)
 		return

@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/distro-management-api/pkg/web"
-	"github.com/distro-management-api/plugins/management/group"
-	"github.com/distro-management-api/plugins/management/user"
+	"github.com/pmd-nextgen/pkg/web"
+	"github.com/pmd-nextgen/plugins/management/group"
+	"github.com/pmd-nextgen/plugins/management/user"
 )
 
 func groupAdd(name string, gid string, host string, token map[string]string) {

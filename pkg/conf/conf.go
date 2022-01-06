@@ -6,13 +6,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/distro-management-api/pkg/share"
+	"github.com/pmd-nextgen/pkg/share"
 )
 
 const (
 	Version  = "0.1"
-	ConfPath = "/etc/distro-management-api"
-	ConfFile = "distro-management-api"
+	ConfPath = "/etc/photon-mgmt"
+	ConfFile = "photon-mgmt"
 	TLSCert  = "cert/server.crt"
 	TLSKey   = "cert/server.key"
 
@@ -23,7 +23,7 @@ const (
 	DefaultPort      = "5208"
 	ListenUnixSocket = "true"
 
-	UnixDomainSocketPath = "/run/distro-management-api/distro-management-api.sock"
+	UnixDomainSocketPath = "/run/photon-mgmt/photon-mgmt.sock"
 )
 
 type Config struct {

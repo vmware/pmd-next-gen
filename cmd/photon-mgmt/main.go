@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/distro-management-api/pkg/conf"
-	"github.com/distro-management-api/pkg/server"
-	"github.com/distro-management-api/pkg/system"
+	"github.com/pmd-nextgen/pkg/conf"
+	"github.com/pmd-nextgen/pkg/server"
+	"github.com/pmd-nextgen/pkg/system"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 		log.Errorf("Failed to parse conf file %s: %s", conf.ConfFile, err)
 	}
 
-	log.Infof("distro-management-apid: v%s (built %s)", conf.Version, runtime.Version())
+	log.Infof("photon-mgmtd: v%s (built %s)", conf.Version, runtime.Version())
 
 	cred, err := system.GetUserCredentials("")
 	if err != nil {
@@ -28,13 +28,13 @@ func main() {
 		os.Exit(1)
 	} else {
 		if cred.Uid == 0 {
-			u, err := system.GetUserCredentials("distro-management-api")
+			u, err := system.GetUserCredentials("photon-mgmt")
 			if err != nil {
-				log.Errorf("Failed to get user 'distro-management-api' credentials: %+v", err)
+				log.Errorf("Failed to get user 'photon-mgmt' credentials: %+v", err)
 				os.Exit(1)
 			} else {
-				if err := system.CreateStateDirs("/run/distro-management-api", int(u.Uid), int(u.Gid)); err != nil {
-					log.Errorf("Failed to create runtime dir '/run/distro-management-api': %+v", err)
+				if err := system.CreateStateDirs("/run/photon-mgmt", int(u.Uid), int(u.Gid)); err != nil {
+					log.Errorf("Failed to create runtime dir '/run/photon-mgmt': %+v", err)
 					os.Exit(1)
 				}
 
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	if err := server.Run(c); err != nil {
-		log.Fatalf("Failed to start distro-management-apid: %v", err)
+		log.Fatalf("Failed to start photon-mgmtd: %v", err)
 		os.Exit(1)
 	}
 }

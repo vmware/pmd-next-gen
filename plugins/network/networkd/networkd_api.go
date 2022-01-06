@@ -10,8 +10,8 @@ import (
 
 	"github.com/vishvananda/netlink"
 
-	"github.com/distro-management-api/pkg/configfile"
-	"github.com/distro-management-api/pkg/system"
+	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/system"
 )
 
 func ParseLinkString(ifindex int, key string) (string, error) {

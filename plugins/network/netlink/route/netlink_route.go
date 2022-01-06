@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/distro-management-api/pkg/share"
+	"github.com/pmd-nextgen/pkg/share"
 )
 
 type Route struct {
@@ -166,8 +166,10 @@ func (rt *Route) RemoveGateWay() error {
 func fillOneRoute(rt *netlink.Route) *RouteInfo {
 	link, err := netlink.LinkByIndex(rt.LinkIndex)
 	if err != nil {
+		log.Errorf("Failed to acquire link : %v", err)
 		return nil
 	}
+
 	route := RouteInfo{
 		LinkName:   link.Attrs().Name,
 		LinkIndex:  rt.LinkIndex,
@@ -207,7 +209,9 @@ func buildRouteList(routes []netlink.Route) []RouteInfo {
 	var rts []RouteInfo
 	for _, rt := range routes {
 		route := fillOneRoute(&rt)
-		rts = append(rts, *route)
+		if route != nil {
+			rts = append(rts, *route)
+		}
 	}
 
 	return rts

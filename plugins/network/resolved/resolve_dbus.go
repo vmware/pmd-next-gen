@@ -10,8 +10,8 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/vishvananda/netlink"
 
-	"github.com/distro-management-api/pkg/bus"
-	"github.com/distro-management-api/pkg/share"
+	"github.com/pmd-nextgen/pkg/bus"
+	"github.com/pmd-nextgen/pkg/share"
 )
 
 const (

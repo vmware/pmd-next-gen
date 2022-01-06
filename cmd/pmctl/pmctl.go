@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 func main() {

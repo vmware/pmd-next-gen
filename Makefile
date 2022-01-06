@@ -10,7 +10,7 @@ SRCDIR ?= .
 help:
 	@echo "make [TARGETS...]"
 	@echo
-	@echo "This is the maintenance makefile of distro-management-api. The following"
+	@echo "This is the maintenance makefile of photon-mgmtd. The following"
 	@echo "targets are available:"
 	@echo
 	@echo "    help:               Print this usage information."
@@ -27,19 +27,19 @@ $(BUILDDIR)/%/:
 .PHONY: build
 build:
 	- mkdir -p bin
-	go build -buildmode=pie -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/distro-management-apid ./cmd/distro-management-api
-	go build -buildmode=pie -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/dmctl ./cmd/dmctl
+	go build -buildmode=pie -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/photon-mgmtd ./cmd/photon-mgmt
+	go build -buildmode=pie -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/pmctl ./cmd/pmctl
 
 .PHONY: install
 install:
-	install bin/distro-management-apid /usr/bin/
-	install bin/dmctl /usr/bin/
+	install bin/photon-mgmtd /usr/bin/
+	install bin/pmctl /usr/bin/
 
-	install -vdm 755 /etc/distro-management-api
-	install -m 755 conf/distro-management-api.toml /etc/distro-management-api
-	install -m 755 conf/distro-management-api-auth.conf /etc/distro-management-api
+	install -vdm 755 /etc/photon-mgmt
+	install -m 755 conf/photon-mgmt.toml /etc/photon-mgmt
+	install -m 755 conf/photon-mgmt-auth.conf /etc/photon-mgmt
 
-	install -m 0644 units/distro-management-apid.service /lib/systemd/system/
+	install -m 0644 units/photon-mgmtd.service /lib/systemd/system/
 	systemctl daemon-reload
 
 PHONY: clean

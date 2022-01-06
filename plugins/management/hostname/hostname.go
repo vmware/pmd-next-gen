@@ -9,7 +9,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 type Hostname struct {

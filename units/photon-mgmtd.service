@@ -2,11 +2,10 @@
 
 [Unit]
 Description=A REST API based configuration management microservice gateway
-Documentation=man:distro-management-apid.conf(5)
 After=network.target
 
 [Service]
-ExecStart=!!/usr/bin/distro-management-apid
+ExecStart=!!/usr/bin/photon-mgmtd
 Restart=always
 
 [Install]

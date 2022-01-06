@@ -1,4 +1,4 @@
-module github.com/distro-management-api
+module github.com/pmd-nextgen
 
 go 1.18
 
@@ -10,13 +10,13 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jaypipes/ghw v0.8.0
 	github.com/pkg/errors v0.9.1
-	github.com/shirou/gopsutil/v3 v3.21.11
+	github.com/shirou/gopsutil/v3 v3.21.12
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.10.1
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/vishvananda/netlink v1.1.0
-	golang.org/x/sys v0.0.0-20211210111614-af8b64212486
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 )
 
 require (

@@ -14,8 +14,8 @@ import (
 	sd "github.com/coreos/go-systemd/v22/dbus"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/distro-management-api/pkg/system"
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/system"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 type UnitAction struct {

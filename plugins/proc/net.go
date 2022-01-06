@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/distro-management-api/pkg/system"
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/system"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 const (

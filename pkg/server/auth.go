@@ -12,13 +12,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/distro-management-api/pkg/share"
-	"github.com/distro-management-api/pkg/system"
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/system"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 const (
-	authConfPath = "/etc/distro-management-api/pmweb-auth.conf"
+	authConfPath = "/etc/photon-mgmt/photon-mgmt-auth.conf"
 )
 
 type TokenDB struct {
@@ -59,9 +59,9 @@ func InitAuthMiddleware() (TokenDB, error) {
 
 func authenticateLocalUser(credentials *unix.Ucred) error {
 	if credentials.Uid != 0 {
-		pmUser, err := system.GetUserCredentials("distro-management-api")
+		pmUser, err := system.GetUserCredentials("pmd-nextgen")
 		if err != nil {
-			log.Infof("Failed to get user 'distro-management-api' credentials: %+v", err)
+			log.Infof("Failed to get user 'pmd-nextgen' credentials: %+v", err)
 			return err
 		}
 
@@ -69,7 +69,7 @@ func authenticateLocalUser(credentials *unix.Ucred) error {
 
 		groups, _ := u.GroupIds()
 		if !share.StringContains(groups, strconv.Itoa(int(pmUser.Gid))) {
-			return errors.New("user's gid not same as distro-management-api's gid")
+			return errors.New("user's gid not same as pmd-nextgen's gid")
 		}
 
 		log.Debugf("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)

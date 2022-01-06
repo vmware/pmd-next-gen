@@ -14,8 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/distro-management-api/pkg/configfile"
-	"github.com/distro-management-api/pkg/web"
+	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/web"
 )
 
 type MatchSection struct {

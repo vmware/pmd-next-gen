@@ -10,13 +10,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/distro-management-api/pkg/web"
-	"github.com/distro-management-api/plugins/network/netlink/address"
-	"github.com/distro-management-api/plugins/network/netlink/link"
-	"github.com/distro-management-api/plugins/network/netlink/route"
-	"github.com/distro-management-api/plugins/network/networkd"
-	"github.com/distro-management-api/plugins/network/resolved"
-	"github.com/distro-management-api/plugins/network/timesyncd"
+	"github.com/pmd-nextgen/pkg/web"
+	"github.com/pmd-nextgen/plugins/network/netlink/address"
+	"github.com/pmd-nextgen/plugins/network/netlink/link"
+	"github.com/pmd-nextgen/plugins/network/netlink/route"
+	"github.com/pmd-nextgen/plugins/network/networkd"
+	"github.com/pmd-nextgen/plugins/network/resolved"
+	"github.com/pmd-nextgen/plugins/network/timesyncd"
 )
 
 type Describe struct {
@@ -27,7 +27,6 @@ type Describe struct {
 	Routes          []route.RouteInfo         `json:"Routes"`
 	Dns             []resolved.Dns            `json:"Dns"`
 	Domains         []resolved.Domains        `json:"Domains"`
-	NTP             *timesyncd.NTPServer      `json:"NTP"`
 }
 
 func routerDescribeNetwork(w http.ResponseWriter, r *http.Request) {
@@ -79,13 +78,6 @@ func routerDescribeNetwork(w http.ResponseWriter, r *http.Request) {
 	n.Domains, err = resolved.AcquireDomains(r.Context())
 	if err != nil {
 		log.Errorf("Failed to acquire domains from systemd-resolved: %v", err)
-		web.JSONResponseError(err, w)
-		return
-	}
-
-	n.NTP, err = timesyncd.AcquireNTPServer("linkntpservers", r.Context())
-	if err != nil {
-		log.Errorf("Failed to acquire NTP servers from systemd-timesyncd: %v", err)
 		web.JSONResponseError(err, w)
 		return
 	}
