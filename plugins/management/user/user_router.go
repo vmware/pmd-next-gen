@@ -48,10 +48,18 @@ func routerRemoveUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routerViewUsers(w http.ResponseWriter, r *http.Request) {
+	u := User{}
+	if err := u.View(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func RegisterRouterUser(router *mux.Router) {
 	s := router.PathPrefix("/user").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/add", routerAddUser).Methods("POST")
 	s.HandleFunc("/remove", routerRemoveUser).Methods("DELETE")
 	s.HandleFunc("/modify", routerModifyUser).Methods("PUT")
+	s.HandleFunc("/view", routerViewUsers).Methods("GET")
 }

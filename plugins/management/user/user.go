@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path"
+	"strings"
 	"syscall"
 
 	log "github.com/sirupsen/logrus"
@@ -19,7 +20,8 @@ import (
 )
 
 const (
-	userFile = "/run/photon-mgmt/users"
+	userFile     = "/run/photon-mgmt/users"
+	userInfoPath = "/etc/passwd"
 )
 
 type User struct {
@@ -31,6 +33,36 @@ type User struct {
 	Shell         string   `json:"Shell"`
 	Name          string   `json:"Name"`
 	Password      string   `json:"Password"`
+}
+
+// Read /etc/passwd file and prepare userInfoList.
+func readAndCreateUserInfoList() ([]User, error) {
+	var userInfoList []User
+	lines, err := system.ReadFullFile(userInfoPath)
+	if err != nil {
+		return userInfoList, fmt.Errorf("Failed to %v", err)
+	}
+
+	for _, line := range lines {
+		userInfo := strings.FieldsFunc(line, func(delim rune) bool {
+			return delim == ':'
+		})
+
+		if len(userInfo) > 0 {
+			var u User
+			u.Name = userInfo[0]
+			u.Uid = userInfo[2]
+			u.Gid = userInfo[3]
+			if len(userInfo) == 6 {
+				u.HomeDirectory = userInfo[4]
+			} else {
+				u.HomeDirectory = userInfo[5]
+			}
+			userInfoList = append(userInfoList, u)
+		}
+	}
+
+	return userInfoList, err
 }
 
 func (u *User) update() error {
@@ -118,4 +150,14 @@ func (u *User) Modify(w http.ResponseWriter) error {
 	}
 
 	return web.JSONResponse("user modified", w)
+}
+
+func (u *User) View(w http.ResponseWriter) error {
+	userInfoList, err := readAndCreateUserInfoList()
+	if err != nil {
+		log.Errorf("Failed to get user info from '%s' : (%v)", userInfoPath, err)
+		return fmt.Errorf("(%v)", err)
+	}
+
+	return web.JSONResponse(userInfoList, w)
 }

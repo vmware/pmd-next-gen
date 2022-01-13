@@ -48,10 +48,22 @@ func routerGroupRemove(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routerGroupView(w http.ResponseWriter, r *http.Request) {
+	g := Group{
+		Name: mux.Vars(r)["groupname"],
+	}
+
+	if err := g.GroupView(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func RegisterRouterGroup(router *mux.Router) {
 	s := router.PathPrefix("/group").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/add", routerGroupAdd).Methods("POST")
 	s.HandleFunc("/remove", routerGroupRemove).Methods("DELETE")
 	s.HandleFunc("/modify", routerGroupModify).Methods("PUT")
+	s.HandleFunc("/view", routerGroupView).Methods("GET")
+	s.HandleFunc("/view/{groupname}", routerGroupView).Methods("GET")
 }
