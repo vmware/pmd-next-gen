@@ -25,7 +25,7 @@ func main() {
 	}
 
 	app := &cli.App{
-		Name:    "dmctl",
+		Name:    "pmctl",
 		Version: "v0.1",
 		Usage:   "Introspects and controls the system",
 	}
