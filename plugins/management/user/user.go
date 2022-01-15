@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	userFile = "/run/pmwebd/users"
+	userFile = "/run/photon-mgmt/users"
 )
 
 type User struct {
