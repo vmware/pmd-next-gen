@@ -49,15 +49,20 @@ func readAndCreateUserInfoList() ([]User, error) {
 		})
 
 		if len(userInfo) > 0 {
-			var u User
-			u.Name = userInfo[0]
-			u.Uid = userInfo[2]
-			u.Gid = userInfo[3]
-			if len(userInfo) == 6 {
-				u.HomeDirectory = userInfo[4]
-			} else {
-				u.HomeDirectory = userInfo[5]
+			usr, err := user.Lookup(userInfo[0])
+			if err != nil {
+				log.Debug("Failed to find user='%s': %v", userInfo[0], err )
+				continue
 			}
+
+			u := User{
+				Name: usr.Name,
+				Uid:  usr.Uid,
+				Gid:  usr.Gid,
+				HomeDirectory: usr.HomeDir,
+
+			}
+
 			userInfoList = append(userInfoList, u)
 		}
 	}
