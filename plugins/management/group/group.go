@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os/user"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -14,10 +15,38 @@ import (
 	"github.com/pmd-nextgen/pkg/web"
 )
 
+const (
+	groupInfoPath = "/etc/group"
+)
+
 type Group struct {
 	Gid     string `json:"Gid"`
 	Name    string `json:"Name"`
 	NewName string `json:"NewName"`
+}
+
+// Read /etc/group file and prepare groupInfoList.
+func readAndCreateGroupInfoList() ([]Group, error) {
+	var groupInfoList []Group
+	lines, err := system.ReadFullFile(groupInfoPath)
+	if err != nil {
+		return groupInfoList, fmt.Errorf("Failed to %v", err)
+	}
+
+	for _, line := range lines {
+		groupInfo := strings.FieldsFunc(line, func(delim rune) bool {
+			return delim == ':'
+		})
+
+		if len(groupInfo) > 0 {
+			var g Group
+			g.Name = groupInfo[0]
+			g.Gid = groupInfo[2]
+			groupInfoList = append(groupInfoList, g)
+		}
+	}
+
+	return groupInfoList, err
 }
 
 func (g *Group) GroupAdd(w http.ResponseWriter) error {
@@ -83,4 +112,26 @@ func (g *Group) GroupModify(w http.ResponseWriter) error {
 	}
 
 	return web.JSONResponse("group modified", w)
+}
+
+func (g *Group) GroupView(w http.ResponseWriter) error {
+	groupInfoList, err := readAndCreateGroupInfoList()
+	if err != nil {
+		log.Errorf("Failed to get group info from '%s' : (%v)", groupInfoPath, err)
+		return fmt.Errorf("(%v)", err)
+	}
+
+	if g.Name != "" {
+		for _, grp := range groupInfoList {
+			if grp.Name == g.Name {
+				return web.JSONResponse(grp, w)
+			}
+		}
+
+		log.Errorf("Group not exist on system '%s'", g.Name)
+		return fmt.Errorf("Unknown group '%s'", g.Name)
+
+	} else {
+		return web.JSONResponse(groupInfoList, w)
+	}
 }
