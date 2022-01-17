@@ -21,7 +21,7 @@ import (
 const (
 	sysctlDirPath = "/etc/sysctl.d"
 	sysctlPath    = "/etc/sysctl.conf"
-	procSysPath   = "/proc/sys/"
+	procSysPath   = "/proc/sys"
 )
 
 // Sysctl json request
@@ -152,7 +152,7 @@ func getKeyValueFromProcSys(key string, sysctlMap map[string]string) error {
 }
 
 // Get sysctl key value from any of the following
-// sysctl.conf, sysctl.d or proc/sys
+// sysctl.conf, sysctl.d or /proc/sys
 func (s *Sysctl) Get(rw http.ResponseWriter) error {
 	sysctlMap := make(map[string]string)
 	if len(s.Key) == 0 {
@@ -189,7 +189,7 @@ func (s *Sysctl) Get(rw http.ResponseWriter) error {
 func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
 	sysctlMap := make(map[string]string)
 	if len(s.Pattern) == 0 {
-		log.Errorf("Input pattern is empty return all system configuration")
+		log.Infof("Input pattern is empty return all system configuration")
 	}
 
 	re, err := regexp.CompilePOSIX(s.Pattern)
@@ -199,17 +199,17 @@ func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
 
 	err = createSysctlMapFromConfFile(sysctlMap)
 	if err != nil {
-		log.Errorf("Failed reading configuration from %s: %v", sysctlPath, err)
+		log.Debugf("Failed to read configuration from '%s': %v", sysctlPath, err)
 	}
 
 	err = createSysctlMapFromDir(sysctlDirPath, sysctlMap)
 	if err != nil {
-		log.Errorf("Failed reading configuration from %s: %v", sysctlDirPath, err)
+		log.Debugf("Failed to read configuration from '%s': %v", sysctlDirPath, err)
 	}
 
 	err = createSysctlMapFromDir(procSysPath, sysctlMap)
 	if err != nil {
-		log.Errorf("Failed reading configuration from %s: %v", procSysPath, err)
+		log.Errorf("Failed to read configuration from '%s': %v", procSysPath, err)
 		return err
 	}
 
@@ -256,10 +256,10 @@ func (s *Sysctl) Update() error {
 		sysctlMap[s.Key] = s.Value
 	}
 
-	///Update config file and apply.
+	// Update config file and apply.
 	err = writeSysctlConfigInFile(s.FileName, sysctlMap)
 	if err != nil {
-		return fmt.Errorf("Failed to update in file %s: %v", s.FileName, err)
+		return fmt.Errorf("Failed to update file '%s': %v", s.FileName, err)
 	}
 
 	return s.apply(s.FileName)
@@ -278,7 +278,7 @@ func (s *Sysctl) Load() error {
 		}
 
 		if err := readSysctlConfigFromFile(f, sysctlMap); err != nil {
-			return fmt.Errorf("Failed to parse file %s: %v", f, err)
+			return fmt.Errorf("Failed to parse file '%s': %v", f, err)
 		}
 	}
 

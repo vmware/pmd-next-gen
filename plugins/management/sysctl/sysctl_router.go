@@ -22,7 +22,6 @@ func routerSysctlGet(w http.ResponseWriter, r *http.Request) {
 
 		if err := s.Get(w); err != nil {
 			web.JSONResponseError(err, w)
-			return
 		}
 	}
 }
@@ -38,7 +37,6 @@ func routerSysctlGetPattern(w http.ResponseWriter, r *http.Request) {
 
 		if err := s.GetPattern(w); err != nil {
 			web.JSONResponseError(err, w)
-			return
 		}
 	}
 }
@@ -51,7 +49,6 @@ func routerSysctlGetAll(w http.ResponseWriter, r *http.Request) {
 
 		if err := s.GetPattern(w); err != nil {
 			web.JSONResponseError(err, w)
-			return
 		}
 	}
 }
