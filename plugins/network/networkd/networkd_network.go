@@ -61,7 +61,7 @@ type DHCPv4Section struct {
 	UseRoutes             string `json:"UseRoutes"`
 	UseMTU                string `json:"UseMTU"`
 	UseGateway            string `json:"UseGateway"`
-	UseTimezone           string `json:"UUseTimezone"`
+	UseTimezone           string `json:"UseTimezone"`
 }
 type Network struct {
 	Link            string           `json:"Link"`
