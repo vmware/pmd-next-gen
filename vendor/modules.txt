@@ -97,6 +97,9 @@ github.com/power-devops/perfstat
 # github.com/russross/blackfriday/v2 v2.0.1
 ## explicit
 github.com/russross/blackfriday/v2
+# github.com/safchain/ethtool v0.1.0
+## explicit; go 1.16
+github.com/safchain/ethtool
 # github.com/shirou/gopsutil/v3 v3.21.12
 ## explicit; go 1.15
 github.com/shirou/gopsutil/v3/cpu
