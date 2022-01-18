@@ -41,7 +41,7 @@ type Describe struct {
 func (h *Hostname) Set(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := NewSDConnection()
 	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		log.Errorf("Failed to establish connection to the system bus: %v", err)
 		return err
 	}
 	defer conn.Close()
@@ -56,7 +56,7 @@ func (h *Hostname) Set(ctx context.Context, w http.ResponseWriter) error {
 func MethodDescribe(ctx context.Context) (*Describe, error) {
 	conn, err := NewSDConnection()
 	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		log.Errorf("Failed to establish connection to the system bus: %v", err)
 		return nil, err
 	}
 	defer conn.Close()
