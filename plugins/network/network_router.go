@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pmd-nextgen/pkg/web"
+	"github.com/pmd-nextgen/plugins/network/ethtool"
 	"github.com/pmd-nextgen/plugins/network/netlink/address"
 	"github.com/pmd-nextgen/plugins/network/netlink/link"
 	"github.com/pmd-nextgen/plugins/network/netlink/route"
@@ -92,6 +93,9 @@ func RegisterRouterNetwork(router *mux.Router) {
 	link.RegisterRouterLink(n)
 	address.RegisterRouterAddress(n)
 	route.RegisterRouterRoute(n)
+
+	// ethtool
+	ethtool.RegisterRouterEthTool(n)
 
 	// systemd-networkd
 	networkd.RegisterRouterNetworkd(n)
