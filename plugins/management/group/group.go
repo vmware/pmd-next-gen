@@ -39,9 +39,11 @@ func readAndCreateGroupInfoList() ([]Group, error) {
 		})
 
 		if len(groupInfo) > 0 {
-			var g Group
-			g.Name = groupInfo[0]
-			g.Gid = groupInfo[2]
+			g := Group{
+				Name: groupInfo[0],
+				Gid:  groupInfo[2],
+			}
+
 			groupInfoList = append(groupInfoList, g)
 		}
 	}
@@ -122,16 +124,20 @@ func (g *Group) GroupView(w http.ResponseWriter) error {
 	}
 
 	if g.Name != "" {
+		found := false
 		for _, grp := range groupInfoList {
 			if grp.Name == g.Name {
-				return web.JSONResponse(grp, w)
+				groupInfoList = nil
+				groupInfoList = append(groupInfoList, grp)
+				found = true
+				break
 			}
 		}
-
-		log.Errorf("Group not exist on system '%s'", g.Name)
-		return fmt.Errorf("Unknown group '%s'", g.Name)
-
-	} else {
-		return web.JSONResponse(groupInfoList, w)
+		if !found {
+			log.Errorf("Group does not exist on system '%s'", g.Name)
+			return fmt.Errorf("Unknown group '%s'", g.Name)
+		}
 	}
+
+	return web.JSONResponse(groupInfoList, w)
 }

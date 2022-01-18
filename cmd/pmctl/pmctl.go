@@ -159,6 +159,26 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "group",
+					Aliases:     []string{"g"},
+					Description: "Introspects group status",
+
+					Action: func(c *cli.Context) error {
+						acquireGroupStatus(c.Args().First(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "user",
+					Aliases:     []string{"u"},
+					Description: "Introspects user status",
+
+					Action: func(c *cli.Context) error {
+						acquireUserStatus(c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{
