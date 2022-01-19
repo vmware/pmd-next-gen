@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -52,19 +51,13 @@ func (s *Sysctl) apply(fileName string) error {
 		return fmt.Errorf("Failed to parse boolean: '%s'", s.Apply)
 	}
 
-	path, err := exec.LookPath("sysctl")
-	if err != nil {
-		return err
-	}
-
-	cmd := exec.Command(path, "-p", fileName)
-	stdout, err := cmd.CombinedOutput()
+	stdout, err := system.ExecAndCapture("sysctl", "-p")
 	if err != nil {
 		log.Errorf("Failed to load sysctl variable: %s", stdout)
 		return fmt.Errorf("Failed to load sysctl variable: %s", stdout)
 	}
 
-	return err
+	return nil
 }
 
 // Read configuration file and prepare sysctlMap
@@ -104,15 +97,14 @@ func writeSysctlConfigInFile(confFile string, sysctlMap map[string]string) error
 
 // Read /etc/sysctl.conf file and prepare sysctlMap
 func createSysctlMapFromConfFile(sysctlMap map[string]string) error {
-	err := readSysctlConfigFromFile(sysctlPath, sysctlMap)
-	return err
+	return readSysctlConfigFromFile(sysctlPath, sysctlMap)
 }
 
 // Traverse the baseDirPath and prepare sysctlMap
 func createSysctlMapFromDir(baseDirPath string, sysctlMap map[string]string) error {
 	err := filepath.Walk(baseDirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("Error accessing sysctl path: %v", err)
+			return fmt.Errorf("Failed to access sysctl path: %v", err)
 		}
 		if info.IsDir() {
 			return err
@@ -148,16 +140,18 @@ func getKeyValueFromProcSys(key string, sysctlMap map[string]string) error {
 	}
 
 	sysctlMap[key] = strings.TrimSpace(string(data))
-	return err
+
+	return nil
 }
 
 // Get sysctl key value from any of the following
 // sysctl.conf, sysctl.d or /proc/sys
-func (s *Sysctl) Get(rw http.ResponseWriter) error {
-	sysctlMap := make(map[string]string)
+func (s *Sysctl) Acquire(rw http.ResponseWriter) error {
 	if len(s.Key) == 0 {
-		return fmt.Errorf("Failed to get sysctl parameter. Input key missing")
+		return fmt.Errorf("Failed to acquire sysctl parameter. Input key missing")
 	}
+
+	sysctlMap := make(map[string]string)
 
 	// First try to get from sysctl.conf.
 	err := createSysctlMapFromConfFile(sysctlMap)
@@ -180,23 +174,24 @@ func (s *Sysctl) Get(rw http.ResponseWriter) error {
 		return web.JSONResponse(sysctlMap[s.Key], rw)
 	}
 
-	log.Errorf("Failed to get the sysctl key[%s] value from all config: %v", s.Key, err)
+	log.Errorf("Failed to determine sysctl key[%s] value from all configs: %v", s.Key, err)
+
 	return err
 }
 
 // GetPatern will return all the entry with matching pattern
 // If pattern is empty it should return all values
 func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
-	sysctlMap := make(map[string]string)
 	if len(s.Pattern) == 0 {
 		log.Infof("Input pattern is empty return all system configuration")
 	}
 
 	re, err := regexp.CompilePOSIX(s.Pattern)
 	if err != nil {
-		return fmt.Errorf("Failed to get sysctl parameter, Invalid pattern='%s': %v", s.Pattern, err)
+		return fmt.Errorf("Failed to acquire sysctl parameter, Invalid pattern='%s': %v", s.Pattern, err)
 	}
 
+	sysctlMap := make(map[string]string)
 	err = createSysctlMapFromConfFile(sysctlMap)
 	if err != nil {
 		log.Debugf("Failed to read configuration from '%s': %v", sysctlPath, err)
@@ -226,7 +221,6 @@ func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
 // Update sysctl configuration file and apply
 // Action can be SET, UPDATE or DELETE
 func (s *Sysctl) Update() error {
-	sysctlMap := make(map[string]string)
 	if len(s.FileName) == 0 {
 		s.FileName = sysctlPath
 	} else {
@@ -234,13 +228,14 @@ func (s *Sysctl) Update() error {
 	}
 
 	if len(s.Key) == 0 {
-		return fmt.Errorf("Input Key is missing in json data")
+		return fmt.Errorf("input Key is missing in json data")
 	}
 
 	if len(s.Value) == 0 {
-		return fmt.Errorf("Input Value is missing in json data")
+		return fmt.Errorf("input Value is missing in json data")
 	}
 
+	sysctlMap := make(map[string]string)
 	err := readSysctlConfigFromFile(s.FileName, sysctlMap)
 	if err != nil {
 		return fmt.Errorf("could not parse file='%s': %v", s.FileName, err)
@@ -249,7 +244,7 @@ func (s *Sysctl) Update() error {
 	if s.Value == "Delete" {
 		_, ok := sysctlMap[s.Key]
 		if !ok {
-			return fmt.Errorf("Failed to delete sysctl parameter '%s'. Key not found", s.Key)
+			return fmt.Errorf("failed to remove sysctl parameter '%s'. Key not found", s.Key)
 		}
 		delete(sysctlMap, s.Key)
 	} else {
@@ -267,11 +262,11 @@ func (s *Sysctl) Update() error {
 
 // Load all the configuration files and apply
 func (s *Sysctl) Load() error {
-	sysctlMap := make(map[string]string)
 	if len(s.Files) == 0 {
 		s.Files = []string{sysctlPath}
 	}
 
+	sysctlMap := make(map[string]string)
 	for _, f := range s.Files {
 		if f != sysctlPath {
 			f = filepath.Join(sysctlDirPath, f)
