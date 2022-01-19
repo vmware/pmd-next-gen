@@ -43,7 +43,7 @@ func acquireGroupStatus(groupName string, host string, token map[string]string) 
 		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost"+url, nil)
 	}
 	if err != nil {
-		fmt.Printf("Failed to get group info: %v\n", err)
+		fmt.Printf("Failed to acquire group info: %v\n", err)
 		return
 	}
 
@@ -226,7 +226,7 @@ func acquireUserStatus(host string, token map[string]string) {
 	}
 
 	for _, usr := range u.Message {
-		fmt.Printf("           %v %v\n", color.HiBlueString("UserName:"), usr.Name)
+		fmt.Printf("          %v %v\n", color.HiBlueString("User Name:"), usr.Name)
 		fmt.Printf("                %v %v\n", color.HiBlueString("Uid:"), usr.Uid)
 		fmt.Printf("                %v %v\n", color.HiBlueString("Gid:"), usr.Gid)
 		if usr.Comment != "" {
