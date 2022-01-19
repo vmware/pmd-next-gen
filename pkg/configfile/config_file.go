@@ -56,7 +56,23 @@ func (m *Meta) NewSection(section string) error {
 	return nil
 }
 
-func (m *Meta) SetKeyToNewSectionString(key string, value string){
+func (m *Meta) RemoveSection(section string, key string, value string) error {
+	sections, err := m.Cfg.SectionsByName(section)
+	if err != nil {
+		return err
+	}
+
+	for i, s := range sections {
+		if s.HasKey(key) && s.HasValue(value) {
+			m.Cfg.DeleteSectionWithIndex(section, i)
+			return nil
+		}
+	}
+
+	return errors.New("not found")
+}
+
+func (m *Meta) SetKeyToNewSectionString(key string, value string) {
 	m.Section.Key(key).SetValue(strings.ToLower(value))
 }
 
