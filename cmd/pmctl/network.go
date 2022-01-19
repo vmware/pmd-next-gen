@@ -308,9 +308,9 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 	}
 
 	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network", token, n)
+		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network/configure", token, n)
 	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/network", n)
+		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/network/configure", n)
 	}
 	if err != nil {
 		fmt.Printf("Failed to execute systemd command: %v\n", err)
