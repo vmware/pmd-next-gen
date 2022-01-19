@@ -49,7 +49,7 @@ func keyFromPath(path string) string {
 func (s *Sysctl) apply(fileName string) error {
 	b, err := share.ParseBool(s.Apply)
 	if err != nil || !b {
-		return fmt.Errorf("Failed to apply sysctl: '%s'", fileName)
+		return fmt.Errorf("Failed to parse boolean: '%s'", s.Apply)
 	}
 
 	path, err := exec.LookPath("sysctl")
@@ -71,13 +71,13 @@ func (s *Sysctl) apply(fileName string) error {
 func readSysctlConfigFromFile(path string, sysctlMap map[string]string) error {
 	lines, err := system.ReadFullFile(path)
 	if err != nil {
-		return fmt.Errorf("Failed to %v", err)
+		return fmt.Errorf("Failed to read file='%s'%v", path, err)
 	}
 
 	for _, line := range lines {
 		tokens := strings.Split(line, "=")
 		if len(tokens) != 2 {
-			log.Errorf("Could not parse line : '%s'", line)
+			log.Errorf("Could not parse line: '%s'", line)
 			continue
 		}
 
@@ -123,14 +123,14 @@ func createSysctlMapFromDir(baseDirPath string, sysctlMap map[string]string) err
 			key := keyFromPath(path)
 			val, err := os.ReadFile(path)
 			if err != nil {
-				log.Errorf("Failed to read file '%s': %v", path, err)
+				log.Errorf("Failed to read file='%s': %v", path, err)
 			} else {
 				sysctlMap[key] = strings.TrimSpace(string(val))
 			}
 		} else {
 			err = readSysctlConfigFromFile(path, sysctlMap)
 			if err != nil {
-				log.Errorf("Failed to read file '%s': %v", path, err)
+				log.Errorf("Failed to read file='%s': %v", path, err)
 			}
 		}
 
@@ -194,7 +194,7 @@ func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
 
 	re, err := regexp.CompilePOSIX(s.Pattern)
 	if err != nil {
-		return fmt.Errorf("Failed to get sysctl parameter, Invalid pattern %s: %v", s.Pattern, err)
+		return fmt.Errorf("Failed to get sysctl parameter, Invalid pattern='%s': %v", s.Pattern, err)
 	}
 
 	err = createSysctlMapFromConfFile(sysctlMap)
@@ -243,7 +243,7 @@ func (s *Sysctl) Update() error {
 
 	err := readSysctlConfigFromFile(s.FileName, sysctlMap)
 	if err != nil {
-		return fmt.Errorf("could not parse file %s: %v", s.FileName, err)
+		return fmt.Errorf("could not parse file='%s': %v", s.FileName, err)
 	}
 
 	if s.Value == "Delete" {
@@ -259,7 +259,7 @@ func (s *Sysctl) Update() error {
 	// Update config file and apply.
 	err = writeSysctlConfigInFile(s.FileName, sysctlMap)
 	if err != nil {
-		return fmt.Errorf("Failed to update file '%s': %v", s.FileName, err)
+		return fmt.Errorf("Failed to update file='%s': %v", s.FileName, err)
 	}
 
 	return s.apply(s.FileName)
@@ -278,7 +278,7 @@ func (s *Sysctl) Load() error {
 		}
 
 		if err := readSysctlConfigFromFile(f, sysctlMap); err != nil {
-			return fmt.Errorf("Failed to parse file '%s': %v", f, err)
+			return fmt.Errorf("Failed to parse file='%s': %v", f, err)
 		}
 	}
 
