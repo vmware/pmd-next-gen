@@ -334,6 +334,26 @@ func (n *Network) removeAddressSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) removeRouteSection(m *configfile.Meta) error {
+	for _, rt := range n.RouteSections {
+		if rt.Gateway != "" {
+			if err := m.RemoveSection("Route", "Gateway", rt.Gateway); err != nil {
+				log.Errorf("Failed to remove Gateway='%s': %v", rt.Gateway, err)
+				return err
+			}
+		}
+
+		if rt.Destination != "" {
+			if err := m.RemoveSection("Route", "Destination", rt.Destination); err != nil {
+				log.Errorf("Failed to remove Destination='%s': %v", rt.Destination, err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	link, err := netlink.LinkByName(n.Link)
 	if err != nil {
@@ -392,7 +412,15 @@ func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) erro
 		return err
 	}
 
-	n.removeAddressSection(m)
+	if err := n.removeAddressSection(m); err != nil {
+		log.Errorf("Failed to remove address section: %v", err)
+		return err
+	}
+
+	if err := n.removeRouteSection(m); err != nil {
+		log.Errorf("Failed to remove route section: %v", err)
+		return err
+	}
 
 	if err := m.Save(); err != nil {
 		log.Errorf("Failed to update config file='%s': %v", network, err)
