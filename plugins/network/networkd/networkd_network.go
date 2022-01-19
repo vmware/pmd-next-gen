@@ -63,6 +63,7 @@ type DHCPv4Section struct {
 	UseGateway            string `json:"UseGateway"`
 	UseTimezone           string `json:"UseTimezone"`
 }
+
 type Network struct {
 	Link            string           `json:"Link"`
 	MatchSection    MatchSection     `json:"MatchSection"`
@@ -265,47 +266,59 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) {
 	}
 }
 
-func (n *Network) buildAddressSection(m *configfile.Meta) {
+func (n *Network) buildAddressSection(m *configfile.Meta) error {
 	for _, a := range n.AddressSections {
+		if err := m.NewSection("Address"); err != nil {
+			return err
+		}
+
 		if a.Address != "" {
-			m.SetKeySectionString("Address", "Address", a.Address)
+			m.SetKeyToNewSectionString("Address", a.Address)
 		}
 		if a.Peer != "" {
-			m.SetKeySectionString("Address", "Peer", a.Peer)
+			m.SetKeyToNewSectionString("Peer", a.Peer)
 		}
 		if a.Label != "" {
-			m.SetKeySectionString("Address", "Label", a.Label)
+			m.SetKeyToNewSectionString("Label", a.Label)
 		}
 		if a.Scope != "" {
-			m.SetKeySectionString("Address", "Scope", a.Scope)
+			m.SetKeyToNewSectionString("Scope", a.Scope)
 		}
 	}
+
+	return nil
 }
 
-func (n *Network) buildRouteSection(m *configfile.Meta) {
+func (n *Network) buildRouteSection(m *configfile.Meta) error {
 	for _, rt := range n.RouteSections {
+		if err := m.NewSection("Route"); err != nil {
+			return err
+		}
+
 		if rt.Gateway != "" {
-			m.SetKeySectionString("Route", "Gateway", rt.Gateway)
+			m.SetKeyToNewSectionString("Gateway", rt.Gateway)
 		}
 		if rt.GatewayOnlink != "" {
-			m.SetKeySectionString("Route", "GatewayOnlink", rt.GatewayOnlink)
+			m.SetKeyToNewSectionString("GatewayOnlink", rt.GatewayOnlink)
 		}
 		if rt.Destination != "" {
-			m.SetKeySectionString("Route", "Destination", rt.Destination)
+			m.SetKeyToNewSectionString("Destination", rt.Destination)
 		}
 		if rt.Source != "" {
-			m.SetKeySectionString("Route", "Source", rt.Source)
+			m.SetKeyToNewSectionString("Source", rt.Source)
 		}
 		if rt.PreferredSource != "" {
-			m.SetKeySectionString("Route", "PreferredSource", rt.PreferredSource)
+			m.SetKeyToNewSectionString("PreferredSource", rt.PreferredSource)
 		}
 		if rt.Table != "" {
-			m.SetKeySectionString("Route", "Table", rt.Table)
+			m.SetKeyToNewSectionString("Table", rt.Table)
 		}
 		if rt.Scope != "" {
-			m.SetKeySectionString("Route", "Scope", rt.Scope)
+			m.SetKeyToNewSectionString("Scope", rt.Scope)
 		}
 	}
+
+	return nil
 }
 
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
@@ -321,6 +334,7 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 
 	m, err := configfile.Load(network)
 	if err != nil {
+		log.Errorf("Failed to load config file='%s': %v", network, err)
 		return err
 	}
 
@@ -330,12 +344,13 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 	n.buildRouteSection(m)
 
 	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", network, err)
 		return err
 	}
 
 	c, err := NewSDConnection()
 	if err != nil {
-		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		log.Errorf("Failed to establish connection with the system bus: %v", err)
 		return err
 	}
 	defer c.Close()
