@@ -321,6 +321,19 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) removeAddressSection(m *configfile.Meta) error {
+	for _, a := range n.AddressSections {
+		if a.Address != "" {
+			if err := m.RemoveSection("Address", "Address", a.Address); err != nil {
+				log.Errorf("Failed to remove Address='%s': %v", a.Address, err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	link, err := netlink.LinkByName(n.Link)
 	if err != nil {
@@ -360,4 +373,42 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 	}
 
 	return web.JSONResponse("configured", w)
+}
+
+func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) error {
+	link, err := netlink.LinkByName(n.Link)
+	if err != nil {
+		return err
+	}
+
+	network, err := CreateOrParseNetworkFile(link)
+	if err != nil {
+		return err
+	}
+
+	m, err := configfile.Load(network)
+	if err != nil {
+		log.Errorf("Failed to load config file='%s': %v", network, err)
+		return err
+	}
+
+	n.removeAddressSection(m)
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", network, err)
+		return err
+	}
+
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection with the system bus: %v", err)
+		return err
+	}
+	defer c.Close()
+
+	if err := c.DBusNetworkReload(ctx); err != nil {
+		return err
+	}
+
+	return web.JSONResponse("removed", w)
 }

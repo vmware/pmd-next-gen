@@ -23,6 +23,18 @@ func routerConfigureNetwork(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routerRemoveNetwork(w http.ResponseWriter, r *http.Request) {
+	n, err := decodeJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := n.RemoveNetwork(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func routerAcquireLinks(w http.ResponseWriter, r *http.Request) {
 	l, err := AcquireLinks(r.Context())
 	if  err != nil {
@@ -46,5 +58,6 @@ func RegisterRouterNetworkd(router *mux.Router) {
 
 	n.HandleFunc("/network/describenetwork", routerAcquireNetworkState).Methods("GET")
 	n.HandleFunc("/network/describelinks", routerAcquireLinks).Methods("GET")
-	n.HandleFunc("/network", routerConfigureNetwork).Methods("POST")
+	n.HandleFunc("/network/configure", routerConfigureNetwork).Methods("POST")
+	n.HandleFunc("/network/remove", routerRemoveNetwork).Methods("DELETE")
 }
