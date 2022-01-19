@@ -5,7 +5,6 @@ package system
 
 import (
 	"errors"
-	"os/exec"
 	"time"
 
 	sdbus "github.com/coreos/go-systemd/v22/dbus"
@@ -27,13 +26,4 @@ func DBusTimeToUsec(prop *sdbus.Property) (time.Time, error) {
 	}
 
 	return UnixMicro(usec), nil
-}
-
-func ExecAndCapture(cmd string, args ...string) (string, error) {
-	c := exec.Command(cmd, args...)
-	if out, err := c.CombinedOutput(); err != nil {
-		return string(out), err
-	} else {
-		return string(out), nil
-	}
 }
