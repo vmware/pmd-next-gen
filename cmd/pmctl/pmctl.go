@@ -284,6 +284,19 @@ func main() {
 			},
 		},
 		{
+			Name:    "pkg",
+			Aliases: []string{"p", "tdnf"},
+			Usage:   "Package Management",
+			Action:  func(c *cli.Context) error {
+				if c.NArg() < 1 {
+					fmt.Printf("No pkg command suppplied\n")
+					return nil
+				}
+				commandTdnf(c.Args().First(), c.String("url"), token)
+				return nil
+			},
+		},
+		{
 			Name:    "user",
 			Aliases: []string{"u"},
 			Usage:   "Create a new user or update user information",
