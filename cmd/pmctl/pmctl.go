@@ -308,6 +308,16 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:    "info",
+					Aliases: []string{"i"},
+					Description: "Package Info",
+
+					Action:  func(c *cli.Context) error {
+						tdnfInfoList(c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{

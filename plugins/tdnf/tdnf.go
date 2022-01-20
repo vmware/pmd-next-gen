@@ -32,6 +32,18 @@ type Repo struct {
 	Enabled bool    `json:"enabled"`
 }
 
+type Info struct {
+	Name string        `json:"name"`
+	Arch string        `json:"arch"`
+	Evr string         `json:"evr"`
+	InstallSize int    `json:"install_size"`
+	Repo string        `json:"repo"`
+	Summary string     `json:"summary"`
+	Url string         `json:"url"`
+	License string     `json:"license"`
+	Description string `json:"description"`
+}
+
 func TdnfExec(cmd string) (string, error) {
 	s, err := system.ExecAndCapture("tdnf", "-j", cmd)
 	if err != nil {
@@ -59,5 +71,15 @@ func AcquireRepoList(w http.ResponseWriter) error {
 	var repoList []Repo
 	json.Unmarshal([]byte(s), &repoList)
 	return web.JSONResponse(repoList, w)
+}
+
+func AcquireInfoList(w http.ResponseWriter) error {
+	s, err := TdnfExec("info");
+	if err != nil {
+		return fmt.Errorf("tdnf failed: '%s'", s)
+	}
+	var infoList []Info
+	json.Unmarshal([]byte(s), &infoList)
+	return web.JSONResponse(infoList, w)
 }
 

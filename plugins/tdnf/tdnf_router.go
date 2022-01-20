@@ -21,6 +21,8 @@ func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
 		err = AcquireList(w)
 	case "repolist":
 		err = AcquireRepoList(w)
+	case "info":
+		err = AcquireInfoList(w)
 	default:
 		err = errors.New("not found")
 	}
