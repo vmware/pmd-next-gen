@@ -355,19 +355,9 @@ func (n *Network) removeRouteSection(m *configfile.Meta) error {
 }
 
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
-	link, err := netlink.LinkByName(n.Link)
+	m, err := CreateOrParseNetworkFile(n.Link)
 	if err != nil {
-		return err
-	}
-
-	network, err := CreateOrParseNetworkFile(link)
-	if err != nil {
-		return err
-	}
-
-	m, err := configfile.Load(network)
-	if err != nil {
-		log.Errorf("Failed to load config file='%s': %v", network, err)
+		log.Errorf("Failed to parse network file for link='%s': %v", n.Link, err)
 		return err
 	}
 
@@ -377,7 +367,7 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 	n.buildRouteSection(m)
 
 	if err := m.Save(); err != nil {
-		log.Errorf("Failed to update config file='%s': %v", network, err)
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
 		return err
 	}
 
@@ -396,19 +386,9 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 }
 
 func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) error {
-	link, err := netlink.LinkByName(n.Link)
+	m, err := CreateOrParseNetworkFile(n.Link)
 	if err != nil {
-		return err
-	}
-
-	network, err := CreateOrParseNetworkFile(link)
-	if err != nil {
-		return err
-	}
-
-	m, err := configfile.Load(network)
-	if err != nil {
-		log.Errorf("Failed to load config file='%s': %v", network, err)
+		log.Errorf("Failed to parse network file for link='%s': %v", n.Link, err)
 		return err
 	}
 
@@ -423,7 +403,7 @@ func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) erro
 	}
 
 	if err := m.Save(); err != nil {
-		log.Errorf("Failed to update config file='%s': %v", network, err)
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
 		return err
 	}
 

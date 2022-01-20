@@ -4,6 +4,7 @@
 package networkd
 
 import (
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -121,7 +122,7 @@ func ParseNetworkOnlineState() (string, error) {
 }
 
 func ParseNetworkDNS() ([]string, error) {
-	s, err:=ParseNetworkState("DNS")
+	s, err := ParseNetworkState("DNS")
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +131,7 @@ func ParseNetworkDNS() ([]string, error) {
 }
 
 func ParseNetworkNTP() ([]string, error) {
-	s, err:= ParseNetworkState("NTP")
+	s, err := ParseNetworkState("NTP")
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +140,7 @@ func ParseNetworkNTP() ([]string, error) {
 }
 
 func ParseNetworkDomains() ([]string, error) {
-	s, err:= ParseNetworkState("DOMAINS")
+	s, err := ParseNetworkState("DOMAINS")
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +149,7 @@ func ParseNetworkDomains() ([]string, error) {
 }
 
 func ParseNetworkRouteDomains() ([]string, error) {
-	s, err:= ParseNetworkState("ROUTE_DOMAINS")
+	s, err := ParseNetworkState("ROUTE_DOMAINS")
 	if err != nil {
 		return nil, err
 	}
@@ -156,38 +157,53 @@ func ParseNetworkRouteDomains() ([]string, error) {
 	return strings.Split(s, " "), nil
 }
 
-
-func CreateNetworkFile(link string) (string, error) {
+func CreateNetworkFile(link string) (*configfile.Meta, error) {
 	file := "10-" + link + ".network"
-	match := "[Match]\nName=" + link + "\n"
 
-	if err := system.WriteFullFile(path.Join("/etc/systemd/network", file), strings.Fields(match)); err != nil {
-		return "", err
+	f, err := os.Create(path.Join("/etc/systemd/network", file))
+	if err != nil {
+		return nil, err
 	}
 
-	return path.Join("/etc/systemd/network", file), nil
+	defer f.Close()
+
+	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
+	if err != nil {
+		return nil, err
+	}
+
+	m.NewSection("Match")
+	m.SetKeyToNewSectionString("Name", link)
+
+	return m, nil
 }
 
-func CreateOrParseNetworkFile(link netlink.Link) (string, error) {
-	var err error
-	var n string
+func CreateOrParseNetworkFile(l string) (*configfile.Meta, error) {
+	link, err := netlink.LinkByName(l)
+	if err != nil {
+		return nil, err
+	}
 
 	if _, err := ParseLinkSetupState(link.Attrs().Index); err != nil {
-		if n, err = CreateNetworkFile(link.Attrs().Name); err != nil {
-			return "", err
+		m, err := CreateNetworkFile(link.Attrs().Name)
+		if err != nil {
+			return nil, err
 		}
 
-		system.ChangePermission("systemd-network", n)
-		return n, nil
+		system.ChangePermission("systemd-network", m.Path)
+		return m, nil
 	}
 
-	n, err = ParseLinkNetworkFile(link.Attrs().Index)
+	n, err := ParseLinkNetworkFile(link.Attrs().Index)
 	if err != nil {
-		if n, err = CreateNetworkFile(link.Attrs().Name); err != nil {
-			return "", err
+		m, err := CreateNetworkFile(link.Attrs().Name)
+		if err != nil {
+			return nil, err
 		}
-		system.ChangePermission("systemd-network", n)
+
+		system.ChangePermission("systemd-network", m.Path)
+		return m, nil
 	}
 
-	return n, nil
+	return configfile.Load(n)
 }
