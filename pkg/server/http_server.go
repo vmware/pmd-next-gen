@@ -68,7 +68,7 @@ func runUnixDomainHttpServer(c *conf.Config, r *mux.Router) error {
 	}
 	defer unixListener.Close()
 
-	if err := system.ChangeUnixDomainSocketPermission(conf.UnixDomainSocketPath); err != nil {
+	if err := system.ChangePermission("photon-mgmt", conf.UnixDomainSocketPath); err != nil {
 		log.Errorf("Failed to change unix domain socket permissions: %v", err)
 		return err
 	}

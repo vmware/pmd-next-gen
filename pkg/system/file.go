@@ -119,8 +119,8 @@ func TLSFilePathExits() bool {
 	return PathExists(path.Join(conf.ConfPath, conf.TLSCert)) && PathExists(path.Join(conf.ConfPath, conf.TLSKey))
 }
 
-func ChangeUnixDomainSocketPermission(file string) (err error) {
-	usr, err := user.Lookup("photon-mgmt")
+func ChangePermission(u string, file string) (err error) {
+	usr, err := user.Lookup(u)
 	if err != nil {
 		_, ok := err.(user.UnknownGroupError)
 		if !ok {

@@ -177,6 +177,7 @@ func CreateOrParseNetworkFile(link netlink.Link) (string, error) {
 			return "", err
 		}
 
+		system.ChangePermission("systemd-network", n)
 		return n, nil
 	}
 
@@ -185,6 +186,7 @@ func CreateOrParseNetworkFile(link netlink.Link) (string, error) {
 		if n, err = CreateNetworkFile(link.Attrs().Name); err != nil {
 			return "", err
 		}
+		system.ChangePermission("systemd-network", n)
 	}
 
 	return n, nil
