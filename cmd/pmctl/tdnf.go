@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 //	"strings"
@@ -22,6 +23,23 @@ type ItemListDesc struct {
 	Errors  string		`json:"errors"`
 }
 
+type RepoListDesc struct {
+	Success bool		`json:"success"`
+	Message []tdnf.Repo     `json:"message"`
+	Errors  string		`json:"errors"`
+}
+
+func DispatchSocket(method, host string, url string, token map[string]string, body io.Reader) ([]byte, error) {
+	var resp []byte
+	var err error
+	if host != "" {
+		resp, err = web.DispatchSocket(method, host + url, token, body)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(method, "http://localhost" + url, body)
+	}
+	return resp, err
+}
+
 func displayTdnfList(l *ItemListDesc) {
 	for _, i := range l.Message {
 		fmt.Printf("%v %v\n", color.HiBlueString("Name:"), i.Name)
@@ -32,14 +50,17 @@ func displayTdnfList(l *ItemListDesc) {
 	}
 }
 
-func acquireTdnfList(host string, token map[string]string) (*ItemListDesc, error) {
-	var resp []byte
-	var err error
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/tdnf/list", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/tdnf/list", nil)
+func displayTdnfRepoList(l *RepoListDesc) {
+	for _, r := range l.Message {
+		fmt.Printf("%v %v\n", color.HiBlueString("Repo:"), r.Repo)
+		fmt.Printf("%v %v\n", color.HiBlueString("Name:"), r.RepoName)
+		fmt.Printf("%v %v\n", color.HiBlueString("Enabled:"), r.Enabled)
+		fmt.Printf("\n")
 	}
+}
+
+func acquireTdnfList(host string, token map[string]string) (*ItemListDesc, error) {
+	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/list", token, nil)
 	if err != nil {
 		fmt.Printf("tdnf command failed: %v\n", err)
 		return nil, err
@@ -58,15 +79,41 @@ func acquireTdnfList(host string, token map[string]string) (*ItemListDesc, error
 	return nil, errors.New(m.Errors)
 }
 
-func commandTdnf(cmd string, host string, token map[string]string) {
-	switch cmd {
-	case "list":
-		l, err := acquireTdnfList(host, token)
-		if err != nil {
-	        	fmt.Printf("Failed to fetch tdnf list: %v\n", err)
-	        	return
-		}
-		displayTdnfList(l)
+func acquireTdnfRepoList(host string, token map[string]string) (*RepoListDesc, error) {
+	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/repolist", token, nil)
+	if err != nil {
+		fmt.Printf("tdnf command failed: %v\n", err)
+		return nil, err
 	}
+
+	m := RepoListDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func tdnfList(host string, token map[string]string) {
+	l, err := acquireTdnfList(host, token)
+	if err != nil {
+        	fmt.Printf("Failed to fetch tdnf list: %v\n", err)
+        	return
+	}
+	displayTdnfList(l)
+}
+
+func tdnfRepoList(host string, token map[string]string) {
+	l, err := acquireTdnfRepoList(host, token)
+	if err != nil {
+        	fmt.Printf("Failed to fetch tdnf repolist: %v\n", err)
+        	return
+	}
+	displayTdnfRepoList(l)
 }
 
