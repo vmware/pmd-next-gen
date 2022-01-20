@@ -10,7 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-//	"strings"
+	//	"strings"
 	"github.com/fatih/color"
 
 	"github.com/pmd-nextgen/pkg/web"
@@ -18,30 +18,30 @@ import (
 )
 
 type ItemListDesc struct {
-	Success bool		`json:"success"`
+	Success bool            `json:"success"`
 	Message []tdnf.ListItem `json:"message"`
-	Errors  string		`json:"errors"`
+	Errors  string          `json:"errors"`
 }
 
 type RepoListDesc struct {
-	Success bool		`json:"success"`
-	Message []tdnf.Repo     `json:"message"`
-	Errors  string		`json:"errors"`
+	Success bool        `json:"success"`
+	Message []tdnf.Repo `json:"message"`
+	Errors  string      `json:"errors"`
 }
 
 type InfoListDesc struct {
-	Success bool		`json:"success"`
-	Message []tdnf.Info     `json:"message"`
-	Errors  string		`json:"errors"`
+	Success bool        `json:"success"`
+	Message []tdnf.Info `json:"message"`
+	Errors  string      `json:"errors"`
 }
 
 func DispatchSocket(method, host string, url string, token map[string]string, body io.Reader) ([]byte, error) {
 	var resp []byte
 	var err error
 	if host != "" {
-		resp, err = web.DispatchSocket(method, host + url, token, body)
+		resp, err = web.DispatchSocket(method, host+url, token, body)
 	} else {
-		resp, err = web.DispatchUnixDomainSocket(method, "http://localhost" + url, body)
+		resp, err = web.DispatchUnixDomainSocket(method, "http://localhost"+url, body)
 	}
 	return resp, err
 }
@@ -80,8 +80,14 @@ func displayTdnfInfoList(l *InfoListDesc) {
 	}
 }
 
-func acquireTdnfList(host string, token map[string]string) (*ItemListDesc, error) {
-	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/list", token, nil)
+func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemListDesc, error) {
+	var path string
+	if pkg != "" {
+		path = "/api/v1/tdnf/list/" + pkg
+	} else {
+		path = "/api/v1/tdnf/list"
+	}
+	resp, err := DispatchSocket(http.MethodGet, host, path, token, nil)
 	if err != nil {
 		fmt.Printf("tdnf command failed: %v\n", err)
 		return nil, err
@@ -120,8 +126,15 @@ func acquireTdnfRepoList(host string, token map[string]string) (*RepoListDesc, e
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfInfoList(host string, token map[string]string) (*InfoListDesc, error) {
-	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/info", token, nil)
+func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*InfoListDesc, error) {
+	var path string
+	if pkg != "" {
+		path = "/api/v1/tdnf/info/" + pkg
+	} else {
+		path = "/api/v1/tdnf/info"
+	}
+
+	resp, err := DispatchSocket(http.MethodGet, host, path, token, nil)
 	if err != nil {
 		fmt.Printf("tdnf command failed: %v\n", err)
 		return nil, err
@@ -140,11 +153,11 @@ func acquireTdnfInfoList(host string, token map[string]string) (*InfoListDesc, e
 	return nil, errors.New(m.Errors)
 }
 
-func tdnfList(host string, token map[string]string) {
-	l, err := acquireTdnfList(host, token)
+func tdnfList(pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfList(pkg, host, token)
 	if err != nil {
-        	fmt.Printf("Failed to fetch tdnf list: %v\n", err)
-        	return
+		fmt.Printf("Failed to fetch tdnf list: %v\n", err)
+		return
 	}
 	displayTdnfList(l)
 }
@@ -152,18 +165,17 @@ func tdnfList(host string, token map[string]string) {
 func tdnfRepoList(host string, token map[string]string) {
 	l, err := acquireTdnfRepoList(host, token)
 	if err != nil {
-        	fmt.Printf("Failed to fetch tdnf repolist: %v\n", err)
-        	return
+		fmt.Printf("Failed to fetch tdnf repolist: %v\n", err)
+		return
 	}
 	displayTdnfRepoList(l)
 }
 
-func tdnfInfoList(host string, token map[string]string) {
-	l, err := acquireTdnfInfoList(host, token)
+func tdnfInfoList(pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfInfoList(pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to fetch tdnf info: %v\n", err)
 		return
 	}
 	displayTdnfInfoList(l)
 }
-

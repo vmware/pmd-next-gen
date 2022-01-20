@@ -289,32 +289,40 @@ func main() {
 			Usage:   "Package Management",
 			Subcommands: []*cli.Command{
 				{
-					Name:    "list",
-					Aliases: []string{"l"},
+					Name:        "list",
+					Aliases:     []string{"l"},
 					Description: "List Packages",
 
-					Action:  func(c *cli.Context) error {
-						tdnfList(c.String("url"), token)
+					Action: func(c *cli.Context) error {
+						if c.NArg() >= 1 {
+							tdnfList(c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfList("", c.String("url"), token)
+						}
 						return nil
 					},
 				},
 				{
-					Name:    "repolist",
-					Aliases: []string{"rl"},
+					Name:        "repolist",
+					Aliases:     []string{"rl"},
 					Description: "List Repositories",
 
-					Action:  func(c *cli.Context) error {
+					Action: func(c *cli.Context) error {
 						tdnfRepoList(c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:    "info",
-					Aliases: []string{"i"},
+					Name:        "info",
+					Aliases:     []string{"i"},
 					Description: "Package Info",
 
-					Action:  func(c *cli.Context) error {
-						tdnfInfoList(c.String("url"), token)
+					Action: func(c *cli.Context) error {
+						if c.NArg() >= 1 {
+							tdnfInfoList(c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfInfoList("", c.String("url"), token)
+						}
 						return nil
 					},
 				},
