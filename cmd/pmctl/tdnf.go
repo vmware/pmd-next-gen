@@ -7,11 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"io"
 	"net/http"
 	"os"
-	//	"strings"
-	"github.com/fatih/color"
 
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/tdnf"
@@ -33,6 +32,11 @@ type InfoListDesc struct {
 	Success bool        `json:"success"`
 	Message []tdnf.Info `json:"message"`
 	Errors  string      `json:"errors"`
+}
+
+type NilDesc struct {
+	Success bool   `json:"success"`
+	Errors  string `json:"errors"`
 }
 
 func DispatchSocket(method, host string, url string, token map[string]string, body io.Reader) ([]byte, error) {
@@ -153,6 +157,34 @@ func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*Inf
 	return nil, errors.New(m.Errors)
 }
 
+func acquireTdnfSimpleCommand(cmd string, host string, token map[string]string) (*NilDesc, error) {
+	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/"+cmd, token, nil)
+	if err != nil {
+		fmt.Printf("tdnf command failed: %v\n", err)
+		return nil, err
+	}
+
+	m := NilDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func tdnfClean(host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand("clean", host, token)
+	if err != nil {
+		fmt.Printf("Failed tdnf clean: %v\n", err)
+		return
+	}
+}
+
 func tdnfList(pkg string, host string, token map[string]string) {
 	l, err := acquireTdnfList(pkg, host, token)
 	if err != nil {
@@ -160,6 +192,14 @@ func tdnfList(pkg string, host string, token map[string]string) {
 		return
 	}
 	displayTdnfList(l)
+}
+
+func tdnfMakeCache(host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand("makecache", host, token)
+	if err != nil {
+		fmt.Printf("Failed tdnf makecache: %v\n", err)
+		return
+	}
 }
 
 func tdnfRepoList(host string, token map[string]string) {

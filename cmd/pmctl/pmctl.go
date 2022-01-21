@@ -289,6 +289,16 @@ func main() {
 			Usage:   "Package Management",
 			Subcommands: []*cli.Command{
 				{
+					Name:        "clean",
+					Aliases:     []string{"mc"},
+					Description: "Clean Package Metadata",
+
+					Action: func(c *cli.Context) error {
+						tdnfClean(c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "list",
 					Aliases:     []string{"l"},
 					Description: "List Packages",
@@ -299,6 +309,16 @@ func main() {
 						} else {
 							tdnfList("", c.String("url"), token)
 						}
+						return nil
+					},
+				},
+				{
+					Name:        "makecache",
+					Aliases:     []string{"mc"},
+					Description: "Download Package Metadata",
+
+					Action: func(c *cli.Context) error {
+						tdnfMakeCache(c.String("url"), token)
 						return nil
 					},
 				},

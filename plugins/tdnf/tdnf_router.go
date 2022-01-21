@@ -4,7 +4,6 @@
 package tdnf
 
 import (
-	//	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -17,12 +16,16 @@ func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	switch mux.Vars(r)["command"] {
-	case "list":
-		err = AcquireList(w, "")
-	case "repolist":
-		err = AcquireRepoList(w)
+	case "clean":
+		err = AcquireClean(w)
 	case "info":
 		err = AcquireInfoList(w, "")
+	case "list":
+		err = AcquireList(w, "")
+	case "makecache":
+		err = AcquireMakeCache(w)
+	case "repolist":
+		err = AcquireRepoList(w)
 	default:
 		err = errors.New("not found")
 	}
@@ -38,10 +41,10 @@ func routerAcquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	pkg := mux.Vars(r)["pkg"]
 
 	switch mux.Vars(r)["command"] {
-	case "list":
-		err = AcquireList(w, pkg)
 	case "info":
 		err = AcquireInfoList(w, pkg)
+	case "list":
+		err = AcquireList(w, pkg)
 	default:
 		err = errors.New("not found")
 	}

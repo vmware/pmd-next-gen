@@ -4,13 +4,9 @@
 package tdnf
 
 import (
-	//        "context"
-	//        "errors"
-	"net/http"
-	//        "strconv"
-	//        "strings"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os/exec"
 
 	log "github.com/sirupsen/logrus"
@@ -94,4 +90,20 @@ func AcquireInfoList(w http.ResponseWriter, pkg string) error {
 	var infoList []Info
 	json.Unmarshal([]byte(s), &infoList)
 	return web.JSONResponse(infoList, w)
+}
+
+func AcquireMakeCache(w http.ResponseWriter) error {
+	s, err := TdnfExec("makecache")
+	if err != nil {
+		return fmt.Errorf("tdnf failed: '%s'", s)
+	}
+	return web.JSONResponse(nil, w)
+}
+
+func AcquireClean(w http.ResponseWriter) error {
+	s, err := TdnfExec("clean", "all")
+	if err != nil {
+		return fmt.Errorf("tdnf failed: '%s'", s)
+	}
+	return web.JSONResponse(nil, w)
 }
