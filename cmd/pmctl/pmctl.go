@@ -179,6 +179,50 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "sysctl",
+					Aliases:     []string{"s"},
+					Description: "Introspects sysctl status",
+
+					Action: func(c *cli.Context) error {
+						acquireSysctlStatus("statusall", "", c.String("url"), token)
+						return nil
+					},
+					Subcommands: []*cli.Command{
+						{
+							Name:        "key",
+							Aliases:     []string{"k"},
+							Description: "Show sysctl configuration based on key",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 1 {
+									fmt.Printf("sysctl: No key is specified\n")
+									return nil
+								}
+
+								acquireSysctlParamStatus(c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "pattern",
+							Aliases:     []string{"p"},
+							Description: "Show sysctl configuration based on pattern",
+							Flags: []cli.Flag{
+								&cli.StringFlag{Name: "pattern"},
+							},
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 1 {
+									fmt.Printf("sysctl: No pattern is specified\n")
+									return nil
+								}
+								acquireSysctlStatus("statuspattern", c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+					},
+				},
 			},
 		},
 		{
@@ -291,7 +335,7 @@ func main() {
 				},
 				{
 					Name:        "remove",
-					Aliases:     []string{"a"},
+					Aliases:     []string{"r"},
 					Description: "Remove an existing group",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "gid"},
@@ -303,6 +347,55 @@ func main() {
 							return nil
 						}
 						groupRemove(c.Args().First(), c.String("gid"), c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "sysctl",
+			Aliases: []string{"s"},
+			Usage:   "Add or Update, remove and load sysctl configuration",
+			Subcommands: []*cli.Command{
+				{
+					Name:        "update",
+					Aliases:     []string{"u"},
+					Description: "Add or update sysctl cofiguration",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "key", Aliases: []string{"k"}},
+						&cli.StringFlag{Name: "value", Aliases: []string{"v"}},
+						&cli.StringFlag{Name: "filename", Aliases: []string{"f"}},
+					},
+
+					Action: func(c *cli.Context) error {
+						sysctlUpdateConfig(c.String("key"), c.String("value"), c.String("filename"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "remove",
+					Aliases:     []string{"r"},
+					Description: "Remove an entry from sysctl configuration",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "key", Aliases: []string{"k"}},
+						&cli.StringFlag{Name: "filename", Aliases: []string{"f"}},
+					},
+
+					Action: func(c *cli.Context) error {
+						sysctlRemoveConfig(c.String("key"), c.String("filename"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "load",
+					Aliases:     []string{"l"},
+					Description: "Load sysctl configuration from files",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "files", Aliases: []string{"f"}, Usage: "Separate by ,"},
+					},
+
+					Action: func(c *cli.Context) error {
+						sysctlLoadConfig(c.String("files"), c.String("url"), token)
 						return nil
 					},
 				},
