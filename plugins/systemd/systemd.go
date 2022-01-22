@@ -20,7 +20,7 @@ import (
 
 type UnitAction struct {
 	Action   string `json:"Action"`
-	Unit     string `json:"unit"`
+	Unit     string `json:"Unit"`
 	UnitType string `json:"UnitType"`
 	Property string `json:"Property"`
 	Value    string `json:"Value"`
