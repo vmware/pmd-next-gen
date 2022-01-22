@@ -2,7 +2,6 @@ package configfile
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/go-ini/ini"
 )
@@ -43,8 +42,18 @@ func ParseKeyFromSectionString(path string, section string, key string) (string,
 	return v, nil
 }
 
-func (m *Meta) SetKeySectionString(section string, key string, value string) {
-	m.Cfg.Section(section).Key(key).SetValue(strings.ToLower(value))
+func (m *Meta) SetKeySectionString(section string, key string, value string) error {
+	_, err := m.Cfg.SectionsByName(section)
+	if err != nil {
+		_, err = m.Cfg.NewSection(section)
+		if err != nil {
+			return err
+		}
+	}
+
+	m.Cfg.Section(section).Key(key).SetValue(value)
+
+	return nil
 }
 
 func (m *Meta) NewSection(section string) error {
@@ -52,7 +61,9 @@ func (m *Meta) NewSection(section string) error {
 	if err != nil {
 		return err
 	}
+
 	m.Section = s
+
 	return nil
 }
 
@@ -73,7 +84,7 @@ func (m *Meta) RemoveSection(section string, key string, value string) error {
 }
 
 func (m *Meta) SetKeyToNewSectionString(key string, value string) {
-	m.Section.Key(key).SetValue(strings.ToLower(value))
+	m.Section.NewKey(key, value)
 }
 
 func MapTo(cfg *ini.File, section string, v interface{}) error {
