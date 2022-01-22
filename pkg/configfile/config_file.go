@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2022 VMware, Inc.
+
 package configfile
 
 import (
@@ -13,7 +16,7 @@ type Meta struct {
 }
 
 func Load(path string) (*Meta, error) {
-	cfg, err := ini.LoadSources(ini.LoadOptions{AllowNonUniqueSections: true, AllowDuplicateShadowValues: true}, path)
+	cfg, err := ini.LoadSources(ini.LoadOptions{AllowNonUniqueSections: true, AllowShadows: true}, path)
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +53,26 @@ func (m *Meta) SetKeySectionString(section string, key string, value string) err
 			return err
 		}
 	}
-
+	
 	m.Cfg.Section(section).Key(key).SetValue(value)
 
 	return nil
 }
+
+func (m *Meta) NewKeyToSectionString(section string, key string, value string) error {
+	_, err := m.Cfg.SectionsByName(section)
+	if err != nil {
+		_, err = m.Cfg.NewSection(section)
+		if err != nil {
+			return err
+		}
+	}
+
+	m.Cfg.Section(section).NewKey(key, value)
+
+	return nil
+}
+
 
 func (m *Meta) NewSection(section string) error {
 	s, err := m.Cfg.NewSection(section)

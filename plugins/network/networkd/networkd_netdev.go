@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+// Copyright 2022 VMware, Inc.
 
 package networkd
 
@@ -7,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 
@@ -47,8 +49,6 @@ func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	m.NewSection("NetDev")
 
-	fmt.Println(n)
-
 	if n.Description != "" {
 		m.SetKeyToNewSectionString("Description", n.Description)
 	}
@@ -56,22 +56,33 @@ func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	if n.Name == "" {
 		log.Errorf("Failed to create VLan. Missing NetDev name")
 		return errors.New("missing netdev name")
-		
+
 	}
 	m.SetKeyToNewSectionString("Name", n.Name)
 
-	if n.Kind != "" {
+	if n.Kind == "" {
 		log.Errorf("Failed to create VLan. Missing NetDev kind")
 		return errors.New("missing netdev kind")
 	}
-
 	m.SetKeyToNewSectionString("Kind", n.Kind)
 
 	if n.MACAddress != "" {
+		_, err:= net.ParseMAC(n.MACAddress)
+		if err != nil {
+			log.Errorf("Failed to create VLan='%s'. Invalid MACAddress='%s': %v", n.Name, n.MTUBytes, err)
+			return fmt.Errorf("invalid MACAddress='%s'", n.MACAddress)
+		}
+
 		m.SetKeyToNewSectionString("MACAddress", n.MACAddress)
 	}
 
 	if n.MTUBytes != "" {
+		_, err := strconv.ParseUint(n.MTUBytes, 10, 32)
+		if err != nil {
+			log.Errorf("Failed to create VLan='%s'. Invalid MTUBytes='%s': %v", n.Name, n.MTUBytes, err)
+			return fmt.Errorf("invalid MTUBytes='%s'", n.MTUBytes)
+		}
+
 		m.SetKeyToNewSectionString("MTUBytes", n.MTUBytes)
 	}
 
@@ -92,7 +103,6 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 		if n.VLanSection.Id == "" {
 			log.Errorf("Failed to create VLan='%s'. Missing Id,", n.Name, err)
 			return errors.New("missing vlan id")
-
 		}
 
 		_, err := strconv.ParseUint(n.VLanSection.Id, 10, 32)
@@ -100,10 +110,9 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 			log.Errorf("Failed to create VLan='%s'. Invalid Id='%s': %v", n.Name, n.VLanSection.Id, err)
 			return fmt.Errorf("invalid vlan id='%s'", n.VLanSection.Id)
 		}
-
 		m.SetKeyToNewSectionString("Id", n.VLanSection.Id)
 
-		if err := nm.SetKeySectionString("Network", "VLAN", n.Name); err != nil {
+		if err := nm.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
 			log.Errorf("Failed to update .network file of link='%s',", n.Link, err)
 			return err
 		}
