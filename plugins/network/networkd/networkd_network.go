@@ -32,6 +32,8 @@ type NetworkSection struct {
 	IPv6AcceptRA        string   `json:"IPv6AcceptRA"`
 	LinkLocalAddressing string   `json:"LinkLocalAddressing"`
 	MulticastDNS        string   `json:"MulticastDNS"`
+
+	VLAN string `json:"VLAN"`
 }
 type AddressSection struct {
 	Address string `json:"Address"`
@@ -39,6 +41,7 @@ type AddressSection struct {
 	Label   string `json:"Label"`
 	Scope   string `json:"Scope"`
 }
+
 type RouteSection struct {
 	Gateway         string `json:"Gateway"`
 	GatewayOnlink   string `json:"GatewayOnlink"`
@@ -111,7 +114,7 @@ type NetworkDescribe struct {
 	NTP              []string `json:"NTP"`
 }
 
-func decodeJSONRequest(r *http.Request) (*Network, error) {
+func decodeNetworkJSONRequest(r *http.Request) (*Network, error) {
 	n := Network{}
 	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
 		return &n, err

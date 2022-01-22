@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
 	"github.com/pmd-nextgen/pkg/configfile"
@@ -164,7 +165,6 @@ func CreateNetworkFile(link string) (*configfile.Meta, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer f.Close()
 
 	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
@@ -206,4 +206,51 @@ func CreateOrParseNetworkFile(l string) (*configfile.Meta, error) {
 	}
 
 	return configfile.Load(n)
+}
+
+func CreateNetDevFile(link string, kind string) (*configfile.Meta, error) {
+	file := "10-" + link + "-" + kind + ".netdev"
+
+	f, err := os.Create(path.Join("/etc/systemd/network", file))
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
+	if err != nil {
+		return nil, err
+	}
+
+	system.ChangePermission("systemd-network", m.Path)
+
+	return m, nil
+}
+
+func CreateNetDevNetworkFile(link string, kind string) error {
+	file := "10-" + link + "-" + kind + ".network"
+
+	f, err := os.Create(path.Join("/etc/systemd/network", file))
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
+	if err != nil {
+		return err
+	}
+
+	m.NewSection("Match")
+	m.SetKeyToNewSectionString("Name", link)
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+		return err
+	}
+
+	system.ChangePermission("systemd-network", m.Path)
+
+	return nil
 }

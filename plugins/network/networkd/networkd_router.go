@@ -12,7 +12,7 @@ import (
 )
 
 func routerConfigureNetwork(w http.ResponseWriter, r *http.Request) {
-	n, err := decodeJSONRequest(r)
+	n, err := decodeNetworkJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -24,7 +24,7 @@ func routerConfigureNetwork(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerRemoveNetwork(w http.ResponseWriter, r *http.Request) {
-	n, err := decodeJSONRequest(r)
+	n, err := decodeNetworkJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -53,6 +53,18 @@ func routerAcquireNetworkState(w http.ResponseWriter, r *http.Request) {
 	web.JSONResponse(n, w)
 }
 
+func routerConfigureNetDev(w http.ResponseWriter, r *http.Request) {
+	n, err := decodeNetDevJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := n.ConfigureNetDev(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func RegisterRouterNetworkd(router *mux.Router) {
 	n := router.PathPrefix("/networkd").Subrouter().StrictSlash(false)
 
@@ -60,4 +72,6 @@ func RegisterRouterNetworkd(router *mux.Router) {
 	n.HandleFunc("/network/describelinks", routerAcquireLinks).Methods("GET")
 	n.HandleFunc("/network/configure", routerConfigureNetwork).Methods("POST")
 	n.HandleFunc("/network/remove", routerRemoveNetwork).Methods("DELETE")
+
+	n.HandleFunc("/netdev/configure", routerConfigureNetDev).Methods("POST")
 }
