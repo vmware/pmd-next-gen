@@ -18,7 +18,7 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/pmd-nextgen/pkg/conf"
-	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/parser"
 	"github.com/pmd-nextgen/pkg/system"
 	"github.com/pmd-nextgen/plugins/management"
 	"github.com/pmd-nextgen/plugins/network"
@@ -89,7 +89,7 @@ func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 		r.Use(amw.AuthMiddleware)
 	}
 
-	ip, port, _ := share.ParseIpPort(c.Network.Listen)
+	ip, port, _ := parser.ParseIpPort(c.Network.Listen)
 
 	if system.TLSFilePathExits() {
 		cfg := &tls.Config{

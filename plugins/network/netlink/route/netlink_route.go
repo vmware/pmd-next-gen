@@ -10,10 +10,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/pmd-nextgen/pkg/parser"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
-
-	"github.com/pmd-nextgen/pkg/share"
 )
 
 type Route struct {
@@ -73,7 +72,7 @@ func (rt *Route) AddDefaultGateWay() error {
 	}
 
 	onlink := 0
-	b, err := share.ParseBool(strings.TrimSpace(rt.OnLink))
+	b, err := parser.ParseBool(strings.TrimSpace(rt.OnLink))
 	if err != nil {
 		log.Errorf("Failed to parse GatewayOnlink %s: %v", rt.OnLink, err)
 	} else {
@@ -110,7 +109,7 @@ func (rt *Route) ReplaceDefaultGateWay() error {
 	}
 
 	onlink := 0
-	b, err := share.ParseBool(strings.TrimSpace(rt.OnLink))
+	b, err := parser.ParseBool(strings.TrimSpace(rt.OnLink))
 	if err != nil {
 		log.Errorf("Failed to parse GatewayOnlink %s: %v", rt.OnLink, err)
 	} else {

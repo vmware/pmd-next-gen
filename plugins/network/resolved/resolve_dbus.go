@@ -11,7 +11,7 @@ import (
 	"github.com/vishvananda/netlink"
 
 	"github.com/pmd-nextgen/pkg/bus"
-	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/parser"
 )
 
 const (
@@ -48,10 +48,10 @@ func buildDNSMessage(variant dbus.Variant, link bool) ([]Dns, error) {
 		d := Dns{}
 		if link {
 			d.Family = v[0].(int32)
-			d.Dns = share.BuildIPFromBytes(v[1].([]uint8))
+			d.Dns = parser.BuildIPFromBytes(v[1].([]uint8))
 		} else {
 			d.Family = v[1].(int32)
-			d.Dns = share.BuildIPFromBytes(v[2].([]uint8))
+			d.Dns = parser.BuildIPFromBytes(v[2].([]uint8))
 
 			index := v[0].(int32)
 			if index != 0 {

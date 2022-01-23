@@ -3,10 +3,9 @@
 package conf
 
 import (
+	"github.com/pmd-nextgen/pkg/parser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-
-	"github.com/pmd-nextgen/pkg/share"
 )
 
 const (
@@ -36,7 +35,7 @@ type System struct {
 	UseAuthentication bool   `mapstructure:"UseAuthentication"`
 }
 type Network struct {
-	Listen       string
+	Listen           string
 	ListenUnixSocket bool
 }
 
@@ -65,13 +64,12 @@ func Parse() (*Config, error) {
 	logrus.Debugf("Log level set to '%+v'", logrus.GetLevel().String())
 
 	if c.Network.Listen != "" {
-		share.ParseIpPort(c.Network.Listen)
-		if _, _, err := share.ParseIpPort(c.Network.Listen); err != nil {
+		parser.ParseIpPort(c.Network.Listen)
+		if _, _, err := parser.ParseIpPort(c.Network.Listen); err != nil {
 			logrus.Errorf("Failed to parse Listen=%s", c.Network.Listen)
 			return nil, err
 		}
 	}
-
 
 	return &c, nil
 }

@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/parser"
 	"github.com/pmd-nextgen/pkg/system"
 	"github.com/pmd-nextgen/pkg/web"
 	log "github.com/sirupsen/logrus"
@@ -35,7 +36,7 @@ type Sysctl struct {
 
 // Get filepath from key
 func pathFromKey(key string) string {
-	return filepath.Join(procSysPath, strings.Replace(key, ".", "/", -1))
+	return path.Join(procSysPath, strings.Replace(key, ".", "/", -1))
 }
 
 // Get key from filepath
@@ -46,7 +47,7 @@ func keyFromPath(path string) string {
 
 // Apply sysctl configuration to system
 func (s *Sysctl) apply(fileName string) error {
-	b, err := share.ParseBool(s.Apply)
+	b, err := parser.ParseBool(s.Apply)
 	if err != nil || !b {
 		return fmt.Errorf("Failed to parse boolean: '%s'", s.Apply)
 	}
