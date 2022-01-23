@@ -10,11 +10,11 @@ import (
 )
 
 type NTPServer struct {
-	ServerName       string   `json:"ServerName`
-	Family           int32    `json:"Family`
-	ServerAddress    string   `json:"ServerAddress"`
-	SystemNTPServers []string `json:"SystemNTPServers"`
-	LinkNTPServers   []string `json:"LinkNTPServers"`
+	NTPServerName     string   `json:"NTPServerName `
+	NTPServerIpFamily int32    `json:"NTPServerIpFamily`
+	ServerAddress     string   `json:"ServerAddress"`
+	SystemNTPServers  []string `json:"SystemNTPServers"`
+	LinkNTPServers    []string `json:"LinkNTPServers"`
 }
 
 func AcquireNTPServer(kind string, ctx context.Context) (*NTPServer, error) {

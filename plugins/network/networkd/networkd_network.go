@@ -6,15 +6,18 @@ package networkd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/jaypipes/ghw"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
 	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
 
@@ -205,37 +208,69 @@ func AcquireNetworkState(ctx context.Context) (*NetworkDescribe, error) {
 	return &n, nil
 }
 
-func (n *Network) buildNetworkSection(m *configfile.Meta) {
+func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 	if n.NetworkSection.DHCP != "" {
 		m.SetKeySectionString("Network", "DHCP", n.NetworkSection.DHCP)
 	}
-	if n.NetworkSection.Address != "" {
-		m.SetKeySectionString("Network", "Address", n.NetworkSection.Address)
+
+	if validator.IsNotEmptyString(n.NetworkSection.Address) {
+		if validator.IsIP(n.NetworkSection.Address) {
+			m.SetKeySectionString("Network", "Address", n.NetworkSection.Address)
+		} else {
+			log.Errorf("Failed to parse Address='%s'", n.NetworkSection.Address)
+			return fmt.Errorf("invalid Address='%s'", n.NetworkSection.Address)
+		}
 	}
-	if n.NetworkSection.Gateway != "" {
-		m.SetKeySectionString("Network", "Gateway", n.NetworkSection.Gateway)
+
+	if validator.IsNotEmptyString(n.NetworkSection.Gateway) {
+		if validator.IsIP(n.NetworkSection.Gateway) {
+			m.SetKeySectionString("Network", "Gateway", n.NetworkSection.Gateway)
+		} else {
+			log.Errorf("Failed to parse Gateway='%s'", n.NetworkSection.Gateway)
+			return fmt.Errorf("invalid Gateway='%s'", n.NetworkSection.Gateway)
+		}
 	}
+
 	if n.NetworkSection.IPv6AcceptRA != "" {
 		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
+
 	if n.NetworkSection.LinkLocalAddressing != "" {
 		m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
 	}
+
 	if n.NetworkSection.MulticastDNS != "" {
 		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
 	}
-	if len(n.NetworkSection.Domains) > 0 {
+
+	if validator.IsArrayNotEmpty(n.NetworkSection.Domains) {
 		m.SetKeySectionString("Network", "Domains", strings.Join(n.NetworkSection.Domains, " "))
 	}
-	if len(n.NetworkSection.DNS) > 0 {
+
+	if validator.IsArrayNotEmpty(n.NetworkSection.DNS) {
+		for _, dns := range n.NetworkSection.DNS {
+			if !govalidator.IsDNSName(dns) {
+				log.Errorf("Failed to parse DNS='%s'", dns)
+				return fmt.Errorf("invalid DNS='%s'", dns)
+			}
+		}
 		m.SetKeySectionString("Network", "DNS", strings.Join(n.NetworkSection.DNS, " "))
 	}
-	if len(n.NetworkSection.NTP) > 0 {
-		m.SetKeySectionString("Network", "NTP", strings.Join(n.NetworkSection.NTP, " "))
+
+	if validator.IsArrayNotEmpty(n.NetworkSection.NTP) {
+		for _, ntp := range n.NetworkSection.NTP {
+			if !validator.IsIP(ntp) {
+				log.Errorf("Failed to parse NTP='%s'", ntp)
+				return fmt.Errorf("invalid NTP='%s'", ntp)
+			}
+			m.SetKeySectionString("Network", "NTP", strings.Join(n.NetworkSection.NTP, " "))
+		}
 	}
+
+	return nil
 }
 
-func (n *Network) buildDHCPv4Section(m *configfile.Meta) {
+func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 	if n.DHCPv4Section.ClientIdentifier != "" {
 		m.SetKeySectionString("DHCPv4", "ClientIdentifier", n.DHCPv4Section.ClientIdentifier)
 	}
@@ -267,6 +302,8 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) {
 	if n.DHCPv4Section.UseTimezone != "" {
 		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
 	}
+
+	return nil
 }
 
 func (n *Network) buildAddressSection(m *configfile.Meta) error {
@@ -275,16 +312,29 @@ func (n *Network) buildAddressSection(m *configfile.Meta) error {
 			return err
 		}
 
-		if a.Address != "" {
-			m.SetKeyToNewSectionString("Address", a.Address)
+		if validator.IsNotEmptyString(a.Address) {
+			if validator.IsIP(a.Address) {
+				m.SetKeyToNewSectionString("Address", a.Address)
+			} else {
+				log.Errorf("Failed to parse Address='%s'", a.Address)
+				return fmt.Errorf("invalid Address='%s'", a.Address)
+			}
 		}
-		if a.Peer != "" {
-			m.SetKeyToNewSectionString("Peer", a.Peer)
+
+		if validator.IsNotEmptyString(a.Peer) {
+			if validator.IsIP(a.Peer) {
+				m.SetKeyToNewSectionString("Peer", a.Peer)
+			} else {
+				log.Errorf("Failed to parse Peer='%s'", a.Peer)
+				return fmt.Errorf("invalid Peer='%s'", a.Peer)
+			}
 		}
-		if a.Label != "" {
+
+		if validator.IsNotEmptyString(a.Label) {
 			m.SetKeyToNewSectionString("Label", a.Label)
 		}
-		if a.Scope != "" {
+
+		if validator.IsNotEmptyString(a.Scope) {
 			m.SetKeyToNewSectionString("Scope", a.Scope)
 		}
 	}
@@ -298,24 +348,50 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			return err
 		}
 
-		if rt.Gateway != "" {
-			m.SetKeyToNewSectionString("Gateway", rt.Gateway)
+		if validator.IsNotEmptyString(rt.Gateway) {
+			if validator.IsIP(rt.Gateway) {
+				m.SetKeyToNewSectionString("Gateway", rt.Gateway)
+			} else {
+				log.Errorf("Failed to parse Peer='%s'", rt.Gateway)
+				return fmt.Errorf("invalid Peer='%s'", rt.Gateway)
+			}
 		}
-		if rt.GatewayOnlink != "" {
+
+		if validator.IsNotEmptyString(rt.GatewayOnlink) {
 			m.SetKeyToNewSectionString("GatewayOnlink", rt.GatewayOnlink)
 		}
-		if rt.Destination != "" {
-			m.SetKeyToNewSectionString("Destination", rt.Destination)
+
+		if validator.IsNotEmptyString(rt.Destination) {
+			if validator.IsIP(rt.Destination) {
+				m.SetKeyToNewSectionString("Destination", rt.Destination)
+			} else {
+				log.Errorf("Failed to parse Destination='%s'", rt.Destination)
+				return fmt.Errorf("invalid Destination='%s'", rt.Destination)
+			}
 		}
-		if rt.Source != "" {
-			m.SetKeyToNewSectionString("Source", rt.Source)
+
+		if validator.IsNotEmptyString(rt.Source) {
+			if validator.IsIP(rt.Source) {
+				m.SetKeyToNewSectionString("Source", rt.Source)
+			} else {
+				log.Errorf("Failed to parse Source='%s'", rt.Source)
+				return fmt.Errorf("invalid Source='%s'", rt.Source)
+			}
 		}
-		if rt.PreferredSource != "" {
-			m.SetKeyToNewSectionString("PreferredSource", rt.PreferredSource)
+
+		if validator.IsNotEmptyString(rt.PreferredSource) {
+			if validator.IsIP(rt.PreferredSource) {
+				m.SetKeyToNewSectionString("Source", rt.PreferredSource)
+			} else {
+				log.Errorf("Failed to parse Source='%s'", rt.PreferredSource)
+				return fmt.Errorf("invalid Source='%s'", rt.PreferredSource)
+			}
 		}
+
 		if rt.Table != "" {
 			m.SetKeyToNewSectionString("Table", rt.Table)
 		}
+
 		if rt.Scope != "" {
 			m.SetKeyToNewSectionString("Scope", rt.Scope)
 		}
@@ -365,9 +441,18 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 	}
 
 	n.buildNetworkSection(m)
-	n.buildDHCPv4Section(m)
-	n.buildAddressSection(m)
-	n.buildRouteSection(m)
+	if err := n.buildNetworkSection(m); err != nil {
+		return err
+	}
+	if err := n.buildDHCPv4Section(m); err != nil {
+		return err
+	}
+	if err := n.buildAddressSection(m); err != nil {
+		return err
+	}
+	if err := n.buildRouteSection(m); err != nil {
+		return err
+	}
 
 	if err := m.Save(); err != nil {
 		log.Errorf("Failed to update config file='%s': %v", m.Path, err)

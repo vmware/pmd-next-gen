@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pmd-nextgen/pkg/bus"
-	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/parser"
 )
 
 const (
@@ -69,9 +69,9 @@ func (c *SDConnection) DBusAcquireCurrentNTPServerFromTimeSync(ctx context.Conte
 	wg.Wait()
 
 	return &NTPServer{
-		ServerName:    serverName.Value().(string),
-		Family:        serverAddress.Value().([]interface{})[0].(int32),
-		ServerAddress: share.BuildIPFromBytes(serverAddress.Value().([]interface{})[1].([]uint8)),
+		NTPServerName:     serverName.Value().(string),
+		NTPServerIpFamily: serverAddress.Value().([]interface{})[0].(int32),
+		ServerAddress:     parser.BuildIPFromBytes(serverAddress.Value().([]interface{})[1].([]uint8)),
 	}, nil
 }
 

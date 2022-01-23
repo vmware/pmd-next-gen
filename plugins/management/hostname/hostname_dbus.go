@@ -11,7 +11,7 @@ import (
 	"github.com/godbus/dbus/v5"
 
 	"github.com/pmd-nextgen/pkg/bus"
-	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/parser"
 )
 
 const (
@@ -194,7 +194,7 @@ func (c *SDConnection) DBusDescribeFallback(ctx context.Context) (*Describe, err
 		var uuid []uint8
 		err := c.object.Call(dbusInterface+".GetProductUUID", 0, false).Store(&uuid)
 		if err == nil {
-			h.ProductUUID = share.BuildHexFromBytes(uuid)
+			h.ProductUUID = parser.BuildHexFromBytes(uuid)
 		}
 	}()
 

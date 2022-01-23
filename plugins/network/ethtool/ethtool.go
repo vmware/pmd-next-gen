@@ -6,7 +6,7 @@ package ethtool
 import (
 	"net/http"
 
-	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/parser"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/safchain/ethtool"
 	log "github.com/sirupsen/logrus"
@@ -201,11 +201,13 @@ func (r *Ethtool) ConfigureEthTool(w http.ResponseWriter) error {
 	case "setfeature":
 		feature := make(map[string]bool)
 
-		b, err := share.ParseBool(r.Value)
-		feature[r.Property] = b
-
-		err = e.Change(r.Link, feature)
+		b, err := parser.ParseBool(r.Value)
 		if err != nil {
+			return err
+		}
+		
+		feature[r.Property] = b
+		if err := e.Change(r.Link, feature); err != nil {
 			return err
 		}
 	}
