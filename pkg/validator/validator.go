@@ -5,6 +5,7 @@ package validator
 
 import (
 	"net"
+	"strconv"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -19,17 +20,6 @@ func IsBool(str string) bool {
 
 	return false
 }
-
-func IsIP(str string) bool {
-	_, _, err := net.ParseCIDR(str)
-	if err != nil {
-		ip := net.ParseIP(str)
-		return ip != nil
-	}
-
-	return err == nil
-}
-
 func IsArrayEmpty(str []string) bool {
 	return len(str) == 0
 }
@@ -45,3 +35,29 @@ func IsEmptyString(str string) bool {
 func IsNotEmptyString(str string) bool {
 	return govalidator.IsNotNull(str)
 }
+
+func IsIP(str string) bool {
+	_, _, err := net.ParseCIDR(str)
+	if err != nil {
+		ip := net.ParseIP(str)
+		return ip != nil
+	}
+
+	return err == nil
+}
+
+func IsNotMAC(mac string) bool {
+	return !govalidator.IsMAC(mac)
+}
+
+func IsMtu(mtu string) bool {
+	_, err := strconv.ParseUint(mtu, 10, 32)
+	return err == nil
+}
+
+func IsVLanId(id string) bool {
+	_, err := strconv.ParseUint(id, 10, 32)
+	return err == nil
+}
+
+
