@@ -8,11 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
-	"strconv"
 
 	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -49,37 +48,35 @@ func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	m.NewSection("NetDev")
 
-	if n.Description != "" {
+	if validator.IsNotEmptyString(n.Description) {
 		m.SetKeyToNewSectionString("Description", n.Description)
 	}
 
-	if n.Name == "" {
+	if validator.IsEmptyString(n.Name) {
 		log.Errorf("Failed to create VLan. Missing NetDev name")
 		return errors.New("missing netdev name")
 
 	}
 	m.SetKeyToNewSectionString("Name", n.Name)
 
-	if n.Kind == "" {
+	if validator.IsEmptyString(n.Kind) {
 		log.Errorf("Failed to create VLan. Missing NetDev kind")
 		return errors.New("missing netdev kind")
 	}
 	m.SetKeyToNewSectionString("Kind", n.Kind)
 
-	if n.MACAddress != "" {
-		_, err:= net.ParseMAC(n.MACAddress)
-		if err != nil {
-			log.Errorf("Failed to create VLan='%s'. Invalid MACAddress='%s': %v", n.Name, n.MTUBytes, err)
+	if validator.IsNotEmptyString(n.MACAddress) {
+		if validator.IsNotMAC(n.MACAddress) {
+			log.Errorf("Failed to create VLan='%s'. Invalid MACAddress='%s': %v", n.Name, n.MTUBytes)
 			return fmt.Errorf("invalid MACAddress='%s'", n.MACAddress)
 		}
 
 		m.SetKeyToNewSectionString("MACAddress", n.MACAddress)
 	}
 
-	if n.MTUBytes != "" {
-		_, err := strconv.ParseUint(n.MTUBytes, 10, 32)
-		if err != nil {
-			log.Errorf("Failed to create VLan='%s'. Invalid MTUBytes='%s': %v", n.Name, n.MTUBytes, err)
+	if validator.IsNotEmptyString(n.MTUBytes) {
+		if !validator.IsMtu(n.MTUBytes) {
+			log.Errorf("Failed to create VLan='%s'. Invalid MTUBytes='%s': %v", n.Name, n.MTUBytes)
 			return fmt.Errorf("invalid MTUBytes='%s'", n.MTUBytes)
 		}
 
@@ -100,14 +97,13 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "vlan":
 		m.NewSection("VLAN")
 
-		if n.VLanSection.Id == "" {
+		if validator.IsEmptyString(n.VLanSection.Id) {
 			log.Errorf("Failed to create VLan='%s'. Missing Id,", n.Name, err)
 			return errors.New("missing vlan id")
 		}
 
-		_, err := strconv.ParseUint(n.VLanSection.Id, 10, 32)
-		if err != nil {
-			log.Errorf("Failed to create VLan='%s'. Invalid Id='%s': %v", n.Name, n.VLanSection.Id, err)
+		if !validator.IsVLanId(n.VLanSection.Id) {
+			log.Errorf("Failed to create VLan='%s'. Invalid Id='%s'", n.Name, n.VLanSection.Id)
 			return fmt.Errorf("invalid vlan id='%s'", n.VLanSection.Id)
 		}
 		m.SetKeyToNewSectionString("Id", n.VLanSection.Id)
