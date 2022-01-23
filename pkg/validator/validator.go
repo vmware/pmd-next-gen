@@ -24,16 +24,8 @@ func IsArrayEmpty(str []string) bool {
 	return len(str) == 0
 }
 
-func IsArrayNotEmpty(str []string) bool {
-	return !IsArrayEmpty(str)
-}
-
-func IsEmptyString(str string) bool {
+func IsEmpty(str string) bool {
 	return govalidator.IsNull(str)
-}
-
-func IsNotEmptyString(str string) bool {
-	return govalidator.IsNotNull(str)
 }
 
 func IsIP(str string) bool {
@@ -58,6 +50,15 @@ func IsMtu(mtu string) bool {
 func IsVLanId(id string) bool {
 	_, err := strconv.ParseUint(id, 10, 32)
 	return err == nil
+}
+
+func IsDHCP(dhcp string) bool {
+	switch dhcp {
+	case "yes", "no", "ipv4", "ipv6":
+		return true
+	}
+	
+	return false
 }
 
 

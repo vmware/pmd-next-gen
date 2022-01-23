@@ -209,11 +209,16 @@ func AcquireNetworkState(ctx context.Context) (*NetworkDescribe, error) {
 }
 
 func (n *Network) buildNetworkSection(m *configfile.Meta) error {
-	if n.NetworkSection.DHCP != "" {
-		m.SetKeySectionString("Network", "DHCP", n.NetworkSection.DHCP)
+	if !validator.IsEmpty(n.NetworkSection.DHCP) {
+		if validator.IsDHCP(n.NetworkSection.DHCP) {
+			m.SetKeySectionString("Network", "DHCP", n.NetworkSection.DHCP)
+		} else {
+			log.Errorf("Failed to parse DHCP='%s'", n.NetworkSection.DHCP)
+			return fmt.Errorf("invalid DHCP='%s'", n.NetworkSection.DHCP)
+		}
 	}
 
-	if validator.IsNotEmptyString(n.NetworkSection.Address) {
+	if !validator.IsEmpty(n.NetworkSection.Address) {
 		if validator.IsIP(n.NetworkSection.Address) {
 			m.SetKeySectionString("Network", "Address", n.NetworkSection.Address)
 		} else {
@@ -222,7 +227,7 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
-	if validator.IsNotEmptyString(n.NetworkSection.Gateway) {
+	if !validator.IsEmpty(n.NetworkSection.Gateway) {
 		if validator.IsIP(n.NetworkSection.Gateway) {
 			m.SetKeySectionString("Network", "Gateway", n.NetworkSection.Gateway)
 		} else {
@@ -231,23 +236,23 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
-	if n.NetworkSection.IPv6AcceptRA != "" {
+	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) {
 		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
 
-	if n.NetworkSection.LinkLocalAddressing != "" {
+	if !validator.IsEmpty(n.NetworkSection.LinkLocalAddressing) {
 		m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
 	}
 
-	if n.NetworkSection.MulticastDNS != "" {
+	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) {
 		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
 	}
 
-	if validator.IsArrayNotEmpty(n.NetworkSection.Domains) {
+	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
 		m.SetKeySectionString("Network", "Domains", strings.Join(n.NetworkSection.Domains, " "))
 	}
 
-	if validator.IsArrayNotEmpty(n.NetworkSection.DNS) {
+	if !validator.IsArrayEmpty(n.NetworkSection.DNS) {
 		for _, dns := range n.NetworkSection.DNS {
 			if !govalidator.IsDNSName(dns) {
 				log.Errorf("Failed to parse DNS='%s'", dns)
@@ -257,7 +262,7 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		m.SetKeySectionString("Network", "DNS", strings.Join(n.NetworkSection.DNS, " "))
 	}
 
-	if validator.IsArrayNotEmpty(n.NetworkSection.NTP) {
+	if !validator.IsArrayEmpty(n.NetworkSection.NTP) {
 		for _, ntp := range n.NetworkSection.NTP {
 			if !validator.IsIP(ntp) {
 				log.Errorf("Failed to parse NTP='%s'", ntp)
@@ -271,35 +276,43 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 }
 
 func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
-	if n.DHCPv4Section.ClientIdentifier != "" {
+	if !validator.IsEmpty(n.DHCPv4Section.ClientIdentifier) {
 		m.SetKeySectionString("DHCPv4", "ClientIdentifier", n.DHCPv4Section.ClientIdentifier)
 	}
-	if n.DHCPv4Section.VendorClassIdentifier != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.VendorClassIdentifier){
 		m.SetKeySectionString("DHCPv4", "VendorClassIdentifier", n.DHCPv4Section.VendorClassIdentifier)
 	}
-	if n.DHCPv4Section.RequestOptions != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.RequestOptions) {
 		m.SetKeySectionString("DHCPv4", "RequestOptions", n.DHCPv4Section.RequestOptions)
 	}
-	if n.DHCPv4Section.SendOption != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.SendOption) {
 		m.SetKeySectionString("DHCPv4", "SendOption", n.DHCPv4Section.SendOption)
 	}
-	if n.DHCPv4Section.UseDNS != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseDNS) {
 		m.SetKeySectionString("DHCPv4", "UseDNS", n.DHCPv4Section.UseDNS)
 	}
-	if n.DHCPv4Section.UseDomains != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseDomains) {
 		m.SetKeySectionString("DHCPv4", "UseDomains", n.DHCPv4Section.UseDomains)
 	}
-	if n.DHCPv4Section.UseNTP != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseNTP) {
 		m.SetKeySectionString("DHCPv4", "UseNTP", n.DHCPv4Section.UseNTP)
 	}
-	if n.DHCPv4Section.UseMTU != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseMTU) {
 		m.SetKeySectionString("DHCPv4", "UseMTU", n.DHCPv4Section.UseMTU)
 	}
 
-	if n.DHCPv4Section.UseGateway != "" {
+	if !validator.IsEmpty(n.DHCPv4Section.UseGateway) {
 		m.SetKeySectionString("DHCPv4", "UseGateway", n.DHCPv4Section.UseGateway)
 	}
-	if n.DHCPv4Section.UseTimezone != "" {
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) {
 		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
 	}
 
@@ -312,7 +325,7 @@ func (n *Network) buildAddressSection(m *configfile.Meta) error {
 			return err
 		}
 
-		if validator.IsNotEmptyString(a.Address) {
+		if !validator.IsEmpty(a.Address) {
 			if validator.IsIP(a.Address) {
 				m.SetKeyToNewSectionString("Address", a.Address)
 			} else {
@@ -321,7 +334,7 @@ func (n *Network) buildAddressSection(m *configfile.Meta) error {
 			}
 		}
 
-		if validator.IsNotEmptyString(a.Peer) {
+		if !validator.IsEmpty(a.Peer) {
 			if validator.IsIP(a.Peer) {
 				m.SetKeyToNewSectionString("Peer", a.Peer)
 			} else {
@@ -330,11 +343,11 @@ func (n *Network) buildAddressSection(m *configfile.Meta) error {
 			}
 		}
 
-		if validator.IsNotEmptyString(a.Label) {
+		if !validator.IsEmpty(a.Label) {
 			m.SetKeyToNewSectionString("Label", a.Label)
 		}
 
-		if validator.IsNotEmptyString(a.Scope) {
+		if !validator.IsEmpty(a.Scope) {
 			m.SetKeyToNewSectionString("Scope", a.Scope)
 		}
 	}
@@ -348,7 +361,7 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			return err
 		}
 
-		if validator.IsNotEmptyString(rt.Gateway) {
+		if !validator.IsEmpty(rt.Gateway) {
 			if validator.IsIP(rt.Gateway) {
 				m.SetKeyToNewSectionString("Gateway", rt.Gateway)
 			} else {
@@ -357,11 +370,11 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			}
 		}
 
-		if validator.IsNotEmptyString(rt.GatewayOnlink) {
+		if !validator.IsEmpty(rt.GatewayOnlink) {
 			m.SetKeyToNewSectionString("GatewayOnlink", rt.GatewayOnlink)
 		}
 
-		if validator.IsNotEmptyString(rt.Destination) {
+		if !validator.IsEmpty(rt.Destination) {
 			if validator.IsIP(rt.Destination) {
 				m.SetKeyToNewSectionString("Destination", rt.Destination)
 			} else {
@@ -370,7 +383,7 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			}
 		}
 
-		if validator.IsNotEmptyString(rt.Source) {
+		if !validator.IsEmpty(rt.Source) {
 			if validator.IsIP(rt.Source) {
 				m.SetKeyToNewSectionString("Source", rt.Source)
 			} else {
@@ -379,7 +392,7 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			}
 		}
 
-		if validator.IsNotEmptyString(rt.PreferredSource) {
+		if !validator.IsEmpty(rt.PreferredSource) {
 			if validator.IsIP(rt.PreferredSource) {
 				m.SetKeyToNewSectionString("Source", rt.PreferredSource)
 			} else {
@@ -388,11 +401,11 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			}
 		}
 
-		if rt.Table != "" {
+		if !validator.IsEmpty(rt.Table) {
 			m.SetKeyToNewSectionString("Table", rt.Table)
 		}
 
-		if rt.Scope != "" {
+		if !validator.IsEmpty(rt.Scope) {
 			m.SetKeyToNewSectionString("Scope", rt.Scope)
 		}
 	}
@@ -402,7 +415,7 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 
 func (n *Network) removeAddressSection(m *configfile.Meta) error {
 	for _, a := range n.AddressSections {
-		if a.Address != "" {
+		if !validator.IsEmpty(a.Address) {
 			if err := m.RemoveSection("Address", "Address", a.Address); err != nil {
 				log.Errorf("Failed to remove Address='%s': %v", a.Address, err)
 				return err
@@ -415,14 +428,14 @@ func (n *Network) removeAddressSection(m *configfile.Meta) error {
 
 func (n *Network) removeRouteSection(m *configfile.Meta) error {
 	for _, rt := range n.RouteSections {
-		if rt.Gateway != "" {
+		if !validator.IsEmpty(rt.Gateway) {
 			if err := m.RemoveSection("Route", "Gateway", rt.Gateway); err != nil {
 				log.Errorf("Failed to remove Gateway='%s': %v", rt.Gateway, err)
 				return err
 			}
 		}
 
-		if rt.Destination != "" {
+		if !validator.IsEmpty(rt.Destination) {
 			if err := m.RemoveSection("Route", "Destination", rt.Destination); err != nil {
 				log.Errorf("Failed to remove Destination='%s': %v", rt.Destination, err)
 				return err

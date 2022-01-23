@@ -48,24 +48,24 @@ func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	m.NewSection("NetDev")
 
-	if validator.IsNotEmptyString(n.Description) {
+	if !validator.IsEmpty(n.Description) {
 		m.SetKeyToNewSectionString("Description", n.Description)
 	}
 
-	if validator.IsEmptyString(n.Name) {
+	if validator.IsEmpty(n.Name) {
 		log.Errorf("Failed to create VLan. Missing NetDev name")
 		return errors.New("missing netdev name")
 
 	}
 	m.SetKeyToNewSectionString("Name", n.Name)
 
-	if validator.IsEmptyString(n.Kind) {
+	if validator.IsEmpty(n.Kind) {
 		log.Errorf("Failed to create VLan. Missing NetDev kind")
 		return errors.New("missing netdev kind")
 	}
 	m.SetKeyToNewSectionString("Kind", n.Kind)
 
-	if validator.IsNotEmptyString(n.MACAddress) {
+	if !validator.IsEmpty(n.MACAddress) {
 		if validator.IsNotMAC(n.MACAddress) {
 			log.Errorf("Failed to create VLan='%s'. Invalid MACAddress='%s': %v", n.Name, n.MTUBytes)
 			return fmt.Errorf("invalid MACAddress='%s'", n.MACAddress)
@@ -74,7 +74,7 @@ func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 		m.SetKeyToNewSectionString("MACAddress", n.MACAddress)
 	}
 
-	if validator.IsNotEmptyString(n.MTUBytes) {
+	if !validator.IsEmpty(n.MTUBytes) {
 		if !validator.IsMtu(n.MTUBytes) {
 			log.Errorf("Failed to create VLan='%s'. Invalid MTUBytes='%s': %v", n.Name, n.MTUBytes)
 			return fmt.Errorf("invalid MTUBytes='%s'", n.MTUBytes)
@@ -97,7 +97,7 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "vlan":
 		m.NewSection("VLAN")
 
-		if validator.IsEmptyString(n.VLanSection.Id) {
+		if validator.IsEmpty(n.VLanSection.Id) {
 			log.Errorf("Failed to create VLan='%s'. Missing Id,", n.Name, err)
 			return errors.New("missing vlan id")
 		}
