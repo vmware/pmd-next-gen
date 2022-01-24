@@ -236,15 +236,20 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
-	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) {
+	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) && validator.IsBool(n.NetworkSection.IPv6AcceptRA){
 		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
 
 	if !validator.IsEmpty(n.NetworkSection.LinkLocalAddressing) {
-		m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
+		if validator.IsLinkLocalAddressing(n.NetworkSection.LinkLocalAddressing) {
+			m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
+		} else {
+			log.Errorf("Failed to parse LinkLocalAddressin='%s'", n.NetworkSection.LinkLocalAddressing)
+			return fmt.Errorf("invalid LinkLocalAddressin='%s'", n.NetworkSection.LinkLocalAddressing)
+		}
 	}
 
-	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) {
+	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) && validator.IsBool(n.NetworkSection.MulticastDNS){
 		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
 	}
 
@@ -292,27 +297,27 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 		m.SetKeySectionString("DHCPv4", "SendOption", n.DHCPv4Section.SendOption)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseDNS) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseDNS) && validator.IsBool(n.DHCPv4Section.UseDNS){
 		m.SetKeySectionString("DHCPv4", "UseDNS", n.DHCPv4Section.UseDNS)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseDomains) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseDomains)&& validator.IsBool(n.DHCPv4Section.UseDomains) {
 		m.SetKeySectionString("DHCPv4", "UseDomains", n.DHCPv4Section.UseDomains)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseNTP) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseNTP) && validator.IsBool(n.DHCPv4Section.UseNTP){
 		m.SetKeySectionString("DHCPv4", "UseNTP", n.DHCPv4Section.UseNTP)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseMTU) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseMTU) && validator.IsBool(n.DHCPv4Section.UseMTU){
 		m.SetKeySectionString("DHCPv4", "UseMTU", n.DHCPv4Section.UseMTU)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseGateway) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseGateway) && validator.IsBool(n.DHCPv4Section.UseGateway){
 		m.SetKeySectionString("DHCPv4", "UseGateway", n.DHCPv4Section.UseGateway)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) && validator.IsBool(n.DHCPv4Section.UseTimezone){
 		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
 	}
 
@@ -347,7 +352,7 @@ func (n *Network) buildAddressSection(m *configfile.Meta) error {
 			m.SetKeyToNewSectionString("Label", a.Label)
 		}
 
-		if !validator.IsEmpty(a.Scope) {
+		if !validator.IsEmpty(a.Scope) && validator.IsScope(a.Scope){
 			m.SetKeyToNewSectionString("Scope", a.Scope)
 		}
 	}
@@ -401,11 +406,11 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			}
 		}
 
-		if !validator.IsEmpty(rt.Table) {
+		if !validator.IsEmpty(rt.Table) &&govalidator.IsInt(rt.Table) {
 			m.SetKeyToNewSectionString("Table", rt.Table)
 		}
 
-		if !validator.IsEmpty(rt.Scope) {
+		if !validator.IsEmpty(rt.Scope)  && validator.IsScope(rt.Scope) {
 			m.SetKeyToNewSectionString("Scope", rt.Scope)
 		}
 	}
