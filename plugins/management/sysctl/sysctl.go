@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/parser"
 	"github.com/pmd-nextgen/pkg/system"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,7 +28,7 @@ const (
 type Sysctl struct {
 	Key      string   `json:"Key"`
 	Value    string   `json:"Value"`
-	Apply    string   `json:"Apply"`
+	Apply    bool     `json:"Apply"`
 	Pattern  string   `json:"Pattern"`
 	FileName string   `json:"FileName"`
 	Files    []string `json:"Files"`
@@ -41,21 +41,17 @@ func pathFromKey(key string) string {
 
 // Get key from filepath
 func keyFromPath(path string) string {
-	subPath := strings.TrimPrefix(path, procSysPath)
+
+	subPath := strings.TrimPrefix(path, procSysPath+"/")
 	return strings.Replace(subPath, "/", ".", -1)
 }
 
 // Apply sysctl configuration to system
 func (s *Sysctl) apply(fileName string) error {
-	b, err := parser.ParseBool(s.Apply)
-	if err != nil || !b {
-		return fmt.Errorf("Failed to parse boolean: '%s'", s.Apply)
-	}
-
-	stdout, err := system.ExecAndCapture("sysctl", "-p")
+	stdout, err := system.ExecAndCapture("sysctl", "-p", fileName)
 	if err != nil {
-		log.Errorf("Failed to load sysctl variable: %s", stdout)
-		return fmt.Errorf("Failed to load sysctl variable: %s", stdout)
+		log.Errorf("Failed to apply sysctl configuration file='%s' %s", fileName, stdout)
+		return fmt.Errorf("Failed to apply sysctl configuration file='%s' %s", fileName, stdout)
 	}
 
 	return nil
@@ -65,13 +61,14 @@ func (s *Sysctl) apply(fileName string) error {
 func readSysctlConfigFromFile(path string, sysctlMap map[string]string) error {
 	lines, err := system.ReadFullFile(path)
 	if err != nil {
+		log.Errorf("Failed to read file='%s'%v", path, err)
 		return fmt.Errorf("Failed to read file='%s'%v", path, err)
 	}
 
 	for _, line := range lines {
 		tokens := strings.Split(line, "=")
 		if len(tokens) != 2 {
-			log.Errorf("Could not parse line: '%s'", line)
+			log.Debugf("Could not parse line: '%s'", line)
 			continue
 		}
 
@@ -80,7 +77,7 @@ func readSysctlConfigFromFile(path string, sysctlMap map[string]string) error {
 		sysctlMap[k] = v
 	}
 
-	return err
+	return nil
 }
 
 // Write sysctlMap entry in configuration file
@@ -123,7 +120,7 @@ func createSysctlMapFromDir(baseDirPath string, sysctlMap map[string]string) err
 		} else {
 			err = readSysctlConfigFromFile(path, sysctlMap)
 			if err != nil {
-				log.Errorf("Failed to read file='%s': %v", path, err)
+				log.Debugf("%v", err)
 			}
 		}
 
@@ -147,7 +144,7 @@ func getKeyValueFromProcSys(key string, sysctlMap map[string]string) error {
 
 // Get sysctl key value from any of the following
 // sysctl.conf, sysctl.d or /proc/sys
-func (s *Sysctl) Acquire(rw http.ResponseWriter) error {
+func (s *Sysctl) Acquire(w http.ResponseWriter) error {
 	if len(s.Key) == 0 {
 		return fmt.Errorf("Failed to acquire sysctl parameter. Input key missing")
 	}
@@ -158,32 +155,32 @@ func (s *Sysctl) Acquire(rw http.ResponseWriter) error {
 	err := createSysctlMapFromConfFile(sysctlMap)
 	_, ok := sysctlMap[s.Key]
 	if ok {
-		return web.JSONResponse(sysctlMap[s.Key], rw)
+		return web.JSONResponse(sysctlMap[s.Key], w)
 	}
 
 	// Cant find the key from main sysctl.conf read sysctl.d dir files.
 	err = createSysctlMapFromDir(sysctlDirPath, sysctlMap)
 	_, ok = sysctlMap[s.Key]
 	if ok {
-		return web.JSONResponse(sysctlMap[s.Key], rw)
+		return web.JSONResponse(sysctlMap[s.Key], w)
 	}
 
 	// Cant find the key from sysctl.d try to get from proc/sys.
 	err = getKeyValueFromProcSys(s.Key, sysctlMap)
 	_, ok = sysctlMap[s.Key]
 	if ok {
-		return web.JSONResponse(sysctlMap[s.Key], rw)
+		return web.JSONResponse(sysctlMap[s.Key], w)
 	}
 
-	log.Errorf("Failed to determine sysctl key[%s] value from all configs: %v", s.Key, err)
+	log.Debugf("Failed to determine sysctl key[%s] value from all configs: %v", s.Key, err)
 
 	return err
 }
 
 // GetPatern will return all the entry with matching pattern
 // If pattern is empty it should return all values
-func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
-	if len(s.Pattern) == 0 {
+func (s *Sysctl) GetPattern(w http.ResponseWriter) error {
+	if validator.IsEmpty(s.Pattern) {
 		log.Infof("Input pattern is empty return all system configuration")
 	}
 
@@ -193,18 +190,15 @@ func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
 	}
 
 	sysctlMap := make(map[string]string)
-	err = createSysctlMapFromConfFile(sysctlMap)
-	if err != nil {
+	if err := createSysctlMapFromConfFile(sysctlMap); err != nil {
 		log.Debugf("Failed to read configuration from '%s': %v", sysctlPath, err)
 	}
 
-	err = createSysctlMapFromDir(sysctlDirPath, sysctlMap)
-	if err != nil {
+	if err := createSysctlMapFromDir(sysctlDirPath, sysctlMap); err != nil {
 		log.Debugf("Failed to read configuration from '%s': %v", sysctlDirPath, err)
 	}
 
-	err = createSysctlMapFromDir(procSysPath, sysctlMap)
-	if err != nil {
+	if err := createSysctlMapFromDir(procSysPath, sysctlMap); err != nil {
 		log.Errorf("Failed to read configuration from '%s': %v", procSysPath, err)
 		return err
 	}
@@ -216,36 +210,39 @@ func (s *Sysctl) GetPattern(rw http.ResponseWriter) error {
 		}
 		result[k] = v
 	}
-	return web.JSONResponse(result, rw)
+	return web.JSONResponse(result, w)
 }
 
 // Update sysctl configuration file and apply
 // Action can be SET, UPDATE or DELETE
-func (s *Sysctl) Update() error {
-	if len(s.FileName) == 0 {
+func (s *Sysctl) Update(w http.ResponseWriter) error {
+	if validator.IsEmpty(s.FileName) {
 		s.FileName = sysctlPath
 	} else {
 		s.FileName = filepath.Join(sysctlDirPath, s.FileName)
 	}
 
-	if len(s.Key) == 0 {
+	if validator.IsEmpty(s.Key) {
+		log.Errorf("input Key is missing in json data")
 		return fmt.Errorf("input Key is missing in json data")
 	}
 
-	if len(s.Value) == 0 {
+	if validator.IsEmpty(s.Value) {
+		log.Errorf("input Value is missing in json data")
 		return fmt.Errorf("input Value is missing in json data")
 	}
 
 	sysctlMap := make(map[string]string)
-	err := readSysctlConfigFromFile(s.FileName, sysctlMap)
-	if err != nil {
-		return fmt.Errorf("could not parse file='%s': %v", s.FileName, err)
+	if err := readSysctlConfigFromFile(s.FileName, sysctlMap); err != nil {
+		log.Errorf("%v", err)
+		return fmt.Errorf("%v", err)
 	}
 
 	if s.Value == "Delete" {
 		_, ok := sysctlMap[s.Key]
 		if !ok {
-			return fmt.Errorf("failed to remove sysctl parameter '%s'. Key not found", s.Key)
+			log.Errorf("Failed to remove sysctl parameter '%s'. Key not found", s.Key)
+			return fmt.Errorf("Failed to remove sysctl parameter '%s'. Key not found", s.Key)
 		}
 		delete(sysctlMap, s.Key)
 	} else {
@@ -253,17 +250,22 @@ func (s *Sysctl) Update() error {
 	}
 
 	// Update config file and apply.
-	err = writeSysctlConfigInFile(s.FileName, sysctlMap)
-	if err != nil {
+	if err := writeSysctlConfigInFile(s.FileName, sysctlMap); err != nil {
+		log.Errorf("Failed to update file='%s': %v", s.FileName, err)
 		return fmt.Errorf("Failed to update file='%s': %v", s.FileName, err)
 	}
+	if s.Apply {
+		if err := s.apply(s.FileName); err != nil {
+			return err
+		}
+	}
 
-	return s.apply(s.FileName)
+	return web.JSONResponse("Configuration updated", w)
 }
 
 // Load all the configuration files and apply
-func (s *Sysctl) Load() error {
-	if len(s.Files) == 0 {
+func (s *Sysctl) Load(w http.ResponseWriter) error {
+	if validator.IsArrayEmpty(s.Files) {
 		s.Files = []string{sysctlPath}
 	}
 
@@ -274,14 +276,19 @@ func (s *Sysctl) Load() error {
 		}
 
 		if err := readSysctlConfigFromFile(f, sysctlMap); err != nil {
-			return fmt.Errorf("Failed to parse file='%s': %v", f, err)
+			log.Errorf("Failed to load sysctl configuration from file='%s': %v", f, err)
+			return fmt.Errorf("%v", err)
 		}
 	}
 
-	err := writeSysctlConfigInFile(sysctlPath, sysctlMap)
-	if err != nil {
+	if err := writeSysctlConfigInFile(sysctlPath, sysctlMap); err != nil {
 		return err
 	}
+	if s.Apply {
+		if err := s.apply(sysctlPath); err != nil {
+			return err
+		}
+	}
 
-	return s.apply(sysctlPath)
+	return web.JSONResponse("Configuration loaded", w)
 }

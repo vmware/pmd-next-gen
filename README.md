@@ -205,6 +205,80 @@ IPv6Address State: degraded
           Gateway: 172.16.130.2
               DNS: 172.16.130.2
 ```
+```
+sysctl usecase via pmctl
+
+#Get all sysctl configuration in the system in json format.
+pmctl status sysctl
+
+#Get particuller variable configuration from sysctl configuration.
+pmctl status sysctl k <InputKey>
+or
+pmctl status sysctl key <InputKey>
+
+>pmctl status sysctl k fs.file-max
+fs.file-max: 9223372036854775807 
+
+#Get all variable configuration from sysctl configuration based on input pattern.
+pmctl status sysctl p <InputPatern>
+or
+pmctl status sysctl pattern <InputPatern>
+
+>pmctl status sysctl p net.ipv6.route.gc
+{"net.ipv6.route.gc_elasticity":"9","net.ipv6.route.gc_interval":"30","net.ipv6.route.gc_min_interval":"0","net.ipv6.route.gc_min_interval_ms":"500","net.ipv6.route.gc_thresh":"1024","net.ipv6.route.gc_timeout":"60"}
+
+#Add or Update a variable configuration in sysctl configuration.
+pmctl sysctl u -k <InputKey> -v <InputValue> -f <InputFile>
+or
+pmctl sysctl update key <InputKey> value <InputValue> filename <InputFile>
+
+>pmctl sysctl u -k fs.file-max -v 65566 -f 99-sysctl.conf
+>pmctl sysctl u -k fs.file-max -v 65566 
+
+#Remove a variable configuration from sysctl configuration.
+pmctl sysctl r -k <InputKey> -f <InputFile>
+or
+pmctl sysctl remove key <InputKey> filename <InputFile>
+
+>pmctl sysctl r -k fs.file-max -f 99-sysctl.conf
+>pmctl sysctl r -k fs.file-max 
+
+#Load sysctl configuration files.
+pmctl sysctl l -f <InputfileList>
+or
+pmctl sysctl load files <InputFileList>
+
+>pmctl sysctl l -f 99-sysctl.conf,70-sysctl.conf
+>pmctl sysctl l -f
+```
+
+```
+sysctl usecase via curl
+
+#Get all sysctl configuration in the system in json format.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
+
+#Get particuller variable configuration from sysctl configuration.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
+
+#Get all variable configuration from sysctl configuration based on input pattern.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
+
+#Add or Update a variable configuration in sysctl configuration.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"<keyName>","value":"<Value>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/update
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"fs.file-max","value":"65409","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/update
+
+#Remove a variable configuration from sysctl configuration.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"<keyName>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/remove
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"fs.file-max","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/remove
+
+#Load sysctl configuration files.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["<fileName>","<fileName>"]}' http://localhost/api/v1/system/sysctl/load
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
+```
 
 ### How to configure users ?
 

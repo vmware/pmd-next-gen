@@ -52,7 +52,7 @@ func routerUpdateSysctl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.Update(); err != nil {
+	if err := s.Update(w); err != nil {
 		web.JSONResponseError(err, w)
 		return
 	}
@@ -68,7 +68,7 @@ func routerRemoveSysctl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.Value = "Delete"
-	if err := s.Update(); err != nil {
+	if err := s.Update(w); err != nil {
 		web.JSONResponseError(err, w)
 		return
 	}
@@ -83,7 +83,7 @@ func routerSysctlLoad(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.Load(); err != nil {
+	if err := s.Load(w); err != nil {
 		web.JSONResponseError(err, w)
 		return
 	}
