@@ -12,6 +12,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/network"
 	"github.com/pmd-nextgen/plugins/network/netlink/address"
@@ -21,6 +22,7 @@ import (
 	"github.com/pmd-nextgen/plugins/network/resolved"
 	"github.com/pmd-nextgen/plugins/network/timesyncd"
 	"github.com/shirou/gopsutil/v3/net"
+	"github.com/urfave/cli/v2"
 )
 
 type NetDevIOCounters struct {
@@ -297,8 +299,10 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 }
 
 func networkConfigureDHCP(link string, dhcp string, host string, token map[string]string) {
-	var resp []byte
-	var err error
+	if !validator.IsDHCP(dhcp) {
+		fmt.Printf("Failed to parse DHCP: %s\n", dhcp)
+		return
+	}
 
 	n := networkd.Network{
 		Link: link,
@@ -307,13 +311,15 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 		},
 	}
 
+	var resp []byte
+	var err error
 	if host != "" {
 		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network/configure", token, n)
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/network/configure", n)
 	}
 	if err != nil {
-		fmt.Printf("Failed to execute systemd command: %v\n", err)
+		fmt.Printf("Failed to configure DHCP: %v\n", err)
 		return
 	}
 
@@ -324,6 +330,58 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 	}
 
 	if !m.Success {
-		fmt.Printf("Failed to execute command: %v\n", m.Errors)
+		fmt.Printf("Failed to configure DHCP: %v\n", m.Errors)
+	}
+}
+
+func networkCreateVLan(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	n := networkd.NetDev{
+		Name: argStrings[0],
+		Kind: "vlan",
+	}
+
+	for i := 1; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "id":
+			if validator.IsVLanId(argStrings[i+1]) {
+				n.VLanSection.Id = argStrings[i+1]
+			} else {
+				fmt.Printf("Failed to parse VLan Id: %s\n", argStrings[i+1])
+				return
+			}
+		}
+
+		i++
+	}
+
+	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.VLanSection.Id) || validator.IsEmpty(n.Name) {
+		fmt.Printf("Failed to create VLan. Missing VLAN name, dev or id\n")
+		return
+	}
+
+	var resp []byte
+	var err error
+
+	if host != "" {
+		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network/configure", token, n)
+	} else {
+		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/netdev/configure", n)
+	}
+	if err != nil {
+		fmt.Printf("Failed to create VLan: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to create VLan: %v\n", m.Errors)
 	}
 }

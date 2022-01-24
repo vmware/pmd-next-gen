@@ -266,6 +266,22 @@ func main() {
 						return nil
 					},
 				},
+				{
+				Name:        "create-vlan",
+				UsageText:   "create-vlan [VLAN name] dev [LINK MASTER] id [ID INTEGER]",
+				Description: "Create vlan.",
+
+				Action: func(c *cli.Context) error {
+					if c.NArg() < 5 {
+						fmt.Printf("Too few arguments.\n")
+						return nil
+					}
+
+					networkCreateVLan(c.Args(), c.String("url"), token)
+					return nil
+				},
+			},
+
 			},
 		},
 		{
