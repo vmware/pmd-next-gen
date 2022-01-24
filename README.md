@@ -280,6 +280,129 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"ap
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
 ```
 
+```
+Group usecase via pmctl
+
+#Get all Group information.
+>pmctl status group
+             Gid: 0
+            Name: root
+
+             Gid: 1
+            Name: daemon
+
+             Gid: 2
+            Name: bin
+
+             Gid: 3
+            Name: sys
+
+             Gid: 4
+            Name: adm
+	    .
+            .
+            .
+             Gid: 1001
+            Name: photon-mgmt
+
+#Get particuller Group information.
+pmctl status group <GroupName>
+or
+pmctl status group <GroupName>
+
+>pmctl status group photon-mgmt
+             Gid: 1001
+            Name: photon-mgmt
+
+#Add a new Group.
+pmctl group add <GroupName> <Gid>
+or
+pmctl group add <GroupName>
+
+#Remove a Group.
+pmctl group remove <GroupName> <Gid>
+or
+pmctl group remove <GroupName>
+```
+
+```
+Group usecase via curl
+
+#Get all Group information.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view
+
+#Get particuller Group information.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
+
+#Add a new Group.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/add
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nk1","Gid":"101"}' http://localhost/api/v1/system/group/add
+
+#Remove a Group.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/remove
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"photon-mgmt","Gid":"101"}' http://localhost/api/v1/system/group/remove
+```
+
+```
+User usecase via pmctl
+
+#Get all User information.
+>pmctl status user
+          User Name: root
+                Uid: 0
+                Gid: 0
+              GECOS: root
+     Home Directory: /root
+
+          User Name: daemon
+                Uid: 1
+                Gid: 1
+              GECOS: daemon
+     Home Directory: /usr/sbin
+
+          User Name: bin
+                Uid: 2
+                Gid: 2
+              GECOS: bin
+     Home Directory: /bin
+
+          User Name: sys
+                Uid: 3
+                Gid: 3
+              GECOS: sys
+     Home Directory: /dev
+
+          User Name: photon-mgmt
+                Uid: 1001
+                Gid: 1001
+     Home Directory: /home/photon-mgmt
+
+#Add a new User.
+pmctl user add <UserName> home-dir <HomeDir> groups <groupsList> uid <Uid> gid <Gid> shell <Shell> password <xxxxxxx>
+or
+pmctl user a <UserName> -d <HomeDir> -grp <groupsList> -u <Uid> -g <Gid> -s <Shell> -p <xxxxxxx>
+
+#Remove a User.
+pmctl user remove <UserName>
+or
+pmctl user r <UserName>
+```
+
+```
+User usecase via curl
+
+#Get all User information.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/user/view
+
+#Add a new User.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<UserName>","Uid":"<Uid>","Gid":"<Gid>","Groups":["group1","group2"],""HomeDirectory":"<HomeDir>","Shell":"<shell>","Comment":"<comment>","Password":"<xxxxxx>"}' http://localhost/api/v1/system/user/add
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nts1","Uid":"","Gid":"1004","Groups":["nts","group2"],"HomeDirectory":"home/nts","Shell":"","Comment":"hello","Password":"unknown"}' http://localhost/api/v1/system/user/add
+
+#Remove a User.
+curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<UserName>"}' http://localhost/api/v1/system/user/remove
+>curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
+```
+
 ### How to configure users ?
 
 ##### Unix domain socket
@@ -366,3 +489,4 @@ License
 ----
 
 Apache 2.0
+
