@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/management/group"
 	"github.com/pmd-nextgen/plugins/management/user"
@@ -33,11 +34,11 @@ func acquireGroupStatus(groupName string, host string, token map[string]string) 
 	var err error
 	url := "/api/v1/system/group/view"
 
-	if groupName != "" {
+	if !validator.IsEmpty(groupName) {
 		url = url + "/" + groupName
 	}
 
-	if host != "" {
+	if !validator.IsEmpty(host) {
 		resp, err = web.DispatchSocket(http.MethodGet, host+url, token, nil)
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost"+url, nil)
@@ -73,7 +74,7 @@ func groupAdd(name string, gid string, host string, token map[string]string) {
 		Gid:  gid,
 	}
 
-	if host != "" {
+	if !validator.IsEmpty(host) {
 		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/group/add", token, g)
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/group/add", g)
@@ -106,7 +107,7 @@ func groupRemove(name string, gid string, host string, token map[string]string) 
 		Gid:  gid,
 	}
 
-	if host != "" {
+	if !validator.IsEmpty(host) {
 		resp, err = web.DispatchSocket(http.MethodDelete, host+"/api/v1/system/group/remove", token, g)
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodDelete, "http://localhost/api/v1/system/group/remove", g)
@@ -138,19 +139,22 @@ func userAdd(name string, uid string, groups string, gid string, shell string, h
 		Name:          name,
 		Uid:           uid,
 		Gid:           gid,
-		Groups:        strings.Split("groups", ","),
 		Shell:         shell,
 		HomeDirectory: homeDir,
 		Password:      password,
 	}
 
-	if host != "" {
+	if !validator.IsEmpty(groups) {
+		u.Groups = strings.Split(groups, ",")
+	}
+
+	if !validator.IsEmpty(host) {
 		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/user/add", token, u)
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/user/add", u)
 	}
 	if err != nil {
-		fmt.Printf("Failed add user: %v\n", err)
+		fmt.Printf("Failed to add user: %v\n", err)
 		return
 	}
 
@@ -176,10 +180,10 @@ func userRemove(name string, host string, token map[string]string) {
 		Name: name,
 	}
 
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodDelete, host+"/api/v1/system/user/add", token, u)
+	if !validator.IsEmpty(host) {
+		resp, err = web.DispatchSocket(http.MethodDelete, host+"/api/v1/system/user/remove", token, u)
 	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodDelete, "http://localhost/api/v1/system/user/add", u)
+		resp, err = web.DispatchUnixDomainSocket(http.MethodDelete, "http://localhost/api/v1/system/user/remove", u)
 	}
 	if err != nil {
 		fmt.Printf("Failed remove user: %v\n", err)
@@ -204,7 +208,7 @@ func acquireUserStatus(host string, token map[string]string) {
 	var resp []byte
 	var err error
 
-	if host != "" {
+	if !validator.IsEmpty(host) {
 		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/system/user/view", token, nil)
 	} else {
 		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/system/user/view", nil)

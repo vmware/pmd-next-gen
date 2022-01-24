@@ -267,21 +267,20 @@ func main() {
 					},
 				},
 				{
-				Name:        "create-vlan",
-				UsageText:   "create-vlan [VLAN name] dev [LINK MASTER] id [ID INTEGER]",
-				Description: "Create vlan.",
+					Name:        "create-vlan",
+					UsageText:   "create-vlan [VLAN name] dev [LINK MASTER] id [ID INTEGER]",
+					Description: "Create vlan.",
 
-				Action: func(c *cli.Context) error {
-					if c.NArg() < 5 {
-						fmt.Printf("Too few arguments.\n")
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 5 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateVLan(c.Args(), c.String("url"), token)
 						return nil
-					}
-
-					networkCreateVLan(c.Args(), c.String("url"), token)
-					return nil
+					},
 				},
-			},
-
 			},
 		},
 		{
@@ -291,15 +290,15 @@ func main() {
 			Subcommands: []*cli.Command{
 				{
 					Name:        "add",
-					Aliases:     []string{"n"},
+					Aliases:     []string{"a"},
 					Description: "Add a new user",
 					Flags: []cli.Flag{
 						&cli.StringFlag{Name: "home-dir", Aliases: []string{"d"}},
-						&cli.StringFlag{Name: "groups", Usage: "Separate by ,"},
-						&cli.StringFlag{Name: "uid"},
-						&cli.StringFlag{Name: "gid"},
-						&cli.StringFlag{Name: "shell"},
-						&cli.StringFlag{Name: "password"},
+						&cli.StringFlag{Name: "groups", Aliases: []string{"grp"}, Usage: "Separate by ,"},
+						&cli.StringFlag{Name: "uid", Aliases: []string{"u"}},
+						&cli.StringFlag{Name: "gid", Aliases: []string{"g"}},
+						&cli.StringFlag{Name: "shell", Aliases: []string{"s"}},
+						&cli.StringFlag{Name: "password", Aliases: []string{"p"}},
 					},
 
 					Action: func(c *cli.Context) error {
@@ -313,7 +312,7 @@ func main() {
 				},
 				{
 					Name:        "remove",
-					Aliases:     []string{"n"},
+					Aliases:     []string{"r"},
 					Description: "Remove an existing user",
 
 					Action: func(c *cli.Context) error {
