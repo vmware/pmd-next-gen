@@ -15,6 +15,7 @@ import (
 	"github.com/pmd-nextgen/plugins/management/hostname"
 	"github.com/pmd-nextgen/plugins/management/login"
 	"github.com/pmd-nextgen/plugins/management/sysctl"
+	"github.com/pmd-nextgen/plugins/management/timedate"
 	"github.com/pmd-nextgen/plugins/management/user"
 	"github.com/pmd-nextgen/plugins/network/netlink/address"
 	"github.com/pmd-nextgen/plugins/network/netlink/route"
@@ -103,6 +104,7 @@ func RegisterRouterManagement(router *mux.Router) {
 
 	hostname.RegisterRouterHostname(n)
 	login.RegisterRouterLogin(n)
+	timedate.RegisterRouterTimeDate(n)
 
 	sysctl.RegisterRouterSysctl(n)
 
