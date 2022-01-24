@@ -27,7 +27,7 @@ func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
 	case "repolist":
 		err = AcquireRepoList(w)
 	default:
-		err = errors.New("not found")
+		err = errors.New("unsupported")
 	}
 
 	if err != nil {
@@ -46,7 +46,7 @@ func routerAcquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	case "list":
 		err = AcquireList(w, pkg)
 	default:
-		err = errors.New("not found")
+		err = errors.New("unsupported")
 	}
 
 	if err != nil {

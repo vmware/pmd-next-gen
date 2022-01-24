@@ -5,9 +5,7 @@ package tdnf
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"os/exec"
 
 	log "github.com/sirupsen/logrus"
 
@@ -16,36 +14,35 @@ import (
 )
 
 type ListItem struct {
-	Name string `json:"name"`
-	Arch string `json:"arch"`
-	Evr  string `json:"evr"`
-	Repo string `json:"repo"`
+	Name string `json:"Name"`
+	Arch string `json:"Arch"`
+	Evr  string `json:"Evr"`
+	Repo string `json:"Repo"`
 }
 
 type Repo struct {
-	Repo     string `json:"repo"`
-	RepoName string `json:"repo_name"`
-	Enabled  bool   `json:"enabled"`
+	Repo     string `json:"Repo"`
+	RepoName string `json:"RepoName"`
+	Enabled  bool   `json:"Enabled"`
 }
 
 type Info struct {
-	Name        string `json:"name"`
-	Arch        string `json:"arch"`
-	Evr         string `json:"evr"`
-	InstallSize int    `json:"install_size"`
-	Repo        string `json:"repo"`
-	Summary     string `json:"summary"`
-	Url         string `json:"url"`
-	License     string `json:"license"`
-	Description string `json:"description"`
+	Name        string `json:"Name"`
+	Arch        string `json:"Arch"`
+	Evr         string `json:"Evr"`
+	InstallSize int    `json:"InstallSize"`
+	Repo        string `json:"Repo"`
+	Summary     string `json:"Summary"`
+	Url         string `json:"Url"`
+	License     string `json:"License"`
+	Description string `json:"Description"`
 }
 
 func TdnfExec(args ...string) (string, error) {
 	args = append([]string{"-j"}, args...)
 	s, err := system.ExecAndCapture("tdnf", args...)
 	if err != nil {
-		werr := err.(*exec.ExitError)
-		log.Errorf("tdnf returned %d\n", werr.Error())
+		log.Errorf("tdnf returned %v\n", err)
 	}
 	return s, err
 }
@@ -59,7 +56,7 @@ func AcquireList(w http.ResponseWriter, pkg string) error {
 		s, err = TdnfExec("list")
 	}
 	if err != nil {
-		return fmt.Errorf("tdnf failed: '%s'", s)
+		return err
 	}
 	var listData []ListItem
 	json.Unmarshal([]byte(s), &listData)
@@ -69,7 +66,7 @@ func AcquireList(w http.ResponseWriter, pkg string) error {
 func AcquireRepoList(w http.ResponseWriter) error {
 	s, err := TdnfExec("repolist")
 	if err != nil {
-		return fmt.Errorf("tdnf failed: '%s'", s)
+		return err
 	}
 	var repoList []Repo
 	json.Unmarshal([]byte(s), &repoList)
@@ -85,7 +82,7 @@ func AcquireInfoList(w http.ResponseWriter, pkg string) error {
 		s, err = TdnfExec("info")
 	}
 	if err != nil {
-		return fmt.Errorf("tdnf failed: '%s'", s)
+		return err
 	}
 	var infoList []Info
 	json.Unmarshal([]byte(s), &infoList)
@@ -93,17 +90,17 @@ func AcquireInfoList(w http.ResponseWriter, pkg string) error {
 }
 
 func AcquireMakeCache(w http.ResponseWriter) error {
-	s, err := TdnfExec("makecache")
+	_, err := TdnfExec("makecache")
 	if err != nil {
-		return fmt.Errorf("tdnf failed: '%s'", s)
+		return err
 	}
 	return web.JSONResponse(nil, w)
 }
 
 func AcquireClean(w http.ResponseWriter) error {
-	s, err := TdnfExec("clean", "all")
+	_, err := TdnfExec("clean", "all")
 	if err != nil {
-		return fmt.Errorf("tdnf failed: '%s'", s)
+		return err
 	}
 	return web.JSONResponse(nil, w)
 }

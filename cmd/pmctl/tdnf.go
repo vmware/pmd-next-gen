@@ -54,7 +54,7 @@ func displayTdnfList(l *ItemListDesc) {
 	for _, i := range l.Message {
 		fmt.Printf("%v %v\n", color.HiBlueString("Name:"), i.Name)
 		fmt.Printf("%v %v\n", color.HiBlueString("Arch:"), i.Arch)
-		fmt.Printf("%v %v\n", color.HiBlueString("Evr:"), i.Evr)
+		fmt.Printf("%v %v\n", color.HiBlueString(" Evr:"), i.Evr)
 		fmt.Printf("%v %v\n", color.HiBlueString("Repo:"), i.Repo)
 		fmt.Printf("\n")
 	}
@@ -62,8 +62,8 @@ func displayTdnfList(l *ItemListDesc) {
 
 func displayTdnfRepoList(l *RepoListDesc) {
 	for _, r := range l.Message {
-		fmt.Printf("%v %v\n", color.HiBlueString("Repo:"), r.Repo)
-		fmt.Printf("%v %v\n", color.HiBlueString("Name:"), r.RepoName)
+		fmt.Printf("%v %v\n", color.HiBlueString("   Repo:"), r.Repo)
+		fmt.Printf("%v %v\n", color.HiBlueString("   Name:"), r.RepoName)
 		fmt.Printf("%v %v\n", color.HiBlueString("Enabled:"), r.Enabled)
 		fmt.Printf("\n")
 	}
@@ -71,15 +71,15 @@ func displayTdnfRepoList(l *RepoListDesc) {
 
 func displayTdnfInfoList(l *InfoListDesc) {
 	for _, i := range l.Message {
-		fmt.Printf("%v %v\n", color.HiBlueString("Name:"), i.Name)
-		fmt.Printf("%v %v\n", color.HiBlueString("Arch:"), i.Arch)
-		fmt.Printf("%v %v\n", color.HiBlueString("Evr:"), i.Evr)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Name:"), i.Name)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Arch:"), i.Arch)
+		fmt.Printf("%v %v\n", color.HiBlueString("         Evr:"), i.Evr)
 		fmt.Printf("%v %v\n", color.HiBlueString("Install Size:"), i.InstallSize)
-		fmt.Printf("%v %v\n", color.HiBlueString("Repo:"), i.Repo)
-		fmt.Printf("%v %v\n", color.HiBlueString("Summary:"), i.Summary)
-		fmt.Printf("%v %v\n", color.HiBlueString("Url:"), i.Url)
-		fmt.Printf("%v %v\n", color.HiBlueString("License:"), i.License)
-		fmt.Printf("%v %v\n", color.HiBlueString("Description:"), i.Description)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Repo:"), i.Repo)
+		fmt.Printf("%v %v\n", color.HiBlueString("     Summary:"), i.Summary)
+		fmt.Printf("%v %v\n", color.HiBlueString("         Url:"), i.Url)
+		fmt.Printf("%v %v\n", color.HiBlueString("     License:"), i.License)
+		fmt.Printf("%v %v\n", color.HiBlueString(" Description:"), i.Description)
 		fmt.Printf("\n")
 	}
 }
