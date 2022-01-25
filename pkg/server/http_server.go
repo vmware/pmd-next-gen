@@ -24,6 +24,7 @@ import (
 	"github.com/pmd-nextgen/plugins/network"
 	"github.com/pmd-nextgen/plugins/proc"
 	"github.com/pmd-nextgen/plugins/systemd"
+	"github.com/pmd-nextgen/plugins/tdnf"
 )
 
 var httpSrv *http.Server
@@ -39,6 +40,8 @@ func NewRouter() *mux.Router {
 	network.RegisterRouterNetwork(s)
 
 	proc.RegisterRouterProc(s)
+
+	tdnf.RegisterRouterTdnf(s)
 
 	return r
 }

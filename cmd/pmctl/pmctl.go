@@ -284,6 +284,71 @@ func main() {
 			},
 		},
 		{
+			Name:    "pkg",
+			Aliases: []string{"p", "tdnf"},
+			Usage:   "Package Management",
+			Subcommands: []*cli.Command{
+				{
+					Name:        "clean",
+					Aliases:     []string{"mc"},
+					Description: "Clean Package Metadata",
+
+					Action: func(c *cli.Context) error {
+						tdnfClean(c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "list",
+					Aliases:     []string{"l"},
+					Description: "List Packages",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() >= 1 {
+							tdnfList(c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfList("", c.String("url"), token)
+						}
+						return nil
+					},
+				},
+				{
+					Name:        "makecache",
+					Aliases:     []string{"mc"},
+					Description: "Download Package Metadata",
+
+					Action: func(c *cli.Context) error {
+						tdnfMakeCache(c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "repolist",
+					Aliases:     []string{"rl"},
+					Description: "List Repositories",
+
+					Action: func(c *cli.Context) error {
+						tdnfRepoList(c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "info",
+					Aliases:     []string{"i"},
+					Description: "Package Info",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() >= 1 {
+							tdnfInfoList(c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfInfoList("", c.String("url"), token)
+						}
+						return nil
+					},
+				},
+			},
+		},
+		{
 			Name:    "user",
 			Aliases: []string{"u"},
 			Usage:   "Create a new user or update user information",
