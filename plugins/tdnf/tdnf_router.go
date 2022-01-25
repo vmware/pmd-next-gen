@@ -36,10 +36,9 @@ func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireCommandPkg(w http.ResponseWriter, r *http.Request) {
-	var err error
-
 	pkg := mux.Vars(r)["pkg"]
 
+	var err error
 	switch mux.Vars(r)["command"] {
 	case "info":
 		err = AcquireInfoList(w, pkg)

@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/color"
 	"io"
 	"net/http"
 	"os"
 
+	"github.com/fatih/color"
+
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/tdnf"
 )
@@ -86,7 +88,7 @@ func displayTdnfInfoList(l *InfoListDesc) {
 
 func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemListDesc, error) {
 	var path string
-	if pkg != "" {
+	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/list/" + pkg
 	} else {
 		path = "/api/v1/tdnf/list"
