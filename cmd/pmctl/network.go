@@ -335,7 +335,7 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 		return
 	}
 
-	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, n)
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
 	if err != nil {
 		fmt.Printf("Failed to create VLan: %v\n", err)
 		return
@@ -349,5 +349,51 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 
 	if !m.Success {
 		fmt.Printf("Failed to create VLan: %v\n", m.Errors)
+	}
+}
+
+func networkCreateBond(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	n := networkd.NetDev{
+		Name: argStrings[0],
+		Kind: "bond",
+	}
+
+	for i := 1; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "mode":
+			n.BondSection.Mode = argStrings[i+1]
+		case "thp":
+			n.BondSection.TransmitHashPolicy = argStrings[i+1]
+		case "ltr":
+			n.BondSection.LACPTransmitRate = argStrings[i+1]
+		case "mms":
+			n.BondSection.MIIMonitorSec = argStrings[i+1]
+		}
+
+		i++
+	}
+
+	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) {
+		fmt.Printf("Failed to create Bond. Missing BOND name, dev or mode, ltr and mms\n")
+		return
+	}
+
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
+	if err != nil {
+		fmt.Printf("Failed to create Bond: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to create Bond: %v\n", m.Errors)
 	}
 }
