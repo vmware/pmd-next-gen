@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/pmd-nextgen/pkg/conf"
+	"github.com/pmd-nextgen/pkg/validator"
 )
 
 const (
@@ -54,7 +55,7 @@ func buildHttpRequest(ctx context.Context, method string, url string, headers ma
 	return httpRequest, nil
 }
 
-func DispatchSocket(method string, url string, headers map[string]string, data interface{}) ([]byte, error) {
+func DispatchWebSocket(method string, url string, headers map[string]string, data interface{}) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
@@ -95,6 +96,18 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 	}
 
 	return decodeHttpResponse(resp)
+}
+
+func DispatchSocket(method, host string, url string, token map[string]string, data interface{}) ([]byte, error) {
+	var resp []byte
+	var err error
+
+	if !validator.IsEmpty(host) {
+		resp, err = DispatchWebSocket(method, host+url, token, data)
+	} else {
+		resp, err = DispatchUnixDomainSocket(method, "http://localhost"+url, data)
+	}
+	return resp, err
 }
 
 func BuildAuthTokenFromEnv() (map[string]string, error) {
