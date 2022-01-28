@@ -21,19 +21,12 @@ type UnitStatus struct {
 }
 
 func executeSystemdUnitCommand(command string, unit string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	c := systemd.UnitAction{
 		Action: command,
 		Unit:   unit,
 	}
 
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/service/systemd", token, c)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/service/systemd", c)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/service/systemd", token, c)
 	if err != nil {
 		fmt.Printf("Failed to execute systemd command: %v\n", err)
 		return
@@ -51,14 +44,7 @@ func executeSystemdUnitCommand(command string, unit string, host string, token m
 }
 
 func acquireSystemdUnitStatus(unit string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/service/systemd/"+unit+"/status", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/service/systemd/"+unit+"/status", nil)
-	}
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/service/systemd/"+unit+"/status", token, nil)
 	if err != nil {
 		fmt.Printf("Failed to fetch unit status: %v\n", err)
 		return

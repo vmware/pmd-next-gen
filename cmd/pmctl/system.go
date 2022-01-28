@@ -31,16 +31,9 @@ type SystemDescribe struct {
 }
 
 func acquireSystemDescribe(host string, token map[string]string) (*management.Describe, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/system/describe", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/system/describe", nil)
-	}
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/system/describe", token, nil)
 	if err != nil {
-		fmt.Printf("Failed to fetch system info: %v\n", err)
+		fmt.Printf("Failed to acquire system info: %v\n", err)
 		return nil, err
 	}
 
@@ -167,19 +160,12 @@ func acquireSystemStatus(host string, token map[string]string) {
 }
 
 func SetHostname(hostName string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	h := hostname.Hostname{
 		Method: "SetStaticHostname",
 		Value:  hostName,
 	}
 
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/hostname/method", token, h)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/hostname/method", h)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/hostname/method", token, h)
 	if err != nil {
 		fmt.Printf("Failed set hostname: %v\n", err)
 		return

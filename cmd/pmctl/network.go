@@ -212,15 +212,7 @@ func displayNetworkStatus(ifName string, network *network.Describe) {
 }
 
 func acquireNetworkDescribe(host string, token map[string]string) (*network.Describe, error) {
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/network/describe", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/network/describe", nil)
-	}
-
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/network/describe", token, nil)
 	if err != nil {
 		fmt.Printf("Failed to network info: %v\n", err)
 		return nil, err
@@ -240,9 +232,6 @@ func acquireNetworkDescribe(host string, token map[string]string) (*network.Desc
 }
 
 func acquireNetworkStatus(cmd string, host string, ifName string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	switch cmd {
 	case "network":
 		n, err := acquireNetworkDescribe(host, token)
@@ -254,12 +243,7 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 		displayNetworkStatus(ifName, n)
 
 	case "iostat":
-		if host != "" {
-			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/netdeviocounters", token, nil)
-		} else {
-			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/netdeviocounters", nil)
-		}
-
+		resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/netdeviocounters", token, nil)
 		if err != nil {
 			fmt.Printf("Failed to fetch networks device's iostat: %v\n", err)
 			return
@@ -275,12 +259,7 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 			displayNetDevIOStatistics(&n)
 		}
 	case "interfaces":
-		if host != "" {
-			resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/proc/interfaces", token, nil)
-		} else {
-			resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/proc/interfaces", nil)
-		}
-
+		resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/interfaces", token, nil)
 		if err != nil {
 			fmt.Printf("Failed to fetch networks devices: %v\n", err)
 			return
@@ -311,13 +290,7 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 		},
 	}
 
-	var resp []byte
-	var err error
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network/configure", token, n)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/network/configure", n)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, n)
 	if err != nil {
 		fmt.Printf("Failed to configure DHCP: %v\n", err)
 		return
@@ -362,14 +335,7 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 		return
 	}
 
-	var resp []byte
-	var err error
-
-	if host != "" {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/network/networkd/network/configure", token, n)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/network/networkd/netdev/configure", n)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, n)
 	if err != nil {
 		fmt.Printf("Failed to create VLan: %v\n", err)
 		return

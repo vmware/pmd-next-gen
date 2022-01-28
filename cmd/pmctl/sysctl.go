@@ -23,19 +23,11 @@ type SysctlStats struct {
 }
 
 func acquireSysctlParamStatus(key string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-	url := "/api/v1/system/sysctl/status"
-
 	s := sysctl.Sysctl{
 		Key: key,
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodGet, host+url, token, s)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost"+url, s)
-	}
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/system/sysctl/status", token, s)
 	if err != nil {
 		fmt.Printf("Failed to acquire sysctl info: %v\n", err)
 		return
@@ -56,20 +48,11 @@ func acquireSysctlParamStatus(key string, host string, token map[string]string) 
 }
 
 func acquireSysctlStatus(urlSuffix string, pattern string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-	url := "/api/v1/system/sysctl/"
-
 	s := sysctl.Sysctl{
 		Pattern: pattern,
 	}
-	url = url + urlSuffix
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodGet, host+url, token, s)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost"+url, s)
-	}
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/system/sysctl/"+urlSuffix, token, s)
 	if err != nil {
 		fmt.Printf("Failed to acquire sysctl info: %v\n", err)
 		return
@@ -95,9 +78,6 @@ func acquireSysctlStatus(urlSuffix string, pattern string, host string, token ma
 }
 
 func sysctlUpdateConfig(key string, value string, filename string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	s := sysctl.Sysctl{
 		Key:      key,
 		Value:    value,
@@ -105,11 +85,7 @@ func sysctlUpdateConfig(key string, value string, filename string, host string, 
 		Apply:    true,
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/sysctl/update", token, s)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/sysctl/update", s)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/sysctl/update", token, s)
 	if err != nil {
 		fmt.Printf("Failed to update sysctl configuration: %v\n", err)
 		return
@@ -130,20 +106,13 @@ func sysctlUpdateConfig(key string, value string, filename string, host string, 
 }
 
 func sysctlRemoveConfig(key string, filename string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	s := sysctl.Sysctl{
 		Key:      key,
 		FileName: filename,
 		Apply:    true,
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodDelete, host+"/api/v1/system/sysctl/remove", token, s)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodDelete, "http://localhost/api/v1/system/sysctl/remove", s)
-	}
+	resp, err := web.DispatchSocket(http.MethodDelete, host, "/api/v1/system/sysctl/remove", token, s)
 	if err != nil {
 		fmt.Printf("Failed to remove sysctl configuration: %v\n", err)
 		return
@@ -164,20 +133,14 @@ func sysctlRemoveConfig(key string, filename string, host string, token map[stri
 }
 
 func sysctlLoadConfig(files string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	s := sysctl.Sysctl{
 		Apply: true,
 	}
 	if !validator.IsEmpty(files) {
 		s.Files = strings.Split(files, ",")
 	}
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/sysctl/load", token, s)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/sysctl/load", s)
-	}
+
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/sysctl/load", token, s)
 	if err != nil {
 		fmt.Printf("Failed to load sysctl configuration: %v\n", err)
 		return

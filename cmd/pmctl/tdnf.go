@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -39,17 +38,6 @@ type InfoListDesc struct {
 type NilDesc struct {
 	Success bool   `json:"success"`
 	Errors  string `json:"errors"`
-}
-
-func DispatchSocket(method, host string, url string, token map[string]string, body io.Reader) ([]byte, error) {
-	var resp []byte
-	var err error
-	if host != "" {
-		resp, err = web.DispatchSocket(method, host+url, token, body)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(method, "http://localhost"+url, body)
-	}
-	return resp, err
 }
 
 func displayTdnfList(l *ItemListDesc) {
@@ -93,15 +81,13 @@ func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemLis
 	} else {
 		path = "/api/v1/tdnf/list"
 	}
-	resp, err := DispatchSocket(http.MethodGet, host, path, token, nil)
+	resp, err := web.DispatchSocket(http.MethodGet, host, path, token, nil)
 	if err != nil {
-		fmt.Printf("tdnf command failed: %v\n", err)
 		return nil, err
 	}
 
 	m := ItemListDesc{}
 	if err := json.Unmarshal(resp, &m); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -113,15 +99,14 @@ func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemLis
 }
 
 func acquireTdnfRepoList(host string, token map[string]string) (*RepoListDesc, error) {
-	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/repolist", token, nil)
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/repolist", token, nil)
 	if err != nil {
-		fmt.Printf("tdnf command failed: %v\n", err)
+		fmt.Printf("Failed to acquire tdnf repolist: %v\n", err)
 		return nil, err
 	}
 
 	m := RepoListDesc{}
 	if err := json.Unmarshal(resp, &m); err != nil {
-		fmt.Printf("Failed to decode json message: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -140,9 +125,8 @@ func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*Inf
 		path = "/api/v1/tdnf/info"
 	}
 
-	resp, err := DispatchSocket(http.MethodGet, host, path, token, nil)
+	resp, err := web.DispatchSocket(http.MethodGet, host, path, token, nil)
 	if err != nil {
-		fmt.Printf("tdnf command failed: %v\n", err)
 		return nil, err
 	}
 
@@ -160,9 +144,8 @@ func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*Inf
 }
 
 func acquireTdnfSimpleCommand(cmd string, host string, token map[string]string) (*NilDesc, error) {
-	resp, err := DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/"+cmd, token, nil)
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/tdnf/"+cmd, token, nil)
 	if err != nil {
-		fmt.Printf("tdnf command failed: %v\n", err)
 		return nil, err
 	}
 
@@ -182,7 +165,7 @@ func acquireTdnfSimpleCommand(cmd string, host string, token map[string]string) 
 func tdnfClean(host string, token map[string]string) {
 	_, err := acquireTdnfSimpleCommand("clean", host, token)
 	if err != nil {
-		fmt.Printf("Failed tdnf clean: %v\n", err)
+		fmt.Printf("Failed execute tdnf clean: %v\n", err)
 		return
 	}
 }
@@ -190,7 +173,7 @@ func tdnfClean(host string, token map[string]string) {
 func tdnfList(pkg string, host string, token map[string]string) {
 	l, err := acquireTdnfList(pkg, host, token)
 	if err != nil {
-		fmt.Printf("Failed to fetch tdnf list: %v\n", err)
+		fmt.Printf("Failed to acquire tdnf list: %v\n", err)
 		return
 	}
 	displayTdnfList(l)
@@ -207,7 +190,7 @@ func tdnfMakeCache(host string, token map[string]string) {
 func tdnfRepoList(host string, token map[string]string) {
 	l, err := acquireTdnfRepoList(host, token)
 	if err != nil {
-		fmt.Printf("Failed to fetch tdnf repolist: %v\n", err)
+		fmt.Printf("Failed to acquire tdnf repolist: %v\n", err)
 		return
 	}
 	displayTdnfRepoList(l)
@@ -216,7 +199,7 @@ func tdnfRepoList(host string, token map[string]string) {
 func tdnfInfoList(pkg string, host string, token map[string]string) {
 	l, err := acquireTdnfInfoList(pkg, host, token)
 	if err != nil {
-		fmt.Printf("Failed to fetch tdnf info: %v\n", err)
+		fmt.Printf("Failed to acquire tdnf info: %v\n", err)
 		return
 	}
 	displayTdnfInfoList(l)

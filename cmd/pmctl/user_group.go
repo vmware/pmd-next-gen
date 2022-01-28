@@ -30,19 +30,13 @@ type UserStats struct {
 }
 
 func acquireGroupStatus(groupName string, host string, token map[string]string) {
-	var resp []byte
-	var err error
 	url := "/api/v1/system/group/view"
 
 	if !validator.IsEmpty(groupName) {
 		url = url + "/" + groupName
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodGet, host+url, token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost"+url, nil)
-	}
+	resp, err := web.DispatchSocket(http.MethodGet, host, url, token, nil)
 	if err != nil {
 		fmt.Printf("Failed to acquire group info: %v\n", err)
 		return
@@ -66,19 +60,12 @@ func acquireGroupStatus(groupName string, host string, token map[string]string) 
 }
 
 func groupAdd(name string, gid string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	g := group.Group{
 		Name: name,
 		Gid:  gid,
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/group/add", token, g)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/group/add", g)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/group/add", token, g)
 	if err != nil {
 		fmt.Printf("Failed add group: %v\n", err)
 		return
@@ -99,19 +86,12 @@ func groupAdd(name string, gid string, host string, token map[string]string) {
 }
 
 func groupRemove(name string, gid string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	g := group.Group{
 		Name: name,
 		Gid:  gid,
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodDelete, host+"/api/v1/system/group/remove", token, g)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodDelete, "http://localhost/api/v1/system/group/remove", g)
-	}
+	resp, err := web.DispatchSocket(http.MethodDelete, host, "/api/v1/system/group/remove", token, g)
 	if err != nil {
 		fmt.Printf("Failed remove group: %v\n", err)
 		return
@@ -132,9 +112,6 @@ func groupRemove(name string, gid string, host string, token map[string]string) 
 }
 
 func userAdd(name string, uid string, groups string, gid string, shell string, homeDir string, password, string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	u := user.User{
 		Name:          name,
 		Uid:           uid,
@@ -148,11 +125,7 @@ func userAdd(name string, uid string, groups string, gid string, shell string, h
 		u.Groups = strings.Split(groups, ",")
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodPost, host+"/api/v1/system/user/add", token, u)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodPost, "http://localhost/api/v1/system/user/add", u)
-	}
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/user/add", token, u)
 	if err != nil {
 		fmt.Printf("Failed to add user: %v\n", err)
 		return
@@ -173,18 +146,11 @@ func userAdd(name string, uid string, groups string, gid string, shell string, h
 }
 
 func userRemove(name string, host string, token map[string]string) {
-	var resp []byte
-	var err error
-
 	u := user.User{
 		Name: name,
 	}
 
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodDelete, host+"/api/v1/system/user/remove", token, u)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodDelete, "http://localhost/api/v1/system/user/remove", u)
-	}
+	resp, err := web.DispatchSocket(http.MethodDelete, host, "/api/v1/system/user/remove", token, u)
 	if err != nil {
 		fmt.Printf("Failed remove user: %v\n", err)
 		return
@@ -205,14 +171,7 @@ func userRemove(name string, host string, token map[string]string) {
 }
 
 func acquireUserStatus(host string, token map[string]string) {
-	var resp []byte
-	var err error
-
-	if !validator.IsEmpty(host) {
-		resp, err = web.DispatchSocket(http.MethodGet, host+"/api/v1/system/user/view", token, nil)
-	} else {
-		resp, err = web.DispatchUnixDomainSocket(http.MethodGet, "http://localhost/api/v1/system/user/view", nil)
-	}
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/system/user/view", token, nil)
 	if err != nil {
 		fmt.Printf("Failed to acquire user info: %v\n", err)
 		return
