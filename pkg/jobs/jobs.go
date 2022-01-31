@@ -8,9 +8,11 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/gorilla/mux"
 
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
 
@@ -20,40 +22,69 @@ type Result struct {
 }
 
 type Job struct {
-	Id            int
 	ResultChannel chan Result
+	Id            int
 }
 
-var jobMap = make(map[int]Job)
-var resultMap = make(map[int]Result)
-var jobCounter int = 0
+type Jobs struct {
+	jobMap     map[int]Job
+	resultMap  map[int]Result
+	jobCounter int
+	Mutex      *sync.Mutex
+}
+
+var jobs *Jobs
+
+func New() *Jobs {
+	if jobs != nil {
+		return jobs
+	} else {
+		jobs = &Jobs{
+			jobMap:    make(map[int]Job),
+			resultMap: make(map[int]Result),
+			Mutex:     &sync.Mutex{},
+		}
+		return jobs
+	}
+}
 
 func NewJob() *Job {
-	var job Job
-	job.ResultChannel = make(chan Result)
+	jobs.Mutex.Lock()
+	defer jobs.Mutex.Unlock()
 
-	jobCounter++
-	job.Id = jobCounter
-	jobMap[jobCounter] = job
+	jobs.jobCounter++
+	job := Job{
+		ResultChannel: make(chan Result),
+		Id:            jobs.jobCounter,
+	}
+
+	jobs.jobMap[jobs.jobCounter] = job
 
 	return &job
 }
 
 func RemoveJob(id int) {
-	delete(jobMap, id)
+	jobs.Mutex.Lock()
+	defer jobs.Mutex.Unlock()
+
+	delete(jobs.jobMap, id)
 }
 
 func RemoveResult(id int) {
-	delete(resultMap, id)
+	jobs.Mutex.Lock()
+	defer jobs.Mutex.Unlock()
+
+	delete(jobs.resultMap, id)
 }
 
 func CreateJob(acquireFunc func() (string, error)) *Job {
 	job := NewJob()
 	go func() {
 		s, err := acquireFunc()
-		var result Result
-		result.Output = s
-		result.Err = err
+		result := Result{
+			Output: s,
+			Err:    err,
+		}
 		job.ResultChannel <- result
 	}()
 	return job
@@ -66,13 +97,14 @@ func AcceptedResponse(w http.ResponseWriter, job *Job) error {
 }
 
 func routerAcquireStatus(w http.ResponseWriter, r *http.Request) {
-	var err error
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if job, ok := jobMap[id]; ok {
+	if err != nil {
+		web.JSONResponseError(errors.New("invalid id"), w)
+	}
+	if job, ok := jobs.jobMap[id]; ok {
 		select {
 		case result := <-job.ResultChannel:
-			resultMap[id] = result
+			jobs.resultMap[id] = result
 			RemoveJob(id)
 			web.JSONResponse(
 				web.StatusResponse{
@@ -84,20 +116,20 @@ func routerAcquireStatus(w http.ResponseWriter, r *http.Request) {
 			web.JSONResponse(web.StatusResponse{Status: "inprogress"}, w)
 		}
 	} else {
-		err = errors.New("not found")
-		web.JSONResponseError(err, w)
+		web.JSONResponseError(errors.New("not found"), w)
 	}
 }
 
 func routerAcquireResult(w http.ResponseWriter, r *http.Request) {
-	var err error
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if result, ok := resultMap[id]; ok {
+	if err != nil {
+		web.JSONResponseError(errors.New("invalid id"), w)
+	}
+	if result, ok := jobs.resultMap[id]; ok {
 		if result.Err != nil {
 			web.JSONResponseError(result.Err, w)
 		} else {
-			if result.Output != "" {
+			if !validator.IsEmpty(result.Output) {
 				var r interface{}
 				err := json.Unmarshal([]byte(result.Output), &r)
 				if err != nil {
@@ -111,12 +143,13 @@ func routerAcquireResult(w http.ResponseWriter, r *http.Request) {
 		}
 		RemoveResult(id)
 	} else {
-		err = errors.New("not found")
-		web.JSONResponseError(err, w)
+		web.JSONResponseError(errors.New("not found"), w)
 	}
 }
 
 func RegisterRouterJobs(router *mux.Router) {
+	jobs = New()
+
 	n := router.PathPrefix("/_jobs").Subrouter().StrictSlash(false)
 
 	n.HandleFunc("/status/{id}", routerAcquireStatus).Methods("GET")
