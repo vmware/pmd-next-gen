@@ -12,8 +12,8 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/pmd-nextgen/pkg/jobs"
 	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/tdnf"
 )
 
@@ -41,9 +41,9 @@ type NilDesc struct {
 }
 
 type StatusDesc struct {
-	Success bool                `json:"success"`
-	Message jobs.StatusResponse `json:"message"`
-	Errors  string              `json:"errors"`
+	Success bool               `json:"success"`
+	Message web.StatusResponse `json:"message"`
+	Errors  string             `json:"errors"`
 }
 
 func displayTdnfList(l *ItemListDesc) {
@@ -87,7 +87,7 @@ func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemLis
 	} else {
 		path = "/api/v1/tdnf/list"
 	}
-	resp, err := jobs.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemLis
 }
 
 func acquireTdnfRepoList(host string, token map[string]string) (*RepoListDesc, error) {
-	resp, err := jobs.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/repolist", token, nil)
+	resp, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/repolist", token, nil)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf repolist: %v\n", err)
 		return nil, err
@@ -131,7 +131,7 @@ func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*Inf
 		path = "/api/v1/tdnf/info"
 	}
 
-	resp, err := jobs.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*Inf
 func acquireTdnfSimpleCommand(cmd string, host string, token map[string]string) (*NilDesc, error) {
 	var msg []byte
 
-	msg, err := jobs.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd, token, nil)
+	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd, token, nil)
 	if err != nil {
 		return nil, err
 	}
