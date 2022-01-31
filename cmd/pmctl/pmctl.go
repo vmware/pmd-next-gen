@@ -296,6 +296,21 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "create-bridge",
+					UsageText:   "create-bridge [BRIDGE name] dev [LINK MASTER]",
+					Description: "Create bridge.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 3 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateBridge(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{
