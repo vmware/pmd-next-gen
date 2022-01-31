@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -24,6 +25,17 @@ type Response struct {
 	Status     string
 	StatusCode int
 	Header     http.Header
+}
+
+type StatusResponse struct {
+	Status string `json:"Status"`
+	Link   string `json:"Link"`
+}
+
+type StatusDesc struct {
+	Success bool           `json:"success"`
+	Message StatusResponse `json:"message"`
+	Errors  string         `json:"errors"`
 }
 
 const (
@@ -115,6 +127,54 @@ func DispatchSocket(method, host string, url string, headers map[string]string, 
 		return nil, errors.New(r.Status)
 	}
 	return r.Body, err
+}
+
+func DispatchAndWait(method, host string, url string, token map[string]string, data interface{}) ([]byte, error) {
+	var msg []byte
+	r, err := DispatchSocketWithStatus(method, host, url, token, data)
+	if err != nil {
+		return nil, err
+	}
+	if r.StatusCode == 202 {
+		if location := r.Header.Get("Location"); location != "" {
+			for {
+				s, err := DispatchSocket(http.MethodGet, host, location, token, nil)
+				if err != nil {
+					fmt.Printf("retrieving job status failed: %v\n", err)
+					return nil, err
+				}
+				status := StatusDesc{}
+				err = json.Unmarshal(s, &status)
+				if err != nil {
+					fmt.Printf("Failed to decode json message: %v\n", err)
+					return nil, err
+				}
+				if status.Message.Status == "complete" {
+					link := status.Message.Link
+					msg, err = DispatchSocket(http.MethodGet, host, link, token, nil)
+					if err != nil {
+						fmt.Printf("retrieving result failed: %v\n", err)
+						return nil, err
+					}
+					break
+				} else if status.Message.Status != "inprogress" {
+					err = errors.New("unexptected status")
+					return nil, err
+				}
+				time.Sleep(1 * time.Second)
+				fmt.Printf(".")
+			}
+			fmt.Printf("\n")
+		} else {
+			err = errors.New("no location in headers")
+			return nil, err
+		}
+	} else if r.StatusCode == 200 {
+		msg = r.Body
+	} else {
+		return nil, err
+	}
+	return msg, err
 }
 
 func BuildAuthTokenFromEnv() (map[string]string, error) {
