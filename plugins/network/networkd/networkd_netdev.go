@@ -47,6 +47,22 @@ type Bond struct {
 	MinLinks                     int    `json:"MinLinks"`
 }
 
+type Bridge struct {
+	HelloTimeSec         string `json:"HelloTimeSec"`
+	MaxAgeSec            string `json:"MaxAgeSec"`
+	ForwardDelaySec      string `json:"ForwardDelaySec"`
+	AgeingTimeSec        string `json:"AgeingTimeSec"`
+	Priority             int    `json:"Priority"`
+	GroupForwardMask     int    `json:"GroupForwardMask"`
+	DefaultPVID          int    `json:"DefaultPVID"`
+	MulticastQuerier     bool   `json:"MulticastQuerier"`
+	MulticastSnooping    bool   `json:"MulticastSnooping"`
+	VLANFiltering        bool   `json:"VLANFiltering"`
+	VLANProtocol         string `json:"VLANProtocol"`
+	STP                  bool   `json:"STP"`
+	MulticastIGMPVersion int    `json:"MulticastIGMPVersion"`
+}
+
 type NetDev struct {
 	Link string `json:"Link"`
 
@@ -63,6 +79,8 @@ type NetDev struct {
 	VLanSection VLan `json:"VLanSection"`
 	// [BOND]
 	BondSection Bond `json:"BondSection"`
+	// [BRIDGE]
+	BridgeSection Bridge `json:"BridgeSection"`
 }
 
 func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
@@ -167,6 +185,11 @@ func (n *NetDev) buildBondSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildBridgeSection(m *configfile.Meta) error {
+
+	return nil
+}
+
 func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	linkslice := strings.Split(n.Link, ",")
 	for _, l := range linkslice {
@@ -187,6 +210,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 				log.Errorf("Failed to update .network file of link='%s',", l, err)
 				return err
 			}
+		case "bridge":
+			if err := nm.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s',", n.Link, err)
+				return err
+			}
 		}
 		if err := nm.Save(); err != nil {
 			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
@@ -203,6 +231,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "bond":
 		if err := n.buildBondSection(m); err != nil {
 			log.Errorf("Failed to create Bond ='%s': %v", n.Name, err)
+			return err
+		}
+	case "bridge":
+		if err := n.buildBridgeSection(m); err != nil {
+			log.Errorf("Failed to create Bridge ='%s': %v", n.Name, err)
 			return err
 		}
 	}

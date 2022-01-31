@@ -415,6 +415,10 @@ pmctl network create-bond <bondName> dev <device> mode <modeType> thp <TransmitH
 >pmctl network create-bond bond1 dev ens37,ens38 mode 802.3ad thp layer2+3 ltr slow mms 1s
 #Configure bond with default
 >pmctl network create-bond bond1 dev ens37,ens38 
+
+#Configure bridge with default
+pmctl network create-bridge <bridgeName> dev <device list>
+>pmctl network create-bridge br0 dev ens37,ens38 
 ```
 
 ### How to configure users ?
