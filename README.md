@@ -36,11 +36,11 @@ photon-mgmtd uses a following open source projects to work properly:
 
 First configure your ```$GOPATH```. If you have already done this skip this step.
 
-```sh
+```bash
 # keep in ~/.bashrc
 ```
 
-```sh
+```bash
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 export OS_OUTPUT_GOPATH=1
@@ -48,7 +48,7 @@ export OS_OUTPUT_GOPATH=1
 
 Clone inside src dir of ```$GOPATH```. In my case
 
-```sh
+```bash
 $ pwd
 /home/sus/go/src
 ```
@@ -180,7 +180,7 @@ Operating System Home URL: https://vmware.github.io/photon/
 ```
 
 
-```
+```bash
 ❯ pmctl status network -i ens33
              Name: ens33
 Alternative Names: enp2s1
@@ -205,13 +205,14 @@ IPv6Address State: degraded
           Gateway: 172.16.130.2
               DNS: 172.16.130.2
 ```
-```
-sysctl usecase via pmctl
 
-#Get all sysctl configuration in the system in json format.
+#### sysctl usecase via pmctl
+```bash
+
+# Get all sysctl configuration in the system in json format.
 pmctl status sysctl
 
-#Get particuller variable configuration from sysctl configuration.
+# Get particuller variable configuration from sysctl configuration.
 pmctl status sysctl k <InputKey>
 or
 pmctl status sysctl key <InputKey>
@@ -219,7 +220,7 @@ pmctl status sysctl key <InputKey>
 >pmctl status sysctl k fs.file-max
 fs.file-max: 9223372036854775807 
 
-#Get all variable configuration from sysctl configuration based on input pattern.
+# Get all variable configuration from sysctl configuration based on input pattern.
 pmctl status sysctl p <InputPatern>
 or
 pmctl status sysctl pattern <InputPatern>
@@ -227,7 +228,7 @@ pmctl status sysctl pattern <InputPatern>
 >pmctl status sysctl p net.ipv6.route.gc
 {"net.ipv6.route.gc_elasticity":"9","net.ipv6.route.gc_interval":"30","net.ipv6.route.gc_min_interval":"0","net.ipv6.route.gc_min_interval_ms":"500","net.ipv6.route.gc_thresh":"1024","net.ipv6.route.gc_timeout":"60"}
 
-#Add or Update a variable configuration in sysctl configuration.
+# Add or Update a variable configuration in sysctl configuration.
 pmctl sysctl u -k <InputKey> -v <InputValue> -f <InputFile>
 or
 pmctl sysctl update key <InputKey> value <InputValue> filename <InputFile>
@@ -235,7 +236,7 @@ pmctl sysctl update key <InputKey> value <InputValue> filename <InputFile>
 >pmctl sysctl u -k fs.file-max -v 65566 -f 99-sysctl.conf
 >pmctl sysctl u -k fs.file-max -v 65566 
 
-#Remove a variable configuration from sysctl configuration.
+# Remove a variable configuration from sysctl configuration.
 pmctl sysctl r -k <InputKey> -f <InputFile>
 or
 pmctl sysctl remove key <InputKey> filename <InputFile>
@@ -243,7 +244,7 @@ pmctl sysctl remove key <InputKey> filename <InputFile>
 >pmctl sysctl r -k fs.file-max -f 99-sysctl.conf
 >pmctl sysctl r -k fs.file-max 
 
-#Load sysctl configuration files.
+# Load sysctl configuration files.
 pmctl sysctl l -f <InputfileList>
 or
 pmctl sysctl load files <InputFileList>
@@ -252,38 +253,38 @@ pmctl sysctl load files <InputFileList>
 >pmctl sysctl l -f
 ```
 
-```
-sysctl usecase via curl
+#### sysctl usecase via curl
+```bash
 
-#Get all sysctl configuration in the system in json format.
+# Get all sysctl configuration in the system in json format.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
 
-#Get particuller variable configuration from sysctl configuration.
+# Get particuller variable configuration from sysctl configuration.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
 
-#Get all variable configuration from sysctl configuration based on input pattern.
+# Get all variable configuration from sysctl configuration based on input pattern.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
 
-#Add or Update a variable configuration in sysctl configuration.
+# Add or Update a variable configuration in sysctl configuration.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"<keyName>","value":"<Value>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/update
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"fs.file-max","value":"65409","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/update
 
-#Remove a variable configuration from sysctl configuration.
+# Remove a variable configuration from sysctl configuration.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"<keyName>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/remove
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"fs.file-max","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/remove
 
-#Load sysctl configuration files.
+# Load sysctl configuration files.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["<fileName>","<fileName>"]}' http://localhost/api/v1/system/sysctl/load
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
 ```
 
-```
-Group usecase via pmctl
+#### Group usecase via pmctl
+```bash
 
-#Get all Group information.
+# Get all Group information.
 >pmctl status group
              Gid: 0
             Name: root
@@ -305,7 +306,7 @@ Group usecase via pmctl
              Gid: 1001
             Name: photon-mgmt
 
-#Get particuller Group information.
+# Get particuller Group information.
 pmctl status group <GroupName>
 or
 pmctl status group <GroupName>
@@ -314,39 +315,39 @@ pmctl status group <GroupName>
              Gid: 1001
             Name: photon-mgmt
 
-#Add a new Group.
+# Add a new Group.
 pmctl group add <GroupName> <Gid>
 or
 pmctl group add <GroupName>
 
-#Remove a Group.
+# Remove a Group.
 pmctl group remove <GroupName> <Gid>
 or
 pmctl group remove <GroupName>
 ```
 
-```
-Group usecase via curl
+#### Group usecase via curl
+```bash
 
-#Get all Group information.
+# Get all Group information.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view
 
-#Get particuller Group information.
+# Get particuller Group information.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
 
-#Add a new Group.
+# Add a new Group.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/add
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nk1","Gid":"101"}' http://localhost/api/v1/system/group/add
 
-#Remove a Group.
+# Remove a Group.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/remove
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"photon-mgmt","Gid":"101"}' http://localhost/api/v1/system/group/remove
 ```
 
-```
-User usecase via pmctl
+#### User usecase via pmctl
+```bash
 
-#Get all User information.
+# Get all User information.
 >pmctl status user
           User Name: root
                 Uid: 0
@@ -377,46 +378,45 @@ User usecase via pmctl
                 Gid: 1001
      Home Directory: /home/photon-mgmt
 
-#Add a new User.
+# Add a new User.
 pmctl user add <UserName> home-dir <HomeDir> groups <groupsList> uid <Uid> gid <Gid> shell <Shell> password <xxxxxxx>
 or
 pmctl user a <UserName> -d <HomeDir> -grp <groupsList> -u <Uid> -g <Gid> -s <Shell> -p <xxxxxxx>
 
-#Remove a User.
+# Remove a User.
 pmctl user remove <UserName>
 or
 pmctl user r <UserName>
 ```
 
-```
-User usecase via curl
+#### User usecase via curl
+```bash
 
-#Get all User information.
+# Get all User information.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/user/view
 
-#Add a new User.
+# Add a new User.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<UserName>","Uid":"<Uid>","Gid":"<Gid>","Groups":["group1","group2"],""HomeDirectory":"<HomeDir>","Shell":"<shell>","Comment":"<comment>","Password":"<xxxxxx>"}' http://localhost/api/v1/system/user/add
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nts1","Uid":"","Gid":"1004","Groups":["nts","group2"],"HomeDirectory":"home/nts","Shell":"","Comment":"hello","Password":"unknown"}' http://localhost/api/v1/system/user/add
 
-#Remove a User.
+# Remove a User.
 curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<UserName>"}' http://localhost/api/v1/system/user/remove
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
 ```
 
-```
-#Configure network device using pmctl
-
-#Configure vlan
+#### Configure network device using pmctl
+```bash
+# Configure vlan
 pmctl network create-vlan <vlanName> dev <device> id <vlanId>
 >pmctl network create-vlan vlan1 dev ens37 id 101
 
-#Configure bond
+# Configure bond
 pmctl network create-bond <bondName> dev <device> mode <modeType> thp <TransmitHashPolicyType> ltr <LACPTransmitRateType> mms <MIIMonitorSecTime>
 >pmctl network create-bond bond1 dev ens37,ens38 mode 802.3ad thp layer2+3 ltr slow mms 1s
-#Configure bond with default
+# Configure bond with default
 >pmctl network create-bond bond1 dev ens37,ens38 
 
-#Configure bridge with default
+# Configure bridge with default
 pmctl network create-bridge <bridgeName> dev <device list>
 >pmctl network create-bridge br0 dev ens37,ens38 
 ```
@@ -426,14 +426,14 @@ pmctl network create-bridge <bridgeName> dev <device list>
 ##### Unix domain socket
 
 Any users added to the group photon-mgmt, they are allowed to access the unix socket.
-```sh
+```bash
 # usermod -a -G photon-mgmt exampleusername
 ```
 
 ##### Web users via pmctl
 
 Export the token key to the enviroment as below
-```
+```bash
 ❯ export PHOTON_MGMT_AUTH_TOKEN=secret
 ```
 
@@ -441,7 +441,7 @@ Export the token key to the enviroment as below
 
 Generate private key (.key)
 
-```sh
+```bash
 # Key considerations for algorithm "RSA" ≥ 2048-bit
 $ openssl genrsa -out server.key 2048
 Generating RSA private key, 2048 bit long modulus (2 primes)
@@ -454,7 +454,7 @@ openssl genrsa -out server.key 2048
 
 Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)
 
-```sh
+```bash
 $ openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
@@ -479,7 +479,7 @@ server.crt  server.key
 
 Use case: https
 
-```sh
+```bash
 $ curl --header "X-Session-Token: secret" --request GET https://localhost:5208/api/v1/network/ethtool/vmnet8/get-link-features -k --tlsv1.2
 
 ```
