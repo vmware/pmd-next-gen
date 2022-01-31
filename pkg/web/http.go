@@ -19,6 +19,13 @@ import (
 	"github.com/pmd-nextgen/pkg/validator"
 )
 
+type Response struct {
+	Body       []byte
+	Status     string
+	StatusCode int
+	Header     http.Header
+}
+
 const (
 	defaultRequestTimeout = 5 * time.Second
 )
@@ -30,7 +37,7 @@ func decodeHttpResponse(resp *http.Response) ([]byte, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.New("could not parse body")
+		return nil, errors.Wrap(err, "could not parse body")
 	}
 
 	return body, nil
@@ -55,37 +62,26 @@ func buildHttpRequest(ctx context.Context, method string, url string, headers ma
 	return httpRequest, nil
 }
 
-func DispatchWebSocket(method string, url string, headers map[string]string, data interface{}) ([]byte, error) {
+func DispatchSocketWithStatus(method, host string, url string, headers map[string]string, data interface{}) (*Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
+
+	var httpClient *http.Client
+	if validator.IsEmpty(host) {
+		httpClient = &http.Client{
+			Transport: &http.Transport{
+				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+					return net.Dial("unix", conf.UnixDomainSocketPath)
+				},
+			},
+		}
+		url = "http://localhost" + url
+	} else {
+		httpClient = http.DefaultClient
+		url = host + url
+	}
 
 	req, err := buildHttpRequest(ctx, method, url, headers, data)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not complete HTTP request")
-	}
-	defer resp.Body.Close()
-
-	return decodeHttpResponse(resp)
-}
-
-func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
-	defer cancel()
-
-	httpClient := http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", conf.UnixDomainSocketPath)
-			},
-		},
-	}
-
-	req, err := buildHttpRequest(ctx, method, url, nil, data)
 	if err != nil {
 		return nil, err
 	}
@@ -94,20 +90,31 @@ func DispatchUnixDomainSocket(method string, url string, data interface{}) ([]by
 	if err != nil {
 		return nil, errors.Wrap(err, "could not complete HTTP request")
 	}
+	defer resp.Body.Close()
 
-	return decodeHttpResponse(resp)
+	var body []byte
+	if resp.StatusCode == 200 {
+		body, err = decodeHttpResponse(resp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &Response{
+		Body:       body,
+		Status:     resp.Status,
+		StatusCode: resp.StatusCode,
+		Header:     resp.Header,
+	}, nil
 }
 
-func DispatchSocket(method, host string, url string, token map[string]string, data interface{}) ([]byte, error) {
-	var resp []byte
-	var err error
+func DispatchSocket(method, host string, url string, headers map[string]string, data interface{}) ([]byte, error) {
+	r, err := DispatchSocketWithStatus(method, host, url, headers, data)
 
-	if !validator.IsEmpty(host) {
-		resp, err = DispatchWebSocket(method, host+url, token, data)
-	} else {
-		resp, err = DispatchUnixDomainSocket(method, "http://localhost"+url, data)
+	if r.StatusCode != 200 {
+		return nil, errors.New(r.Status)
 	}
-	return resp, err
+	return r.Body, err
 }
 
 func BuildAuthTokenFromEnv() (map[string]string, error) {
