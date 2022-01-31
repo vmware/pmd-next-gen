@@ -25,6 +25,8 @@ import (
 	"github.com/pmd-nextgen/plugins/proc"
 	"github.com/pmd-nextgen/plugins/systemd"
 	"github.com/pmd-nextgen/plugins/tdnf"
+
+	"github.com/pmd-nextgen/pkg/jobs"
 )
 
 var httpSrv *http.Server
@@ -42,6 +44,8 @@ func NewRouter() *mux.Router {
 	proc.RegisterRouterProc(s)
 
 	tdnf.RegisterRouterTdnf(s)
+
+	jobs.RegisterRouterJobs(s)
 
 	return r
 }
