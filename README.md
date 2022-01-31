@@ -403,6 +403,20 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
 ```
 
+```
+#Configure network device using pmctl
+
+#Configure vlan
+pmctl network create-vlan <vlanName> dev <device> id <vlanId>
+>pmctl network create-vlan vlan1 dev ens37 id 101
+
+#Configure bond
+pmctl network create-bond <bondName> dev <device> mode <modeType> thp <TransmitHashPolicyType> ltr <LACPTransmitRateType> mms <MIIMonitorSecTime>
+>pmctl network create-bond bond1 dev ens37,ens38 mode 802.3ad thp layer2+3 ltr slow mms 1s
+#Configure bond with default
+>pmctl network create-bond bond1 dev ens37,ens38 
+```
+
 ### How to configure users ?
 
 ##### Unix domain socket

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/pmd-nextgen/pkg/configfile"
 	"github.com/pmd-nextgen/pkg/validator"
@@ -18,6 +19,32 @@ import (
 
 type VLan struct {
 	Id string `json:"Id"`
+}
+
+type Bond struct {
+	Mode                         string `json:"Mode"`
+	TransmitHashPolicy           string `json:"TransmitHashPolicy"`
+	LACPTransmitRate             string `json:"LACPTransmitRate"`
+	MIIMonitorSec                string `json:"MIIMonitorSec"`
+	UpDelaySec                   int    `json:"UpDelaySec"`
+	DownDelaySec                 int    `json:"DownDelaySec"`
+	LearnPacketIntervalSec       int    `json:"LearnPacketIntervalSec"`
+	AdSelect                     string `json:"AdSelect"`
+	AdActorSystemPriority        int    `json:"AdActorSystemPriority"`
+	AdUserPortKey                int    `json:"AdUserPortKey"`
+	AdActorSystem                string `json:"AdActorSystem"`
+	FailOverMACPolicy            string `json:"FailOverMACPolicy"`
+	ARPValidate                  string `json:"ARPValidate"`
+	ARPIntervalSec               int    `json:"ARPIntervalSec"`
+	ARPIPTargets                 string `json:"ARPIPTargets"`
+	ARPAllTargets                string `json:"ARPAllTargets"`
+	PrimaryReselectPolicy        string `json:"PrimaryReselectPolicy"`
+	ResendIGMP                   int    `json:"ResendIGMP"`
+	PacketsPerSlave              int    `json:"PacketsPerSlave"`
+	GratuitousARP                int    `json:"GratuitousARP"`
+	AllSlavesActive              bool   `json:"AllSlavesActive"`
+	DynamicTransmitLoadBalancing bool   `json:"DynamicTransmitLoadBalancing"`
+	MinLinks                     int    `json:"MinLinks"`
 }
 
 type NetDev struct {
@@ -34,6 +61,8 @@ type NetDev struct {
 
 	// [VLAN]
 	VLanSection VLan `json:"VLanSection"`
+	// [BOND]
+	BondSection Bond `json:"BondSection"`
 }
 
 func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
@@ -86,37 +115,96 @@ func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	return nil
 }
 
-func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
-	nm, err := CreateOrParseNetworkFile(n.Link)
-	if err != nil {
-		log.Errorf("Failed to parse network file for link='%s': %v", n.Link, err)
-		return err
+func (n *NetDev) buildVlanSection(m *configfile.Meta) error {
+	m.NewSection("VLAN")
+
+	if validator.IsEmpty(n.VLanSection.Id) {
+		log.Errorf("Failed to create VLan='%s'. Missing Id,", n.Name)
+		return errors.New("missing vlan id")
 	}
 
-	switch n.Kind {
-	case "vlan":
-		m.NewSection("VLAN")
+	if !validator.IsVLanId(n.VLanSection.Id) {
+		log.Errorf("Failed to create VLan='%s'. Invalid Id='%s'", n.Name, n.VLanSection.Id)
+		return fmt.Errorf("invalid vlan id='%s'", n.VLanSection.Id)
+	}
+	m.SetKeyToNewSectionString("Id", n.VLanSection.Id)
 
-		if validator.IsEmpty(n.VLanSection.Id) {
-			log.Errorf("Failed to create VLan='%s'. Missing Id,", n.Name, err)
-			return errors.New("missing vlan id")
+	return nil
+}
+
+func (n *NetDev) buildBondSection(m *configfile.Meta) error {
+	m.NewSection("Bond")
+
+	// Mode Validate
+	if !validator.IsEmpty(n.BondSection.Mode) {
+		if !validator.IsBondMode(n.BondSection.Mode) {
+			log.Errorf("Failed to create Bond='%s'. Invalid Mode='%s'", n.Name, n.BondSection.Mode)
+			return fmt.Errorf("invalid mode='%s'", n.BondSection.Mode)
+		}
+		m.SetKeyToNewSectionString("Mode", n.BondSection.Mode)
+	}
+	// TransmitHashPolicy Validate
+	if !validator.IsEmpty(n.BondSection.TransmitHashPolicy) {
+		if !validator.IsBondTransmitHashPolicy(n.BondSection.Mode, n.BondSection.TransmitHashPolicy) {
+			log.Errorf("Failed to create Bond='%s'. Invalid TransmitHashPolicy='%s' with mode='%s'", n.Name, n.BondSection.TransmitHashPolicy, n.BondSection.Mode)
+			return fmt.Errorf("invalid transmithashpolicy='%s' with mode='%s'", n.BondSection.TransmitHashPolicy, n.BondSection.Mode)
+		}
+		m.SetKeyToNewSectionString("TransmitHashPolicy", n.BondSection.TransmitHashPolicy)
+	}
+	// LACPTransmitRate Validate
+	if !validator.IsEmpty(n.BondSection.LACPTransmitRate) {
+		if !validator.IsBondLACPTransmitRate(n.BondSection.LACPTransmitRate) {
+			log.Errorf("Failed to create Bond='%s'. Invalid LACPTransmitRate='%s'", n.Name, n.BondSection.LACPTransmitRate)
+			return fmt.Errorf("invalid lacptransmitRate='%s'", n.BondSection.LACPTransmitRate)
+		}
+		m.SetKeyToNewSectionString("LACPTransmitRate", n.BondSection.LACPTransmitRate)
+	}
+	// MIIMonitorSec Validate
+	if validator.IsEmpty(n.BondSection.MIIMonitorSec) {
+		m.SetKeyToNewSectionString("MIIMonitorSec", n.BondSection.MIIMonitorSec)
+	}
+
+	return nil
+}
+
+func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
+	linkslice := strings.Split(n.Link, ",")
+	for _, l := range linkslice {
+		nm, err := CreateOrParseNetworkFile(l)
+		if err != nil {
+			log.Errorf("Failed to parse network file for link='%s': %v", l, err)
+			return err
 		}
 
-		if !validator.IsVLanId(n.VLanSection.Id) {
-			log.Errorf("Failed to create VLan='%s'. Invalid Id='%s'", n.Name, n.VLanSection.Id)
-			return fmt.Errorf("invalid vlan id='%s'", n.VLanSection.Id)
+		switch n.Kind {
+		case "vlan":
+			if err := nm.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s',", l, err)
+				return err
+			}
+		case "bond":
+			if err := nm.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s',", l, err)
+				return err
+			}
 		}
-		m.SetKeyToNewSectionString("Id", n.VLanSection.Id)
-
-		if err := nm.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
-			log.Errorf("Failed to update .network file of link='%s',", n.Link, err)
+		if err := nm.Save(); err != nil {
+			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
 			return err
 		}
 	}
 
-	if err := nm.Save(); err != nil {
-		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
-		return err
+	switch n.Kind {
+	case "vlan":
+		if err := n.buildVlanSection(m); err != nil {
+			log.Errorf("Failed to create VLan ='%s': %v", n.Name, err)
+			return err
+		}
+	case "bond":
+		if err := n.buildBondSection(m); err != nil {
+			log.Errorf("Failed to create Bond ='%s': %v", n.Name, err)
+			return err
+		}
 	}
 
 	return nil

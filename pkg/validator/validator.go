@@ -77,3 +77,29 @@ func IsDHCP(s string) bool {
 func IsLinkLocalAddressing(s string) bool {
 	return IsBoolWithIp(s)
 }
+
+func IsBondMode(mode string) bool {
+	if mode == "balance-rr" || mode == "active-backup" || mode == "balance-xor" ||
+		mode == "broadcast" || mode == "802.3ad" || mode == "balance-tlb" || mode == "balance-alb" {
+		return true
+	} else {
+		return false
+	}
+}
+
+func IsBondTransmitHashPolicy(mode, thp string) bool {
+	if (thp == "layer2" || thp == "layer3+4" || thp == "layer2+3" || thp == "encap2+3" || thp == "encap3+4") &&
+		(mode == "balance-xor" || mode == "802.3ad" || mode == "balance-tlb") {
+		return true
+	} else {
+		return false
+	}
+}
+
+func IsBondLACPTransmitRate(ltr string) bool {
+	if ltr == "slow" || ltr == "fast" {
+		return true
+	} else {
+		return false
+	}
+}

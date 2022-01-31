@@ -281,6 +281,21 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "create-bond",
+					UsageText:   "create-bond [BOND name] dev [LINK MASTER] mode [STRING] thp [STRING] ltr [string] mms [STRING]",
+					Description: "Create bond.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 3 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateBond(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{
