@@ -37,7 +37,7 @@ func routerRemoveNetwork(w http.ResponseWriter, r *http.Request) {
 
 func routerAcquireLinks(w http.ResponseWriter, r *http.Request) {
 	l, err := AcquireLinks(r.Context())
-	if  err != nil {
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
 

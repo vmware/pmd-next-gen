@@ -8,10 +8,12 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
 
@@ -263,6 +265,118 @@ func main() {
 						}
 
 						networkConfigureDHCP(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-dhcp4-client-identifier",
+					UsageText:   "set-dhcp4-client-identifier [LINK] [IDENTIFIER {mac|duid|duid-only}]",
+					Description: "Configures Link DHCPv4 identifier.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCP4ClientIdentifier(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-dhcp-iaid",
+					UsageText:   "set-dhcp-iaid [LINK] [IAID]",
+					Description: "Configures the DHCP Identity Association Identifier (IAID) for the interface, a 32-bit unsigned integer.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						if !validator.IsIaId(c.Args().Get(1)) {
+							fmt.Printf("Invalid IAID.\n")
+							return nil
+						}
+
+						networkConfigureDHCPIAID(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+
+				{
+					Name:        "set-mtu",
+					UsageText:   "set-mtu [LINK] [MTU NUMBER]",
+					Description: "Configures Link MTU.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						if !validator.IsMtu(c.Args().Get(1)) {
+							fmt.Printf("MTU must be a valid value.\n")
+							return nil
+						}
+
+						networkConfigureMTU(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-mac",
+					UsageText:   "set-mac [LINK] [MAC]",
+					Description: "Configures Link MAC address.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						if validator.IsNotMAC(c.Args().Get(1)) {
+							fmt.Printf("Invalid MAC address: %v\n", c.Args().Get(1))
+							return nil
+						}
+
+						networkConfigureMAC(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-link-mode",
+					UsageText:   "set-link-mode [LINK] [MODE BOOLEAN]",
+					Description: "Set Link mode.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						mode, err := strconv.ParseBool(c.Args().Get(1))
+						if err != nil {
+							fmt.Printf("Invalid mode.\n")
+							return nil
+						}
+
+						networkConfigureMode(c.Args().First(), mode, c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "add-link-address",
+					UsageText:   "add-link-address [LINK] address [ADDRESS] peer [ADDRESS] label [NUMBER] scope {global|link|host|NUMBER}]",
+					Description: "Configures Link Address.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureAddress(c.Args().First(), c.Args(), c.String("url"), token)
 						return nil
 					},
 				},

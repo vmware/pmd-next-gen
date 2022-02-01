@@ -13,7 +13,7 @@ import (
 
 func routerAcquireAddress(w http.ResponseWriter, r *http.Request) {
 	addrs, err := AcquireAddresses()
-	if  err != nil {
+	if err != nil {
 		web.JSONResponseError(err, w)
 	}
 

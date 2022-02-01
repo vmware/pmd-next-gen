@@ -53,7 +53,7 @@ func (m *Meta) SetKeySectionString(section string, key string, value string) err
 			return err
 		}
 	}
-	
+
 	m.Cfg.Section(section).Key(key).SetValue(value)
 
 	return nil
@@ -72,7 +72,6 @@ func (m *Meta) NewKeyToSectionString(section string, key string, value string) e
 
 	return nil
 }
-
 
 func (m *Meta) NewSection(section string) error {
 	s, err := m.Cfg.NewSection(section)
