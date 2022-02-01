@@ -6,6 +6,7 @@ package validator
 import (
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -26,6 +27,19 @@ func IsArrayEmpty(str []string) bool {
 
 func IsEmpty(str string) bool {
 	return govalidator.IsNull(str)
+}
+
+func IsUintOrMax(s string) bool {
+	if strings.EqualFold(s, "max") {
+		return true
+	}
+
+	_, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func IsIP(str string) bool {
@@ -102,4 +116,13 @@ func IsBondLACPTransmitRate(ltr string) bool {
 	} else {
 		return false
 	}
+}
+
+func IsLinkQueue(id string) bool {
+	l, err := strconv.ParseUint(id, 10, 32)
+	if err != nil || l > 4096 {
+		return false
+	}
+
+	return true
 }
