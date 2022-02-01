@@ -22,6 +22,7 @@ import (
 	"github.com/pmd-nextgen/plugins/network/resolved"
 	"github.com/pmd-nextgen/plugins/network/timesyncd"
 	"github.com/shirou/gopsutil/v3/net"
+	"github.com/urfave/cli/v2"
 )
 
 type NetDevIOCounters struct {
