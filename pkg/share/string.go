@@ -14,7 +14,7 @@ func StringContains(list []string, s string) bool {
 		set[v] = k
 	}
 
-	return set[s] != 0 
+	return set[s] != 0
 }
 
 func StringDeleteSlice(list []string, s string) ([]string, error) {

@@ -67,5 +67,3 @@ func GetGroupCredentials(grp string) (*user.Group, error) {
 
 	return group, nil
 }
-
-

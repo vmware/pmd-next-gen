@@ -205,7 +205,7 @@ func (r *Ethtool) ConfigureEthTool(w http.ResponseWriter) error {
 		if err != nil {
 			return err
 		}
-		
+
 		feature[r.Property] = b
 		if err := e.Change(r.Link, feature); err != nil {
 			return err

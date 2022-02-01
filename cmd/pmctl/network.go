@@ -276,20 +276,11 @@ func acquireNetworkStatus(cmd string, host string, ifName string, token map[stri
 	}
 }
 
-func networkConfigureDHCP(link string, dhcp string, host string, token map[string]string) {
-	if !validator.IsDHCP(dhcp) {
-		fmt.Printf("Failed to parse DHCP: %s\n", dhcp)
-		return
-	}
+func networkConfigure(network *networkd.Network, host string, token map[string]string) {
+	var resp []byte
+	var err error
 
-	n := networkd.Network{
-		Link: link,
-		NetworkSection: networkd.NetworkSection{
-			DHCP: dhcp,
-		},
-	}
-
-	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, n)
+	resp, err = web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, *network)
 	if err != nil {
 		fmt.Printf("Failed to configure DHCP: %v\n", err)
 		return
@@ -304,4 +295,122 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 	if !m.Success {
 		fmt.Printf("Failed to configure DHCP: %v\n", m.Errors)
 	}
+}
+
+func networkConfigureDHCP(link string, dhcp string, host string, token map[string]string) {
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			DHCP: dhcp,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureDHCP4ClientIdentifier(link string, identifier string, host string, token map[string]string) {
+
+	if !validator.IsClientIdentifier(identifier) {
+		fmt.Printf("Invalid DHCP4 Client Identifier: %s\n", identifier)
+		return
+	}
+
+	n := networkd.Network{
+		Link: link,
+		DHCPv4Section: networkd.DHCPv4Section{
+			ClientIdentifier: identifier,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureDHCPIAID(link string, iaid string, host string, token map[string]string) {
+
+	n := networkd.Network{
+		Link: link,
+		DHCPv4Section: networkd.DHCPv4Section{
+			IAID: iaid,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureMTU(link string, mtu string, host string, token map[string]string) {
+	n := networkd.Network{
+		Link: link,
+		LinkSection: networkd.LinkSection{
+			MTUBytes: mtu,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureMAC(link string, mac string, host string, token map[string]string) {
+	n := networkd.Network{
+		Link: link,
+		LinkSection: networkd.LinkSection{
+			MACAddress: mac,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureMode(link string, mode bool, host string, token map[string]string) {
+	unmanaged := "no"
+
+	if !mode {
+		unmanaged = "yes"
+	}
+
+	n := networkd.Network{
+		Link: link,
+		LinkSection: networkd.LinkSection{
+			Unmanaged: unmanaged,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureAddress(link string, args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	a := networkd.AddressSection{}
+	for index := 1; index < args.Len()-1; {
+		switch argStrings[index] {
+		case "address":
+			a.Address = argStrings[index+1]
+			if !validator.IsIP(a.Address) {
+				fmt.Printf("Invalid IP address: %v\n", a.Address)
+				return
+			}
+		case "peer":
+			a.Peer = argStrings[index+1]
+			if !validator.IsIP(a.Peer) {
+				fmt.Printf("Invalid Peer IP address: %v\n", a.Peer)
+				return
+			}
+		case "label":
+			a.Label = argStrings[index+1]
+		case "scope":
+			a.Scope = argStrings[index+1]
+			if !validator.IsScope(a.Scope) {
+				fmt.Printf("Invalid scope: %s", a.Scope)
+				return
+			}
+		default:
+		}
+		index++
+	}
+	n := networkd.Network{
+		Link: link,
+		AddressSections: []networkd.AddressSection{
+			a,
+		},
+	}
+	networkConfigure(&n, host, token)
 }

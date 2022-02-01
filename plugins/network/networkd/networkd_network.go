@@ -25,6 +25,12 @@ type MatchSection struct {
 	Name string `json:"Name"`
 }
 
+type LinkSection struct {
+	MTUBytes   string `json:"MTUBytes"`
+	MACAddress string `json:"MACAddress"`
+	Unmanaged  string `json:"Unmanaged"`
+}
+
 type NetworkSection struct {
 	DHCP                string   `json:"DHCP"`
 	Address             string   `json:"Address"`
@@ -68,10 +74,12 @@ type DHCPv4Section struct {
 	UseMTU                string `json:"UseMTU"`
 	UseGateway            string `json:"UseGateway"`
 	UseTimezone           string `json:"UseTimezone"`
+	IAID                  string `json:"IAID"`
 }
 
 type Network struct {
 	Link            string           `json:"Link"`
+	LinkSection     LinkSection      `json:"LinkSection"`
 	MatchSection    MatchSection     `json:"MatchSection"`
 	NetworkSection  NetworkSection   `json:"NetworkSection"`
 	DHCPv4Section   DHCPv4Section    `json:"DHCPv4Section"`
@@ -236,7 +244,7 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
-	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) && validator.IsBool(n.NetworkSection.IPv6AcceptRA){
+	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) && validator.IsBool(n.NetworkSection.IPv6AcceptRA) {
 		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
 
@@ -249,7 +257,7 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
-	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) && validator.IsBool(n.NetworkSection.MulticastDNS){
+	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) && validator.IsBool(n.NetworkSection.MulticastDNS) {
 		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
 	}
 
@@ -280,12 +288,40 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) buildLinkSection(m *configfile.Meta) error {
+
+	if !validator.IsEmpty(n.LinkSection.MTUBytes) {
+		if validator.IsMtu(n.LinkSection.MTUBytes) {
+			m.SetKeySectionString("Link", "MTUBytes", n.LinkSection.MTUBytes)
+		} else {
+			log.Errorf("Invalid MTU='%s'", n.LinkSection.MTUBytes)
+			return fmt.Errorf("invalid MTU='%s'", n.LinkSection.MTUBytes)
+		}
+	}
+
+	if !validator.IsEmpty(n.LinkSection.MACAddress) {
+		if validator.IsNotMAC(n.LinkSection.MACAddress) {
+			log.Errorf("Failed to parse Mac='%s'", n.LinkSection.MACAddress)
+			return fmt.Errorf("invalid Address='%s'", n.LinkSection.MACAddress)
+
+		} else {
+			m.SetKeySectionString("Link", "MACAddress", n.LinkSection.MACAddress)
+		}
+	}
+
+	if !validator.IsEmpty(n.LinkSection.Unmanaged) && validator.IsBool(n.LinkSection.Unmanaged) {
+		m.SetKeySectionString("Link", "Unmanaged", n.LinkSection.Unmanaged)
+	}
+
+	return nil
+}
+
 func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 	if !validator.IsEmpty(n.DHCPv4Section.ClientIdentifier) {
 		m.SetKeySectionString("DHCPv4", "ClientIdentifier", n.DHCPv4Section.ClientIdentifier)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.VendorClassIdentifier){
+	if !validator.IsEmpty(n.DHCPv4Section.VendorClassIdentifier) {
 		m.SetKeySectionString("DHCPv4", "VendorClassIdentifier", n.DHCPv4Section.VendorClassIdentifier)
 	}
 
@@ -297,28 +333,32 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 		m.SetKeySectionString("DHCPv4", "SendOption", n.DHCPv4Section.SendOption)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseDNS) && validator.IsBool(n.DHCPv4Section.UseDNS){
+	if !validator.IsEmpty(n.DHCPv4Section.UseDNS) && validator.IsBool(n.DHCPv4Section.UseDNS) {
 		m.SetKeySectionString("DHCPv4", "UseDNS", n.DHCPv4Section.UseDNS)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseDomains)&& validator.IsBool(n.DHCPv4Section.UseDomains) {
+	if !validator.IsEmpty(n.DHCPv4Section.UseDomains) && validator.IsBool(n.DHCPv4Section.UseDomains) {
 		m.SetKeySectionString("DHCPv4", "UseDomains", n.DHCPv4Section.UseDomains)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseNTP) && validator.IsBool(n.DHCPv4Section.UseNTP){
+	if !validator.IsEmpty(n.DHCPv4Section.UseNTP) && validator.IsBool(n.DHCPv4Section.UseNTP) {
 		m.SetKeySectionString("DHCPv4", "UseNTP", n.DHCPv4Section.UseNTP)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseMTU) && validator.IsBool(n.DHCPv4Section.UseMTU){
+	if !validator.IsEmpty(n.DHCPv4Section.UseMTU) && validator.IsBool(n.DHCPv4Section.UseMTU) {
 		m.SetKeySectionString("DHCPv4", "UseMTU", n.DHCPv4Section.UseMTU)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseGateway) && validator.IsBool(n.DHCPv4Section.UseGateway){
+	if !validator.IsEmpty(n.DHCPv4Section.UseGateway) && validator.IsBool(n.DHCPv4Section.UseGateway) {
 		m.SetKeySectionString("DHCPv4", "UseGateway", n.DHCPv4Section.UseGateway)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) && validator.IsBool(n.DHCPv4Section.UseTimezone){
+	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) && validator.IsBool(n.DHCPv4Section.UseTimezone) {
 		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsIaId(n.DHCPv4Section.IAID) {
+		m.SetKeySectionString("DHCPv4", "IAID", n.DHCPv4Section.IAID)
 	}
 
 	return nil
@@ -352,7 +392,7 @@ func (n *Network) buildAddressSection(m *configfile.Meta) error {
 			m.SetKeyToNewSectionString("Label", a.Label)
 		}
 
-		if !validator.IsEmpty(a.Scope) && validator.IsScope(a.Scope){
+		if !validator.IsEmpty(a.Scope) && validator.IsScope(a.Scope) {
 			m.SetKeyToNewSectionString("Scope", a.Scope)
 		}
 	}
@@ -406,11 +446,11 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			}
 		}
 
-		if !validator.IsEmpty(rt.Table) &&govalidator.IsInt(rt.Table) {
+		if !validator.IsEmpty(rt.Table) && govalidator.IsInt(rt.Table) {
 			m.SetKeyToNewSectionString("Table", rt.Table)
 		}
 
-		if !validator.IsEmpty(rt.Scope)  && validator.IsScope(rt.Scope) {
+		if !validator.IsEmpty(rt.Scope) && validator.IsScope(rt.Scope) {
 			m.SetKeyToNewSectionString("Scope", rt.Scope)
 		}
 	}
@@ -459,6 +499,9 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 	}
 
 	if err := n.buildNetworkSection(m); err != nil {
+		return err
+	}
+	if err := n.buildLinkSection(m); err != nil {
 		return err
 	}
 	if err := n.buildDHCPv4Section(m); err != nil {

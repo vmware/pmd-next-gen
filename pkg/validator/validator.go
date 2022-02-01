@@ -52,12 +52,21 @@ func IsIP(str string) bool {
 	return err == nil
 }
 
+func IsClientIdentifier(identifier string) bool {
+	return identifier == "mac" || identifier == "duid" || identifier == "duid-only"
+}
+
 func IsNotMAC(mac string) bool {
 	return !govalidator.IsMAC(mac)
 }
 
 func IsMtu(mtu string) bool {
 	_, err := strconv.ParseUint(mtu, 10, 32)
+	return err == nil
+}
+
+func IsIaId(iaid string) bool {
+	_, err := strconv.ParseUint(iaid, 10, 32)
 	return err == nil
 }
 
