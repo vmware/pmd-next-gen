@@ -27,6 +27,11 @@ type MacVLan struct {
 	BroadcastMulticastQueueLength string `json:"BroadcastMulticastQueueLength"`
 }
 
+type IpVLan struct {
+	Mode  string `json:"Mode"`
+	Flags string `json:"Flags"`
+}
+
 type Bond struct {
 	Mode                         string `json:"Mode"`
 	TransmitHashPolicy           string `json:"TransmitHashPolicy"`
@@ -85,6 +90,8 @@ type NetDev struct {
 	VLanSection VLan `json:"VLanSection"`
 	// [MACVLAN]
 	MacVLanSection MacVLan `json:"MacVLanSection"`
+	// [IPVLAN]
+	IpVLanSection IpVLan `json:"IpVLanSection"`
 	// [BOND]
 	BondSection Bond `json:"BondSection"`
 	// [BRIDGE]
@@ -215,6 +222,29 @@ func (n *NetDev) buildMacVLanSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildIpVLanSection(m *configfile.Meta) error {
+	m.NewSection("IPVLAN")
+
+	// Mode Validate
+	if !validator.IsEmpty(n.IpVLanSection.Mode) {
+		if !validator.IsIpVLanMode(n.IpVLanSection.Mode) {
+			log.Errorf("Failed to create IpVLan='%s'. Invalid Mode='%s'", n.Name, n.IpVLanSection.Mode)
+			return fmt.Errorf("invalid mode='%s'", n.IpVLanSection.Mode)
+		}
+		m.SetKeyToNewSectionString("Mode", n.IpVLanSection.Mode)
+	}
+	// Flags Validate
+	if !validator.IsEmpty(n.IpVLanSection.Flags) {
+		if !validator.IsIpVLanFlags(n.IpVLanSection.Flags) {
+			log.Errorf("Failed to create IpVLan='%s'. Invalid Flags='%s'", n.Name, n.IpVLanSection.Flags)
+			return fmt.Errorf("invalid flags='%s'", n.IpVLanSection.Flags)
+		}
+		m.SetKeyToNewSectionString("Flags", n.IpVLanSection.Flags)
+	}
+
+	return nil
+}
+
 func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	linkslice := strings.Split(n.Link, ",")
 	for _, l := range linkslice {
@@ -245,6 +275,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
+		case "ipvlan":
+			if err := nm.NewKeyToSectionString("Network", "IPVLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
 		}
 		if err := nm.Save(); err != nil {
 			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
@@ -271,6 +306,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "macvlan":
 		if err := n.buildMacVLanSection(m); err != nil {
 			log.Errorf("Failed to create MacVLan ='%s': %v", n.Name, err)
+			return err
+		}
+	case "ipvlan":
+		if err := n.buildIpVLanSection(m); err != nil {
+			log.Errorf("Failed to create IpVLan ='%s': %v", n.Name, err)
 			return err
 		}
 	}

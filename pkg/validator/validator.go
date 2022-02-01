@@ -126,6 +126,22 @@ func IsMacVLanMode(mode string) bool {
 	}
 }
 
+func IsIpVLanMode(mode string) bool {
+	if mode == "l2" || mode == "l3" || mode == "l3s" {
+		return true
+	} else {
+		return false
+	}
+}
+
+func IsIpVLanFlags(flags string) bool {
+	if flags == "bridge" || flags == "private" || flags == "vepa" {
+		return true
+	} else {
+		return false
+	}
+}
+
 func IsLinkQueue(id string) bool {
 	l, err := strconv.ParseUint(id, 10, 32)
 	if err != nil || l > 4096 {
