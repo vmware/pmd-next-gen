@@ -120,7 +120,7 @@ type NetworkDescribe struct {
 func decodeNetworkJSONRequest(r *http.Request) (*Network, error) {
 	n := Network{}
 	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
-		return &n, err
+		return nil, err
 	}
 
 	return &n, nil
@@ -458,7 +458,6 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 
-	n.buildNetworkSection(m)
 	if err := n.buildNetworkSection(m); err != nil {
 		return err
 	}

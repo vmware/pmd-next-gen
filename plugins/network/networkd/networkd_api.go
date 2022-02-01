@@ -158,6 +158,13 @@ func ParseNetworkRouteDomains() ([]string, error) {
 	return strings.Split(s, " "), nil
 }
 
+func CreateMatchSection(m *configfile.Meta, link string) error {
+	m.NewSection("Match")
+	m.SetKeyToNewSectionString("Name", link)
+
+	return nil
+}
+
 func CreateNetworkFile(link string) (*configfile.Meta, error) {
 	file := "10-" + link + ".network"
 
@@ -172,9 +179,9 @@ func CreateNetworkFile(link string) (*configfile.Meta, error) {
 		return nil, err
 	}
 
-	m.NewSection("Match")
-	m.SetKeyToNewSectionString("Name", link)
-
+	if err := CreateMatchSection(m, link); err != nil {
+		return nil, err
+	}
 	return m, nil
 }
 
@@ -223,7 +230,6 @@ func CreateNetDevFile(link string, kind string) (*configfile.Meta, error) {
 	}
 
 	system.ChangePermission("systemd-network", m.Path)
-
 	return m, nil
 }
 
@@ -234,7 +240,6 @@ func CreateNetDevNetworkFile(link string, kind string) error {
 	if err != nil {
 		return err
 	}
-
 	defer f.Close()
 
 	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
@@ -242,8 +247,9 @@ func CreateNetDevNetworkFile(link string, kind string) error {
 		return err
 	}
 
-	m.NewSection("Match")
-	m.SetKeyToNewSectionString("Name", link)
+	if err := CreateMatchSection(m, link); err != nil {
+		return err
+	}
 
 	if err := m.Save(); err != nil {
 		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
@@ -251,6 +257,36 @@ func CreateNetDevNetworkFile(link string, kind string) error {
 	}
 
 	system.ChangePermission("systemd-network", m.Path)
-
 	return nil
+}
+
+func CreateOrParseLinkFile(link string) (*configfile.Meta, error) {
+	file := "10-" + link + ".link"
+
+	var m *configfile.Meta
+	var err error
+	if !system.PathExists(path.Join("/etc/systemd/network", file)) {
+		f, err := os.Create(path.Join("/etc/systemd/network", file))
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+
+		m, err = configfile.Load(path.Join("/etc/systemd/network", file))
+		if err != nil {
+			return nil, err
+		}
+
+		if err := CreateMatchSection(m, link); err != nil {
+			return nil, err
+		}
+		system.ChangePermission("systemd-network", m.Path)
+	} else {
+		m, err = configfile.Load(path.Join("/etc/systemd/network", file))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return m, nil
 }

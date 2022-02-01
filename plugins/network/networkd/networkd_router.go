@@ -65,6 +65,18 @@ func routerConfigureNetDev(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routerConfigureLink(w http.ResponseWriter, r *http.Request) {
+	n, err := decodeLinkJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := n.ConfigureLink(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func RegisterRouterNetworkd(router *mux.Router) {
 	n := router.PathPrefix("/networkd").Subrouter().StrictSlash(false)
 
@@ -74,4 +86,6 @@ func RegisterRouterNetworkd(router *mux.Router) {
 	n.HandleFunc("/network/remove", routerRemoveNetwork).Methods("DELETE")
 
 	n.HandleFunc("/netdev/configure", routerConfigureNetDev).Methods("POST")
+
+	n.HandleFunc("/link/configure", routerConfigureLink).Methods("POST")
 }

@@ -86,7 +86,7 @@ type NetDev struct {
 func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 	n := NetDev{}
 	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
-		return &n, err
+		return nil, err
 	}
 
 	return &n, nil
