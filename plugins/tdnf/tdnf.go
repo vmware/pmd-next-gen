@@ -51,7 +51,7 @@ func TdnfExec(args ...string) (string, error) {
 }
 
 func AcquireList(w http.ResponseWriter, pkg string) error {
-	job := jobs.CreateJob(func() (string, error) {
+	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
 		if !validator.IsEmpty(pkg) {
@@ -59,7 +59,9 @@ func AcquireList(w http.ResponseWriter, pkg string) error {
 		} else {
 			s, err = TdnfExec("list")
 		}
-		return s, err
+		var list interface{}
+		json.Unmarshal([]byte(s), &list)
+		return list, err
 	})
 	return jobs.AcceptedResponse(w, job)
 }
@@ -78,7 +80,7 @@ func AcquireRepoList(w http.ResponseWriter) error {
 }
 
 func AcquireInfoList(w http.ResponseWriter, pkg string) error {
-	job := jobs.CreateJob(func() (string, error) {
+	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
 		if !validator.IsEmpty(pkg) {
@@ -86,15 +88,17 @@ func AcquireInfoList(w http.ResponseWriter, pkg string) error {
 		} else {
 			s, err = TdnfExec("info")
 		}
-		return s, err
+		var list interface{}
+		json.Unmarshal([]byte(s), &list)
+		return list, err
 	})
 	return jobs.AcceptedResponse(w, job)
 }
 
 func AcquireMakeCache(w http.ResponseWriter) error {
-	job := jobs.CreateJob(func() (string, error) {
-		s, err := TdnfExec("makecache")
-		return s, err
+	job := jobs.CreateJob(func() (interface{}, error) {
+		_, err := TdnfExec("makecache")
+		return nil, err
 	})
 	return jobs.AcceptedResponse(w, job)
 }
