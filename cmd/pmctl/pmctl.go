@@ -249,7 +249,7 @@ func main() {
 		{
 			Name:    "network",
 			Aliases: []string{"n"},
-			Usage:   "Configures network",
+			Usage:   "Network device configuration",
 			Subcommands: []*cli.Command{
 				{
 					Name:        "set-dhcp",
@@ -308,6 +308,28 @@ func main() {
 						}
 
 						networkCreateBridge(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "link",
+			Aliases: []string{"l"},
+			Usage:   "Network device configuration",
+			Subcommands: []*cli.Command{
+				{
+					Name:        "set-txqueue",
+					UsageText:   "set-txqueue dev [LINK] txqueuelen [TransmitQueues {1-4096}]",
+					Description: "Sets the device's number of transmit queues. An integer in the range 1…4096.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkQueue(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},

@@ -167,7 +167,7 @@ func SetHostname(hostName string, host string, token map[string]string) {
 
 	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/hostname/method", token, h)
 	if err != nil {
-		fmt.Printf("Failed set hostname: %v\n", err)
+		fmt.Printf("Failed to set hostname: %v\n", err)
 		return
 	}
 
@@ -178,7 +178,7 @@ func SetHostname(hostName string, host string, token map[string]string) {
 	}
 
 	if !m.Success {
-		fmt.Printf("Failed set hostname: %v\n", m.Errors)
+		fmt.Printf("Failed to set hostname: %v\n", m.Errors)
 	}
 
 	fmt.Println(m.Message)
