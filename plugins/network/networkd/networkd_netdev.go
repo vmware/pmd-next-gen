@@ -21,6 +21,12 @@ type VLan struct {
 	Id string `json:"Id"`
 }
 
+type MacVLan struct {
+	Mode                          string `json:"Mode"`
+	SourceMACAddress              string `json:"SourceMACAddress"`
+	BroadcastMulticastQueueLength string `json:"BroadcastMulticastQueueLength"`
+}
+
 type Bond struct {
 	Mode                         string `json:"Mode"`
 	TransmitHashPolicy           string `json:"TransmitHashPolicy"`
@@ -77,6 +83,8 @@ type NetDev struct {
 
 	// [VLAN]
 	VLanSection VLan `json:"VLanSection"`
+	// [MACVLAN]
+	MacVLanSection MacVLan `json:"MacVLanSection"`
 	// [BOND]
 	BondSection Bond `json:"BondSection"`
 	// [BRIDGE]
@@ -190,6 +198,23 @@ func (n *NetDev) buildBridgeSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildMacVLanSection(m *configfile.Meta) error {
+	m.NewSection("MACVLAN")
+
+	// Mode Validate
+	if validator.IsEmpty(n.MacVLanSection.Mode) {
+		log.Errorf("Failed to create MacVLan='%s'. Missing Mode,", n.Name)
+		return errors.New("missing macvlan mode")
+	}
+	if !validator.IsMacVLanMode(n.MacVLanSection.Mode) {
+		log.Errorf("Failed to create MacVLan='%s'. Invalid Mode='%s'", n.Name, n.MacVLanSection.Mode)
+		return fmt.Errorf("invalid mode='%s'", n.MacVLanSection.Mode)
+	}
+	m.SetKeyToNewSectionString("Mode", n.MacVLanSection.Mode)
+
+	return nil
+}
+
 func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	linkslice := strings.Split(n.Link, ",")
 	for _, l := range linkslice {
@@ -202,17 +227,22 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 		switch n.Kind {
 		case "vlan":
 			if err := nm.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s',", l, err)
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "bond":
 			if err := nm.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s',", l, err)
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "bridge":
 			if err := nm.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s',", n.Link, err)
+				log.Errorf("Failed to update .network file of link='%s': %v", n.Link, err)
+				return err
+			}
+		case "macvlan":
+			if err := nm.NewKeyToSectionString("Network", "MACVLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		}
@@ -236,6 +266,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "bridge":
 		if err := n.buildBridgeSection(m); err != nil {
 			log.Errorf("Failed to create Bridge ='%s': %v", n.Name, err)
+			return err
+		}
+	case "macvlan":
+		if err := n.buildMacVLanSection(m); err != nil {
+			log.Errorf("Failed to create MacVLan ='%s': %v", n.Name, err)
 			return err
 		}
 	}
