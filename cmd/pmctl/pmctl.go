@@ -311,6 +311,21 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "create-macvlan",
+					UsageText:   "create-macvlan [MACVLAN name] dev [LINK MASTER] mode [STRING]",
+					Description: "Create macvlan.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 5 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateMacVLan(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{

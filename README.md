@@ -419,6 +419,10 @@ pmctl network create-bond <bondName> dev <device> mode <modeType> thp <TransmitH
 # Configure bridge with default
 pmctl network create-bridge <bridgeName> dev <device list>
 >pmctl network create-bridge br0 dev ens37,ens38 
+
+# Configure macvlan
+pmctl network create-macvlan <macvlanName> dev <device> mode <modeName>
+>pmctl network create-macvlan macvlan1 dev ens37 mode private
 ```
 
 ### How to configure users ?

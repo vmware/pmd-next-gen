@@ -118,6 +118,14 @@ func IsBondLACPTransmitRate(ltr string) bool {
 	}
 }
 
+func IsMacVLanMode(mode string) bool {
+	if mode == "private" || mode == "vepa" || mode == "bridge" || mode == "passthru" || mode == "source" {
+		return true
+	} else {
+		return false
+	}
+}
+
 func IsLinkQueue(id string) bool {
 	l, err := strconv.ParseUint(id, 10, 32)
 	if err != nil || l > 4096 {
