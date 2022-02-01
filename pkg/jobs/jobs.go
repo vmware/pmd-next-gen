@@ -4,7 +4,6 @@
 package jobs
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -12,12 +11,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
 
 type Result struct {
-	Output string
+	Output interface{}
 	Err    error
 }
 
@@ -77,7 +75,7 @@ func RemoveResult(id uint64) {
 	delete(jobs.resultMap, id)
 }
 
-func CreateJob(acquireFunc func() (string, error)) *Job {
+func CreateJob(acquireFunc func() (interface{}, error)) *Job {
 	job := NewJob()
 	go func() {
 		s, err := acquireFunc()
@@ -129,17 +127,7 @@ func routerAcquireResult(w http.ResponseWriter, r *http.Request) {
 		if result.Err != nil {
 			web.JSONResponseError(result.Err, w)
 		} else {
-			if !validator.IsEmpty(result.Output) {
-				var r interface{}
-				err := json.Unmarshal([]byte(result.Output), &r)
-				if err != nil {
-					RemoveResult(id)
-					web.JSONResponseError(err, w)
-				}
-				web.JSONResponse(r, w)
-			} else {
-				web.JSONResponse("", w)
-			}
+			web.JSONResponse(result.Output, w)
 		}
 		RemoveResult(id)
 	} else {
