@@ -23,13 +23,13 @@ type Result struct {
 
 type Job struct {
 	ResultChannel chan Result
-	Id            int
+	Id            uint64
 }
 
 type Jobs struct {
-	jobMap     map[int]Job
-	resultMap  map[int]Result
-	jobCounter int
+	jobMap     map[uint64]Job
+	resultMap  map[uint64]Result
+	jobCounter uint64
 	Mutex      *sync.Mutex
 }
 
@@ -40,8 +40,8 @@ func New() *Jobs {
 		return jobs
 	} else {
 		jobs = &Jobs{
-			jobMap:    make(map[int]Job),
-			resultMap: make(map[int]Result),
+			jobMap:    make(map[uint64]Job),
+			resultMap: make(map[uint64]Result),
 			Mutex:     &sync.Mutex{},
 		}
 		return jobs
@@ -63,14 +63,14 @@ func NewJob() *Job {
 	return &job
 }
 
-func RemoveJob(id int) {
+func RemoveJob(id uint64) {
 	jobs.Mutex.Lock()
 	defer jobs.Mutex.Unlock()
 
 	delete(jobs.jobMap, id)
 }
 
-func RemoveResult(id int) {
+func RemoveResult(id uint64) {
 	jobs.Mutex.Lock()
 	defer jobs.Mutex.Unlock()
 
@@ -91,13 +91,13 @@ func CreateJob(acquireFunc func() (string, error)) *Job {
 }
 
 func AcceptedResponse(w http.ResponseWriter, job *Job) error {
-	w.Header().Set("Location", "/api/v1/_jobs/status/"+strconv.Itoa(job.Id))
+	w.Header().Set("Location", "/api/v1/_jobs/status/"+strconv.FormatUint(job.Id, 10))
 	w.WriteHeader(http.StatusAccepted)
 	return nil
 }
 
 func routerAcquireStatus(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
 		web.JSONResponseError(errors.New("invalid id"), w)
 	}
@@ -109,7 +109,7 @@ func routerAcquireStatus(w http.ResponseWriter, r *http.Request) {
 			web.JSONResponse(
 				web.StatusResponse{
 					Status: "complete",
-					Link:   "/api/v1/_jobs/result/" + strconv.Itoa(id),
+					Link:   "/api/v1/_jobs/result/" + strconv.FormatUint(id, 10),
 				},
 				w)
 		default:
@@ -121,7 +121,7 @@ func routerAcquireStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireResult(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
 		web.JSONResponseError(errors.New("invalid id"), w)
 	}
