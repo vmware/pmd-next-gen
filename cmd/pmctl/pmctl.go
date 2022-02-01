@@ -440,6 +440,21 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "create-ipvlan",
+					UsageText:   "create-ipvlan [IPVLAN name] dev [LINK MASTER] mode [STRING] flags [STRING]",
+					Description: "Create ipvlan.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 3 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateIpVLan(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{

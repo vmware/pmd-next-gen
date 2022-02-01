@@ -406,23 +406,31 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"
 
 #### Configure network device using pmctl
 ```bash
-# Configure vlan
+# Configure VLan
 pmctl network create-vlan <vlanName> dev <device> id <vlanId>
 >pmctl network create-vlan vlan1 dev ens37 id 101
 
-# Configure bond
+# Configure Bond
 pmctl network create-bond <bondName> dev <device> mode <modeType> thp <TransmitHashPolicyType> ltr <LACPTransmitRateType> mms <MIIMonitorSecTime>
 >pmctl network create-bond bond1 dev ens37,ens38 mode 802.3ad thp layer2+3 ltr slow mms 1s
-# Configure bond with default
+
+# Configure Bond with default
 >pmctl network create-bond bond1 dev ens37,ens38 
 
-# Configure bridge with default
+# Configure Bridge with default
 pmctl network create-bridge <bridgeName> dev <device list>
 >pmctl network create-bridge br0 dev ens37,ens38 
 
-# Configure macvlan
+# Configure MacVLan
 pmctl network create-macvlan <macvlanName> dev <device> mode <modeName>
 >pmctl network create-macvlan macvlan1 dev ens37 mode private
+
+# Configure IpVLan
+pmctl network create-ipvlan <ipvlanName> dev <device> mode <modeName> flags <flagsName>
+>pmctl network create-ipvlan ipvlan1 dev ens37 mode l2 flags vepa
+
+# Configure IpVLan with default
+>pmctl network create-ipvlan ipvlan1 dev ens38 
 ```
 
 ### How to configure users ?
