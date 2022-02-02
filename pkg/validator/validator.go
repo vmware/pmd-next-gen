@@ -102,53 +102,33 @@ func IsLinkLocalAddressing(s string) bool {
 }
 
 func IsBondMode(mode string) bool {
-	if mode == "balance-rr" || mode == "active-backup" || mode == "balance-xor" ||
-		mode == "broadcast" || mode == "802.3ad" || mode == "balance-tlb" || mode == "balance-alb" {
-		return true
-	} else {
-		return false
-	}
+	return mode == "balance-rr" || mode == "active-backup" || mode == "balance-xor" ||
+		mode == "broadcast" || mode == "802.3ad" || mode == "balance-tlb" || mode == "balance-alb"
 }
 
 func IsBondTransmitHashPolicy(mode, thp string) bool {
 	if (thp == "layer2" || thp == "layer3+4" || thp == "layer2+3" || thp == "encap2+3" || thp == "encap3+4") &&
 		(mode == "balance-xor" || mode == "802.3ad" || mode == "balance-tlb") {
 		return true
-	} else {
-		return false
 	}
+
+	return false
 }
 
 func IsBondLACPTransmitRate(ltr string) bool {
-	if ltr == "slow" || ltr == "fast" {
-		return true
-	} else {
-		return false
-	}
+	return ltr == "slow" || ltr == "fast"
 }
 
 func IsMacVLanMode(mode string) bool {
-	if mode == "private" || mode == "vepa" || mode == "bridge" || mode == "passthru" || mode == "source" {
-		return true
-	} else {
-		return false
-	}
+	return mode == "private" || mode == "vepa" || mode == "bridge" || mode == "passthru" || mode == "source"
 }
 
 func IsIpVLanMode(mode string) bool {
-	if mode == "l2" || mode == "l3" || mode == "l3s" {
-		return true
-	} else {
-		return false
-	}
+	return mode == "l2" || mode == "l3" || mode == "l3s"
 }
 
 func IsIpVLanFlags(flags string) bool {
-	if flags == "bridge" || flags == "private" || flags == "vepa" {
-		return true
-	} else {
-		return false
-	}
+	return flags == "bridge" || flags == "private" || flags == "vepa"
 }
 
 func IsLinkQueue(id string) bool {
