@@ -4,6 +4,7 @@
 package management
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -26,6 +27,7 @@ import (
 type Describe struct {
 	Hostname          *hostname.Describe        `json:"Hostname"`
 	Systemd           *systemd.Describe         `json:"Systemd"`
+	TimeDate          *timedate.Describe        `json:"TimeDate"`
 	NetworkDescribe   *networkd.NetworkDescribe `json:"NetworDescribe"`
 	LinksDescribe     *networkd.LinksDescribe   `json:"LinksDescribe"`
 	Addresses         []address.AddressInfo     `json:"Addresses"`
@@ -50,6 +52,14 @@ func routerDescribeSystem(w http.ResponseWriter, r *http.Request) {
 		web.JSONResponseError(err, w)
 		return
 	}
+
+	s.TimeDate, err = timedate.DBusAcquireTimeDate()
+	if err != nil {
+		web.JSONResponseError(err, w)
+		return
+	}
+
+	fmt.Println(s.TimeDate)
 
 	s.NetworkDescribe, err = networkd.AcquireNetworkState(r.Context())
 	if err != nil {
