@@ -289,7 +289,6 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 }
 
 func (n *Network) buildLinkSection(m *configfile.Meta) error {
-
 	if !validator.IsEmpty(n.LinkSection.MTUBytes) {
 		if validator.IsMtu(n.LinkSection.MTUBytes) {
 			m.SetKeySectionString("Link", "MTUBytes", n.LinkSection.MTUBytes)

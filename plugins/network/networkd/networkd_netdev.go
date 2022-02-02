@@ -251,7 +251,7 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 		nm, err := CreateOrParseNetworkFile(l)
 		if err != nil {
 			log.Errorf("Failed to parse network file for link='%s': %v", l, err)
-			return err
+			return fmt.Errorf("link='%s' %v", l, err.Error())
 		}
 
 		switch n.Kind {
