@@ -35,11 +35,7 @@ func IsUintOrMax(s string) bool {
 	}
 
 	_, err := strconv.ParseUint(s, 10, 32)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func IsIP(str string) bool {
@@ -75,8 +71,13 @@ func IsVLanId(id string) bool {
 	return err == nil
 }
 
-func IsScope(id string) bool {
-	scope, err := strconv.ParseUint(id, 10, 32)
+func IsScope(s string) bool {
+	switch s {
+	case "global", "link", "host":
+		return true
+	}
+
+	scope, err := strconv.ParseUint(s, 10, 32)
 	if err != nil || scope >= 256 {
 		return false
 	}
