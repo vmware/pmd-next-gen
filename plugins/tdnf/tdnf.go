@@ -60,7 +60,10 @@ func AcquireList(w http.ResponseWriter, pkg string) error {
 			s, err = TdnfExec("list")
 		}
 		var list interface{}
-		json.Unmarshal([]byte(s), &list)
+		if err := json.Unmarshal([]byte(s), &list); err != nil {
+			return nil, err
+		}
+
 		return list, err
 	})
 	return jobs.AcceptedResponse(w, job)
@@ -74,7 +77,9 @@ func AcquireRepoList(w http.ResponseWriter) error {
 	}
 
 	var repoList interface{}
-	json.Unmarshal([]byte(s), &repoList)
+	if err := json.Unmarshal([]byte(s), &repoList); err != nil {
+		return err
+	}
 
 	return web.JSONResponse(repoList, w)
 }
@@ -88,8 +93,15 @@ func AcquireInfoList(w http.ResponseWriter, pkg string) error {
 		} else {
 			s, err = TdnfExec("info")
 		}
+		if err != nil {
+			return nil, err
+		}
+
 		var list interface{}
-		json.Unmarshal([]byte(s), &list)
+		if err := json.Unmarshal([]byte(s), &list); err != nil {
+			return nil, err
+		}
+
 		return list, err
 	})
 	return jobs.AcceptedResponse(w, job)

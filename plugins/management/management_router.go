@@ -4,7 +4,6 @@
 package management
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -58,8 +57,6 @@ func routerDescribeSystem(w http.ResponseWriter, r *http.Request) {
 		web.JSONResponseError(err, w)
 		return
 	}
-
-	fmt.Println(s.TimeDate)
 
 	s.NetworkDescribe, err = networkd.AcquireNetworkState(r.Context())
 	if err != nil {
