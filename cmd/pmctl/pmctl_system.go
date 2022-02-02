@@ -16,6 +16,7 @@ import (
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/management"
 	"github.com/pmd-nextgen/plugins/management/hostname"
+	"github.com/pmd-nextgen/plugins/management/timedate"
 	"github.com/pmd-nextgen/plugins/network/netlink/address"
 	"github.com/pmd-nextgen/plugins/network/netlink/route"
 	"github.com/pmd-nextgen/plugins/network/networkd"
@@ -68,6 +69,18 @@ func displayHostname(h *hostname.Describe) {
 	if h.OperatingSystemHomeURL != "" {
 		fmt.Printf("%v %v\n", color.HiBlueString("Operating System Home URL:"), h.OperatingSystemHomeURL)
 	}
+}
+
+func displayTimeDate(t *timedate.Describe) {
+	tm := time.UnixMicro(int64(t.TimeUSec))
+	location, _ := time.LoadLocation(t.Timezone)
+
+	fmt.Printf("                %v %v (%v)\n", color.HiBlueString("Time zone:"), t.Timezone, tm.In(location))
+	fmt.Printf("         %v %v\n", color.HiBlueString("NTP synchronized:"), t.NTPSynchronized)
+
+	fmt.Printf("       %v %v\n", color.HiBlueString("              Time:"), tm.Format(time.UnixDate))
+	tm = time.UnixMicro(int64(t.TimeUSec))
+	fmt.Printf("       %v %v\n", color.HiBlueString("          RTC Time:"), tm.UTC())
 }
 
 func displaySystemd(sd *systemd.Describe) {
@@ -151,6 +164,7 @@ func acquireSystemStatus(host string, token map[string]string) {
 	}
 
 	displayHostname(s.Hostname)
+	displayTimeDate(s.TimeDate)
 	displaySystemd(s.Systemd)
 	displayNetworkState(s.NetworkDescribe)
 	displayNetworkAddresses(s.Addresses)

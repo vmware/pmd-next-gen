@@ -4,8 +4,8 @@
 package timedate
 
 import (
+	"context"
 	"net/http"
-	"sync"
 
 	"github.com/pmd-nextgen/pkg/web"
 	log "github.com/sirupsen/logrus"
@@ -44,69 +44,12 @@ func (t *TimeDate) ConfigureTimeDate(w http.ResponseWriter) error {
 	return nil
 }
 
-func AcquireTimeDate(w http.ResponseWriter) error {
-	c, err := NewSDConnection()
+func AcquireTimeDate(ctx context.Context, w http.ResponseWriter) error {
+	h, err := DBusAcquireTimeDate()
 	if err != nil {
 		return err
 	}
-	defer c.Close()
-
-	h := Describe{}
-
-	var wg sync.WaitGroup
-	wg.Add(6)
-
-	go func() {
-		defer wg.Done()
-		s, err := c.dbusAcquire("Timezone")
-		if err == nil {
-			h.Timezone = s.Value().(string)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.dbusAcquire("LocalRTC")
-		if err == nil {
-			h.LocalRTC = s.Value().(bool)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.dbusAcquire("CanNTP")
-		if err == nil {
-			h.CanNTP = s.Value().(bool)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.dbusAcquire("NTPSynchronized")
-		if err == nil {
-			h.NTPSynchronized = s.Value().(bool)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.dbusAcquire("TimeUSec")
-		if err == nil {
-			h.TimeUSec = s.Value().(uint64)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		s, err := c.dbusAcquire("RTCTimeUSec")
-		if err == nil {
-			h.RTCTimeUSec = s.Value().(uint64)
-		}
-	}()
-
-	wg.Wait()
 
 	web.JSONResponse(h, w)
-
 	return nil
 }
