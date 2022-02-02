@@ -310,7 +310,6 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 }
 
 func networkConfigureDHCP4ClientIdentifier(link string, identifier string, host string, token map[string]string) {
-
 	if !validator.IsClientIdentifier(identifier) {
 		fmt.Printf("Invalid DHCP4 Client Identifier: %s\n", identifier)
 		return
@@ -327,7 +326,6 @@ func networkConfigureDHCP4ClientIdentifier(link string, identifier string, host 
 }
 
 func networkConfigureDHCPIAID(link string, iaid string, host string, token map[string]string) {
-
 	n := networkd.Network{
 		Link: link,
 		DHCPv4Section: networkd.DHCPv4Section{

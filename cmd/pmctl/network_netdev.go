@@ -38,7 +38,7 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 	}
 
 	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.VLanSection.Id) || validator.IsEmpty(n.Name) {
-		fmt.Printf("Failed to create VLan. Missing VLAN name, dev or id\n")
+		fmt.Printf("Failed to create VLan. Missing VLan name, dev or id\n")
 		return
 	}
 
@@ -74,21 +74,21 @@ func networkCreateBond(args cli.Args, host string, token map[string]string) {
 			if validator.IsBondMode(argStrings[i+1]) {
 				n.BondSection.Mode = argStrings[i+1]
 			} else {
-				fmt.Printf("Failed to parse Mode: %s\n", argStrings[i+1])
+				fmt.Printf("Failed to parse bond mode: %s\n", argStrings[i+1])
 				return
 			}
 		case "thp":
 			if validator.IsBondTransmitHashPolicy(n.BondSection.Mode, argStrings[i+1]) {
 				n.BondSection.TransmitHashPolicy = argStrings[i+1]
 			} else {
-				fmt.Printf("Failed to parse TransmitHashPolicy: %s\n", argStrings[i+1])
+				fmt.Printf("Failed to parse transmit hash policy: %s\n", argStrings[i+1])
 				return
 			}
 		case "ltr":
 			if validator.IsBondLACPTransmitRate(argStrings[i+1]) {
 				n.BondSection.LACPTransmitRate = argStrings[i+1]
 			} else {
-				fmt.Printf("Failed to parse LACPTransmitRate: %s\n", argStrings[i+1])
+				fmt.Printf("Failed to parse LACP transmit rate: %s\n", argStrings[i+1])
 				return
 			}
 		case "mms":
@@ -137,13 +137,13 @@ func networkCreateBridge(args cli.Args, host string, token map[string]string) {
 	}
 
 	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) {
-		fmt.Printf("Failed to create Bridge. Missing BRIDGE name or dev\n")
+		fmt.Printf("Failed to create bridge. Missing bridge name or dev\n")
 		return
 	}
 
 	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
 	if err != nil {
-		fmt.Printf("Failed to create Bridge: %v\n", err)
+		fmt.Printf("Failed to create bridge: %v\n", err)
 		return
 	}
 
@@ -154,7 +154,7 @@ func networkCreateBridge(args cli.Args, host string, token map[string]string) {
 	}
 
 	if !m.Success {
-		fmt.Printf("Failed to create Bridge: %v\n", m.Errors)
+		fmt.Printf("Failed to create bridge: %v\n", m.Errors)
 	}
 }
 
@@ -173,7 +173,7 @@ func networkCreateMacVLan(args cli.Args, host string, token map[string]string) {
 			if validator.IsMacVLanMode(argStrings[i+1]) {
 				n.MacVLanSection.Mode = argStrings[i+1]
 			} else {
-				fmt.Printf("Failed to parse Mode: %s\n", argStrings[i+1])
+				fmt.Printf("Failed to parse mode: %s\n", argStrings[i+1])
 				return
 			}
 		}
@@ -218,14 +218,14 @@ func networkCreateIpVLan(args cli.Args, host string, token map[string]string) {
 			if validator.IsIpVLanMode(argStrings[i+1]) {
 				n.IpVLanSection.Mode = argStrings[i+1]
 			} else {
-				fmt.Printf("Failed to parse Mode: %s\n", argStrings[i+1])
+				fmt.Printf("Failed to parse mode: %s\n", argStrings[i+1])
 				return
 			}
 		case "flags":
 			if validator.IsIpVLanFlags(argStrings[i+1]) {
 				n.IpVLanSection.Flags = argStrings[i+1]
 			} else {
-				fmt.Printf("Failed to parse Flags: %s\n", argStrings[i+1])
+				fmt.Printf("Failed to parse flags: %s\n", argStrings[i+1])
 				return
 			}
 		}
