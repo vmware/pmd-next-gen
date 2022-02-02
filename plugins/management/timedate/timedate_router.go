@@ -12,7 +12,7 @@ import (
 )
 
 func routerAcquireTimeDate(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireTimeDate(w); err != nil {
+	if err := AcquireTimeDate(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
