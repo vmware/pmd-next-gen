@@ -122,6 +122,9 @@ func DispatchSocketWithStatus(method, host string, url string, headers map[strin
 
 func DispatchSocket(method, host string, url string, headers map[string]string, data interface{}) ([]byte, error) {
 	r, err := DispatchSocketWithStatus(method, host, url, headers, data)
+	if err != nil {
+		return nil, err
+	}
 
 	if r.StatusCode != 200 {
 		return nil, errors.New(r.Status)
