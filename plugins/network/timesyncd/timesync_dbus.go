@@ -43,7 +43,7 @@ func (c *SDConnection) Close() {
 	c.conn.Close()
 }
 
-func (c *SDConnection) DBusAcquireCurrentNTPServerFromTimeSync(ctx context.Context) (*NTPServer, error) {
+func (c *SDConnection) DBusAcquireCurrentNTPServerFromTimeSync(ctx context.Context) (string, int32, string, error) {
 	var wg sync.WaitGroup
 	var err error
 	wg.Add(2)
@@ -68,31 +68,30 @@ func (c *SDConnection) DBusAcquireCurrentNTPServerFromTimeSync(ctx context.Conte
 
 	wg.Wait()
 
-	return &NTPServer{
-		NTPServerName:     serverName.Value().(string),
-		NTPServerIpFamily: serverAddress.Value().([]interface{})[0].(int32),
-		ServerAddress:     parser.BuildIPFromBytes(serverAddress.Value().([]interface{})[1].([]uint8)),
-	}, nil
+	if err != nil {
+		return "", 0, "", err
+	}
+
+	return serverName.Value().(string),
+		serverAddress.Value().([]interface{})[0].(int32),
+		parser.BuildIPFromBytes(serverAddress.Value().([]interface{})[1].([]uint8)),
+		nil
 }
 
-func (c *SDConnection) DBusAcquireSystemNTPServerFromTimeSync(ctx context.Context) (*NTPServer, error) {
+func (c *SDConnection) DBusAcquireSystemNTPServersFromTimeSync(ctx context.Context) ([]string, error) {
 	s, err := c.object.GetProperty(dbusManagerinterface + ".SystemNTPServers")
 	if err != nil {
 		return nil, err
 	}
 
-	return &NTPServer{
-		SystemNTPServers: s.Value().([]string),
-	}, nil
+	return s.Value().([]string), nil
 }
 
-func (c *SDConnection) DBusAcquireLinkNTPServerFromTimeSync(ctx context.Context) (*NTPServer, error) {
+func (c *SDConnection) DBusAcquireLinkNTPServersFromTimeSync(ctx context.Context) ([]string, error) {
 	s, err := c.object.GetProperty(dbusManagerinterface + ".LinkNTPServers")
 	if err != nil {
 		return nil, err
 	}
 
-	return &NTPServer{
-		LinkNTPServers: s.Value().([]string),
-	}, nil
+	return s.Value().([]string), nil
 }

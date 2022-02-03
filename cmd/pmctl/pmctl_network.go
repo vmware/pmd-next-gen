@@ -173,7 +173,7 @@ func displayOneLinkDnsAndDomains(link string, dns []resolved.Dns, domains []reso
 	}
 }
 
-func displayOneLinkNTP(link string, ntp *timesyncd.NTPServer) {
+func displayOneLinkNTP(link string, ntp *timesyncd.Describe) {
 	if len(ntp.LinkNTPServers) > 0 {
 		fmt.Printf("              %v %v\n", color.HiBlueString("NTP:"), ntp.LinkNTPServers)
 	}
