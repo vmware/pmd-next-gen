@@ -74,7 +74,7 @@ func (rt *Route) AddDefaultGateWay() error {
 	onlink := 0
 	b, err := parser.ParseBool(strings.TrimSpace(rt.OnLink))
 	if err != nil {
-		log.Errorf("Failed to parse GatewayOnlink %s: %v", rt.OnLink, err)
+		log.Errorf("Failed to parse GatewayOnlink='%s': %v", rt.OnLink, err)
 	} else {
 		if b {
 			onlink |= syscall.RTNH_F_ONLINK
@@ -104,14 +104,14 @@ func (rt *Route) ReplaceDefaultGateWay() error {
 
 	ipAddr, _, err := net.ParseCIDR(rt.Gateway)
 	if err != nil {
-		log.Errorf("Failed to parse default GateWay address %s: %v", rt.Gateway, err)
+		log.Errorf("Failed to parse default GateWay='%s': %v", rt.Gateway, err)
 		return err
 	}
 
 	onlink := 0
 	b, err := parser.ParseBool(strings.TrimSpace(rt.OnLink))
 	if err != nil {
-		log.Errorf("Failed to parse GatewayOnlink %s: %v", rt.OnLink, err)
+		log.Errorf("Failed to parse GatewayOnlink='%s': %v", rt.OnLink, err)
 	} else {
 		if b {
 			onlink |= syscall.RTNH_F_ONLINK
@@ -126,7 +126,7 @@ func (rt *Route) ReplaceDefaultGateWay() error {
 	}
 
 	if err := netlink.RouteReplace(route); err != nil {
-		log.Errorf("Failed to replace default GateWay address %s: %v", rt.Gateway, err)
+		log.Errorf("Failed to replace default GateWay='%s': %v", rt.Gateway, err)
 		return err
 	}
 
@@ -136,7 +136,7 @@ func (rt *Route) ReplaceDefaultGateWay() error {
 func (rt *Route) RemoveGateWay() error {
 	link, err := netlink.LinkByName(rt.Link)
 	if err != nil {
-		log.Errorf("Failed to delete default gateway %s: %v", link, err)
+		log.Errorf("Failed to delete default gateway='%s': %v", link, err)
 		return err
 	}
 
@@ -154,7 +154,7 @@ func (rt *Route) RemoveGateWay() error {
 		}
 
 		if err = netlink.RouteDel(rt); err != nil {
-			log.Errorf("Failed to delete default GateWay address %s: %v", ipAddr, err)
+			log.Errorf("Failed to delete default GateWay='%s': %v", ipAddr, err)
 			return err
 		}
 	}
@@ -165,7 +165,7 @@ func (rt *Route) RemoveGateWay() error {
 func fillOneRoute(rt *netlink.Route) *RouteInfo {
 	link, err := netlink.LinkByIndex(rt.LinkIndex)
 	if err != nil {
-		log.Errorf("Failed to acquire link : %v", err)
+		log.Debugf("Failed to acquire link ifindex='%d': %v", rt.LinkIndex, err)
 		return nil
 	}
 
@@ -207,6 +207,10 @@ func fillOneRoute(rt *netlink.Route) *RouteInfo {
 func buildRouteList(routes []netlink.Route) []RouteInfo {
 	var rts []RouteInfo
 	for _, rt := range routes {
+		if rt.ILinkIndex == 0 {
+			continue
+		}
+
 		route := fillOneRoute(&rt)
 		if route != nil {
 			rts = append(rts, *route)
