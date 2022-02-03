@@ -38,6 +38,34 @@ func IsUintOrMax(s string) bool {
 	return err == nil
 }
 
+func IsPort(port string) bool {
+	_, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func IsHost(host string) bool {
+	_, err := net.LookupHost(host)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func IsValidIP(ip string) bool {
+	a := net.ParseIP(ip)
+
+	if a.To4() == nil || a.To16() == nil {
+		return false
+	}
+
+	return true
+}
+
 func IsIP(str string) bool {
 	_, _, err := net.ParseCIDR(str)
 	if err != nil {
@@ -130,6 +158,25 @@ func IsIpVLanMode(mode string) bool {
 
 func IsIpVLanFlags(flags string) bool {
 	return flags == "bridge" || flags == "private" || flags == "vepa"
+}
+
+func IsWireGuardListenPort(port string) bool {
+	return port == "auto" || IsPort(port)
+}
+
+func IsWireGuardPeerEndpoint(endPoint string) bool {
+	ip, port, err := net.SplitHostPort(endPoint)
+	if err != nil {
+		return false
+	}
+	if !IsValidIP(ip) && !IsHost(ip) {
+		return false
+	}
+	if !IsPort(port) {
+		return false
+	}
+
+	return true
 }
 
 func IsLinkQueue(id string) bool {

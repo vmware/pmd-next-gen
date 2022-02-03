@@ -74,6 +74,26 @@ type Bridge struct {
 	MulticastIGMPVersion int    `json:"MulticastIGMPVersion"`
 }
 
+type WireGuard struct {
+	PrivateKey     string `json:"privateKey"`
+	PrivateKeyFile string `json:"PrivateKeyFile"`
+	ListenPort     string `json:"ListenPort"`
+	FirewallMark   string `json:"FirewallMark"`
+	RouteTable     string `json:"RouteTable"`
+	RouteMetric    string `json:"RouteMetric"`
+}
+
+type WireGuardPeer struct {
+	PublicKey           string   `json:"publicKey"`
+	PresharedKey        string   `json:"PresharedKey"`
+	PresharedKeyFile    string   `json:"PresharedKeyFile"`
+	AllowedIPs          []string `json:"AllowedIPs"`
+	Endpoint            string   `json:"Endpoint"`
+	PersistentKeepalive string   `json:"PersistentKeepalive"`
+	RouteTable          string   `json:"RouteTable"`
+	RouteMetric         string   `json:"RouteMetric"`
+}
+
 type NetDev struct {
 	Link string `json:"Link"`
 
@@ -96,6 +116,10 @@ type NetDev struct {
 	BondSection Bond `json:"BondSection"`
 	// [BRIDGE]
 	BridgeSection Bridge `json:"BridgeSection"`
+	// [WIREGUARD]
+	WireGuardSection WireGuard `json:"WireGuardSection"`
+	// [WIREGUARDPEER]
+	WireGuardPeerSection WireGuardPeer `json:"WireGuardPeerSection"`
 }
 
 func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
@@ -245,6 +269,79 @@ func (n *NetDev) buildIpVLanSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildWireGuardSection(m *configfile.Meta) error {
+	m.NewSection("WireGuard")
+
+	// Mandatory Argument Check
+	if validator.IsEmpty(n.WireGuardSection.PrivateKey) && validator.IsEmpty(n.WireGuardSection.PrivateKeyFile) {
+		log.Errorf("Failed to create WireGuard='%s'. Missing PrivateKey and PrivateKeyFile,", n.Name)
+		return errors.New("missing wireguard privatekey and privatekeyfile")
+	}
+
+	// PrivateKey Validate
+	if !validator.IsEmpty(n.WireGuardSection.PrivateKey) {
+		m.SetKeyToNewSectionString("PrivateKey", n.WireGuardSection.PrivateKey)
+	}
+	// PrivateKeyFile Validate
+	if !validator.IsEmpty(n.WireGuardSection.PrivateKeyFile) {
+		m.SetKeyToNewSectionString("PrivateKeyFile", n.WireGuardSection.PrivateKeyFile)
+	}
+	// ListenPort Validate
+	if !validator.IsEmpty(n.WireGuardSection.ListenPort) {
+		if !validator.IsWireGuardListenPort(n.WireGuardSection.ListenPort) {
+			log.Errorf("Failed to create WireGuard='%s'. Invalid ListenPort='%s'", n.Name, n.WireGuardSection.ListenPort)
+			return fmt.Errorf("invalid listenport='%s'", n.WireGuardSection.ListenPort)
+		}
+		m.SetKeyToNewSectionString("ListenPort", n.WireGuardSection.ListenPort)
+	}
+
+	return nil
+}
+
+func (n *NetDev) buildWireGuardPeerSection(m *configfile.Meta) error {
+	m.NewSection("WireGuardPeer")
+
+	// PublicKey Validate
+	if validator.IsEmpty(n.WireGuardPeerSection.PublicKey) {
+		log.Errorf("Failed to create WireGuardPeer='%s'. Missing PublicKey,", n.Name)
+		return errors.New("missing wireguardpeer publickey")
+	}
+	m.SetKeyToNewSectionString("PublicKey", n.WireGuardPeerSection.PublicKey)
+
+	// Endpoint Validate
+	if validator.IsEmpty(n.WireGuardPeerSection.Endpoint) {
+		log.Errorf("Failed to create WireGuardPeer='%s'. Missing Endpoint,", n.Name)
+		return errors.New("missing wireguardpeer endpoint")
+	}
+
+	if !validator.IsWireGuardPeerEndpoint(n.WireGuardPeerSection.Endpoint) {
+		log.Errorf("Failed to create WireGuard='%s'. Invalid Endpoint='%s'", n.Name, n.WireGuardPeerSection.Endpoint)
+		return fmt.Errorf("invalid endpoint='%s'", n.WireGuardPeerSection.Endpoint)
+	}
+	m.SetKeyToNewSectionString("Endpoint", n.WireGuardPeerSection.Endpoint)
+
+	// PresharedKey Validate
+	if !validator.IsEmpty(n.WireGuardPeerSection.PresharedKey) {
+		m.SetKeyToNewSectionString("PresharedKey", n.WireGuardPeerSection.PresharedKey)
+	}
+	// PresharedKeyFile Validate
+	if !validator.IsEmpty(n.WireGuardPeerSection.PresharedKeyFile) {
+		m.SetKeyToNewSectionString("PresharedKeyFile", n.WireGuardPeerSection.PresharedKeyFile)
+	}
+	// AllowedIPs Validate
+	if !validator.IsArrayEmpty(n.WireGuardPeerSection.AllowedIPs) {
+		for _, ip := range n.WireGuardPeerSection.AllowedIPs {
+			if !validator.IsIP(ip) {
+				log.Errorf("Failed to create WireGuardPeer='%s'. Invalid AllowedIPs='%s'", n.Name, n.WireGuardPeerSection.AllowedIPs)
+				return fmt.Errorf("invalid allowedips='%s'", n.WireGuardPeerSection.AllowedIPs)
+			}
+		}
+		m.SetKeyToNewSectionString("AllowedIPs", strings.Join(n.WireGuardPeerSection.AllowedIPs, " "))
+	}
+
+	return nil
+}
+
 func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	linkslice := strings.Split(n.Link, ",")
 	for _, l := range linkslice {
@@ -280,6 +377,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
+		case "wireguard":
+			if err := nm.NewKeyToSectionString("Network", "WireGuard", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
 		}
 		if err := nm.Save(); err != nil {
 			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
@@ -311,6 +413,15 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "ipvlan":
 		if err := n.buildIpVLanSection(m); err != nil {
 			log.Errorf("Failed to create IpVLan ='%s': %v", n.Name, err)
+			return err
+		}
+	case "wireguard":
+		if err := n.buildWireGuardSection(m); err != nil {
+			log.Errorf("Failed to create WireGuard ='%s': %v", n.Name, err)
+			return err
+		}
+		if err := n.buildWireGuardPeerSection(m); err != nil {
+			log.Errorf("Failed to create WireGuardPeer ='%s': %v", n.Name, err)
 			return err
 		}
 	}

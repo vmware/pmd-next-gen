@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
@@ -252,5 +253,71 @@ func networkCreateIpVLan(args cli.Args, host string, token map[string]string) {
 
 	if !m.Success {
 		fmt.Printf("Failed to create IpVLan: %v\n", m.Errors)
+	}
+}
+
+func networkCreateWireGuard(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	n := networkd.NetDev{
+		Name: argStrings[0],
+		Kind: "wireguard",
+	}
+
+	for i := 1; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "skey":
+			n.WireGuardSection.PrivateKey = argStrings[i+1]
+		case "pkey":
+			n.WireGuardPeerSection.PublicKey = argStrings[i+1]
+		case "port":
+			if validator.IsWireGuardListenPort(argStrings[i+1]) {
+				n.WireGuardSection.ListenPort = argStrings[i+1]
+			} else {
+				fmt.Printf("Failed to parse listen port: %s\n", argStrings[i+1])
+				return
+			}
+		case "ips":
+			ips := strings.Split(argStrings[i+1], ",")
+			for _, ip := range ips {
+				if !validator.IsIP(ip) {
+					fmt.Printf("Failed to parse allowed ips: %s\n", argStrings[i+1])
+					return
+				}
+			}
+			n.WireGuardPeerSection.AllowedIPs = ips
+		case "endpoint":
+			if validator.IsWireGuardPeerEndpoint(argStrings[i+1]) {
+				n.WireGuardPeerSection.Endpoint = argStrings[i+1]
+			} else {
+				fmt.Printf("Failed to parse endpoint: %s\n", argStrings[i+1])
+				return
+			}
+		}
+
+		i++
+	}
+
+	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) || validator.IsEmpty(n.WireGuardSection.PrivateKey) ||
+		validator.IsEmpty(n.WireGuardPeerSection.PublicKey) || validator.IsEmpty(n.WireGuardPeerSection.Endpoint) {
+		fmt.Printf("Failed to create WireGuard. Missing WireGuard name, skey, pkey or dev\n")
+		return
+	}
+
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
+	if err != nil {
+		fmt.Printf("Failed to create WireGuard: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to create WireGuard: %v\n", m.Errors)
 	}
 }
