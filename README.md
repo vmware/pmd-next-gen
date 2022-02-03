@@ -430,9 +430,15 @@ pmctl network create-ipvlan <ipvlanName> dev <device> mode <modeName> flags <fla
 >pmctl network create-ipvlan ipvlan1 dev ens37 mode l2 flags vepa
 
 # Configure IpVLan with default
->pmctl network create-ipvlan ipvlan1 dev ens38 
-```
+>pmctl network create-ipvlan ipvlan1 dev ens38
 
+# Configure WireGuard
+pmctl network create-wg <wireguardName> dev <device> skey <privateKey> pkey<publicKey> endpoint <address:Port> port <listenport> ips <allowedIPs>
+>pmctl network create-wg wg1 dev ens37 skey wCmc/74PQpRoxTgqGircVFtdArZFUFIiOoyQY8kVgmI= pkey dSanSzExlryduCwNnAFt+rzpI5fKeHuJx1xx2zxEG2Q= endpoint 10.217.69.88:51820 port 51822 ips fd31:bf08:57cb::/48,192.168.26.0/24
+
+# Configure WireGuard with default
+>pmctl network create-wg wg1 dev ens37 skey wCmc/74PQpRoxTgqGircVFtdArZFUFIiOoyQY8kVgmI= pkey dSanSzExlryduCwNnAFt+rzpI5fKeHuJx1xx2zxEG2Q= endpoint 10.217.69.88:51820
+```
 ### How to configure users ?
 
 ##### Unix domain socket

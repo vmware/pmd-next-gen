@@ -455,6 +455,21 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "create-wg",
+					UsageText:   "create-wg [WIREGUARD name] dev [LINK MASTER] skey [STRING] pkey [STRING] port [string] ips [string] endpoint [STRING]",
+					Description: "Create wg(wireguard).",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 9 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateWireGuard(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{
