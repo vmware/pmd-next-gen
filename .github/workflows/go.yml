@@ -31,4 +31,4 @@ jobs:
       run: sudo systemctl start photon-mgmtd.service
 
     - name: Show sytem status
-      run: pmctl status system
+      run: sudo pmctl status system
