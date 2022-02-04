@@ -342,10 +342,10 @@ func (n *NetDev) buildWireGuardPeerSection(m *configfile.Meta) error {
 	return nil
 }
 
-func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
+func (n *NetDev) BuildKindInLinkNetworkFile() error {
 	linkslice := strings.Split(n.Link, ",")
 	for _, l := range linkslice {
-		nm, err := CreateOrParseNetworkFile(l)
+		m, err := CreateOrParseNetworkFile(l)
 		if err != nil {
 			log.Errorf("Failed to parse network file for link='%s': %v", l, err)
 			return fmt.Errorf("link='%s' %v", l, err.Error())
@@ -353,42 +353,46 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 
 		switch n.Kind {
 		case "vlan":
-			if err := nm.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
+			if err := m.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "bond":
-			if err := nm.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
+			if err := m.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "bridge":
-			if err := nm.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
+			if err := m.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", n.Link, err)
 				return err
 			}
 		case "macvlan":
-			if err := nm.NewKeyToSectionString("Network", "MACVLAN", n.Name); err != nil {
+			if err := m.NewKeyToSectionString("Network", "MACVLAN", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "ipvlan":
-			if err := nm.NewKeyToSectionString("Network", "IPVLAN", n.Name); err != nil {
+			if err := m.NewKeyToSectionString("Network", "IPVLAN", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "wireguard":
-			if err := nm.NewKeyToSectionString("Network", "WireGuard", n.Name); err != nil {
+			if err := m.NewKeyToSectionString("Network", "WireGuard", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		}
-		if err := nm.Save(); err != nil {
+		if err := m.Save(); err != nil {
 			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
 			return err
 		}
 	}
 
+	return nil
+}
+
+func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	switch n.Kind {
 	case "vlan":
 		if err := n.buildVlanSection(m); err != nil {
@@ -430,7 +434,7 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 }
 
 func (n *NetDev) ConfigureNetDev(ctx context.Context, w http.ResponseWriter) error {
-	m, err := CreateNetDevFile(n.Name, n.Kind)
+	m, _, err := CreateOrParseNetDevFile(n.Name, n.Kind)
 	if err != nil {
 		log.Errorf("Failed to parse netdev file for link='%s': %v", n.Name, err)
 		return err
@@ -440,6 +444,9 @@ func (n *NetDev) ConfigureNetDev(ctx context.Context, w http.ResponseWriter) err
 		return err
 	}
 	if err := n.BuildKindSection(m); err != nil {
+		return err
+	}
+	if err := n.BuildKindInLinkNetworkFile(); err != nil {
 		return err
 	}
 
@@ -465,4 +472,48 @@ func (n *NetDev) ConfigureNetDev(ctx context.Context, w http.ResponseWriter) err
 	}
 
 	return web.JSONResponse("configured", w)
+}
+
+func (n *NetDev) RemoveKindFromLinkNetworkFile() error {
+	linkslice := strings.Split(n.Link, ",")
+	for _, l := range linkslice {
+		m, err := CreateOrParseNetworkFile(l)
+		if err != nil {
+			log.Errorf("Failed to parse network file for link='%s': %v", l, err)
+			return fmt.Errorf("link='%s' %v", l, err.Error())
+		}
+
+		switch n.Kind {
+		case "vlan":
+			if err := m.RemoveSection("Network", "VLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
+		}
+		if err := m.Save(); err != nil {
+			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (n *NetDev) RemoveNetDev(ctx context.Context, w http.ResponseWriter) error {
+	RemoveNetDev(n.Name, n.Kind)
+	RemoveNetDevNetworkFile(n.Name, n.Kind)
+	n.RemoveKindFromLinkNetworkFile()
+
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection with the system bus: %v", err)
+		return err
+	}
+	defer c.Close()
+
+	if err := c.DBusNetworkReload(ctx); err != nil {
+		return err
+	}
+
+	return web.JSONResponse("removed", w)
 }

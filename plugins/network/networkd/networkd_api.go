@@ -4,6 +4,7 @@
 package networkd
 
 import (
+	"errors"
 	"os"
 	"path"
 	"strconv"
@@ -215,34 +216,52 @@ func CreateOrParseNetworkFile(l string) (*configfile.Meta, error) {
 	return configfile.Load(n)
 }
 
-func CreateNetDevFile(link string, kind string) (*configfile.Meta, error) {
-	file := "10-" + link + "-" + kind + ".netdev"
+func buildNetDevFilePath(link string, kind string) string {
+	return path.Join("/etc/systemd/network", "10-"+link+"-"+kind+".netdev")
+}
 
-	f, err := os.Create(path.Join("/etc/systemd/network", file))
-	if err != nil {
-		return nil, err
+func CreateOrParseNetDevFile(link string, kind string) (*configfile.Meta, string, error) {
+	if !system.PathExists(buildNetDevFilePath(link, kind)) {
+		f, err := os.Create(buildNetDevFilePath(link, kind))
+		if err != nil {
+			return nil, "", err
+		}
+		defer f.Close()
+
+		system.ChangePermission("systemd-network", buildNetDevFilePath(link, kind))
 	}
-	defer f.Close()
 
-	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
+	m, err := configfile.Load(buildNetDevFilePath(link, kind))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	system.ChangePermission("systemd-network", m.Path)
-	return m, nil
+	return m, buildNetDevFilePath(link, kind), nil
+}
+
+func RemoveNetDev(link string, kind string) error {
+	os.Remove(buildNetDevFilePath(link, kind))
+
+	l, err := netlink.LinkByName(link)
+	if err != nil {
+		return err
+	}
+
+	return netlink.LinkDel(l)
+}
+
+func buildNetDevNetworkFilePath(link string, kind string) string {
+	return path.Join("/etc/systemd/network", "10-"+link+"-"+kind+".network")
 }
 
 func CreateNetDevNetworkFile(link string, kind string) error {
-	file := "10-" + link + "-" + kind + ".network"
-
-	f, err := os.Create(path.Join("/etc/systemd/network", file))
+	f, err := os.Create(buildNetDevNetworkFilePath(link, kind))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
+	m, err := configfile.Load(buildNetDevNetworkFilePath(link, kind))
 	if err != nil {
 		return err
 	}
@@ -258,6 +277,13 @@ func CreateNetDevNetworkFile(link string, kind string) error {
 
 	system.ChangePermission("systemd-network", m.Path)
 	return nil
+}
+
+func RemoveNetDevNetworkFile(link string, kind string) error {
+	if !system.PathExists(buildNetDevNetworkFilePath(link, kind)) {
+		return errors.New("file does not exist")
+	}
+	return os.Remove(buildNetDevNetworkFilePath(link, kind))
 }
 
 func CreateOrParseLinkFile(link string) (*configfile.Meta, error) {
