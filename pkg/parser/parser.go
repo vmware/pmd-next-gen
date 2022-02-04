@@ -78,10 +78,26 @@ func BuildIPFromBytes(ipBytes []uint8) string {
 	return strings.Join(s, ".")
 }
 
+func BuildIPv6FromBytes(ipBytes []uint8) string {
+	s := make([]string, len(ipBytes))
+	for v := range ipBytes {
+		s[v] = strconv.Itoa(int(ipBytes[v]))
+	}
+	return strings.Join(s,"")
+}
+
 func BuildHexFromBytes(ipBytes []uint8) string {
 	s := make([]string, len(ipBytes))
 	for v := range ipBytes {
 		s[v] = strconv.FormatInt(int64(ipBytes[v]), 16)
 	}
 	return strings.Join(s, "")
+}
+
+func BuildIpv6(s string) string {
+	for i := 4; i < len(s); i += 3 {
+		s = s[:i] + ":" + s[i:]
+	}
+
+	return s
 }
