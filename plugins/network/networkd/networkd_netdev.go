@@ -95,7 +95,7 @@ type WireGuardPeer struct {
 }
 
 type NetDev struct {
-	Link string `json:"Link"`
+	Links []string `json:"Link"` // Master device
 
 	MatchSection MatchSection `json:"MatchSection"`
 
@@ -343,8 +343,7 @@ func (n *NetDev) buildWireGuardPeerSection(m *configfile.Meta) error {
 }
 
 func (n *NetDev) BuildKindInLinkNetworkFile() error {
-	linkslice := strings.Split(n.Link, ",")
-	for _, l := range linkslice {
+	for _, l := range n.Links {
 		m, err := CreateOrParseNetworkFile(l)
 		if err != nil {
 			log.Errorf("Failed to parse network file for link='%s': %v", l, err)
@@ -364,7 +363,7 @@ func (n *NetDev) BuildKindInLinkNetworkFile() error {
 			}
 		case "bridge":
 			if err := m.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", n.Link, err)
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "macvlan":
@@ -475,8 +474,7 @@ func (n *NetDev) ConfigureNetDev(ctx context.Context, w http.ResponseWriter) err
 }
 
 func (n *NetDev) RemoveKindFromLinkNetworkFile() error {
-	linkslice := strings.Split(n.Link, ",")
-	for _, l := range linkslice {
+	for _, l := range n.Links {
 		m, err := CreateOrParseNetworkFile(l)
 		if err != nil {
 			log.Errorf("Failed to parse network file for link='%s': %v", l, err)

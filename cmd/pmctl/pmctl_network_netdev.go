@@ -25,7 +25,7 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Fields(argStrings[i+1])
 		case "id":
 			if validator.IsVLanId(argStrings[i+1]) {
 				n.VLanSection.Id = argStrings[i+1]
@@ -38,7 +38,7 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.VLanSection.Id) || validator.IsEmpty(n.Name) {
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.VLanSection.Id) || validator.IsEmpty(n.Name) {
 		fmt.Printf("Failed to create VLan. Missing VLan name, dev or id\n")
 		return
 	}
@@ -70,7 +70,7 @@ func networkCreateBond(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Split(argStrings[i+1], ",")
 		case "mode":
 			if validator.IsBondMode(argStrings[i+1]) {
 				n.BondSection.Mode = argStrings[i+1]
@@ -99,7 +99,7 @@ func networkCreateBond(args cli.Args, host string, token map[string]string) {
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) {
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) {
 		fmt.Printf("Failed to create Bond. Missing BOND name, dev or mode, ltr and mms\n")
 		return
 	}
@@ -131,13 +131,13 @@ func networkCreateBridge(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Fields(argStrings[i+1])
 		}
 
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) {
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) {
 		fmt.Printf("Failed to create bridge. Missing bridge name or dev\n")
 		return
 	}
@@ -169,7 +169,7 @@ func networkCreateMacVLan(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Fields(argStrings[i+1])
 		case "mode":
 			if validator.IsMacVLanMode(argStrings[i+1]) {
 				n.MacVLanSection.Mode = argStrings[i+1]
@@ -182,7 +182,7 @@ func networkCreateMacVLan(args cli.Args, host string, token map[string]string) {
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) || validator.IsEmpty(n.MacVLanSection.Mode) {
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) || validator.IsEmpty(n.MacVLanSection.Mode) {
 		fmt.Printf("Failed to create MacVLan. Missing MACVLAN name, dev or mode\n")
 		return
 	}
@@ -214,7 +214,7 @@ func networkCreateIpVLan(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Fields(argStrings[i+1])
 		case "mode":
 			if validator.IsIpVLanMode(argStrings[i+1]) {
 				n.IpVLanSection.Mode = argStrings[i+1]
@@ -234,7 +234,7 @@ func networkCreateIpVLan(args cli.Args, host string, token map[string]string) {
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) {
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) {
 		fmt.Printf("Failed to create IpVLan. Missing IPVLAN name or dev\n")
 		return
 	}
@@ -266,7 +266,7 @@ func networkCreateWireGuard(args cli.Args, host string, token map[string]string)
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Fields(argStrings[i+1])
 		case "skey":
 			n.WireGuardSection.PrivateKey = argStrings[i+1]
 		case "pkey":
@@ -299,7 +299,7 @@ func networkCreateWireGuard(args cli.Args, host string, token map[string]string)
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Name) || validator.IsEmpty(n.WireGuardSection.PrivateKey) ||
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) || validator.IsEmpty(n.WireGuardSection.PrivateKey) ||
 		validator.IsEmpty(n.WireGuardPeerSection.PublicKey) || validator.IsEmpty(n.WireGuardPeerSection.Endpoint) {
 		fmt.Printf("Failed to create WireGuard. Missing WireGuard name, skey, pkey or dev\n")
 		return
@@ -331,7 +331,7 @@ func networkRemoveNetDev(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Link = argStrings[i+1]
+			n.Links = strings.Fields(argStrings[i+1])
 		case "kind":
 			n.Kind = argStrings[i+1]
 		}
@@ -339,7 +339,7 @@ func networkRemoveNetDev(args cli.Args, host string, token map[string]string) {
 		i++
 	}
 
-	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Kind) || validator.IsEmpty(n.Name) {
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Kind) || validator.IsEmpty(n.Name) {
 		fmt.Printf("Failed to remove netdev. Missing name, dev or kind\n")
 		return
 	}
