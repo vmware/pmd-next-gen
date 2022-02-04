@@ -350,38 +350,27 @@ func (n *NetDev) BuildKindInLinkNetworkFile() error {
 			return fmt.Errorf("link='%s' %v", l, err.Error())
 		}
 
+		var kind string
 		switch n.Kind {
 		case "vlan":
-			if err := m.NewKeyToSectionString("Network", "VLAN", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-				return err
-			}
+			kind = "VLAN"
 		case "bond":
-			if err := m.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-				return err
-			}
+			kind = "bond"
 		case "bridge":
-			if err := m.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-				return err
-			}
+			kind = "bridge"
 		case "macvlan":
-			if err := m.NewKeyToSectionString("Network", "MACVLAN", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-				return err
-			}
+			kind = "macvlan"
 		case "ipvlan":
-			if err := m.NewKeyToSectionString("Network", "IPVLAN", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-				return err
-			}
+			kind = "ipvlan"
 		case "wireguard":
-			if err := m.NewKeyToSectionString("Network", "WireGuard", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-				return err
-			}
+			kind = "wireguard"
 		}
+
+		if err := m.NewKeyToSectionString("Network", kind, n.Name); err != nil {
+			log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+			return err
+		}
+
 		if err := m.Save(); err != nil {
 			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
 			return err
