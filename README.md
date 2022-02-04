@@ -439,6 +439,13 @@ pmctl network create-wg <wireguardName> dev <device> skey <privateKey> pkey<publ
 # Configure WireGuard with default
 >pmctl network create-wg wg1 dev ens37 skey wCmc/74PQpRoxTgqGircVFtdArZFUFIiOoyQY8kVgmI= pkey dSanSzExlryduCwNnAFt+rzpI5fKeHuJx1xx2zxEG2Q= endpoint 10.217.69.88:51820
 ```
+
+#### Remove network device using pmctl
+```bash
+pmctl network remove-netdev <kindDeviceName> dev <device> kind <kindType>
+>pmctl network remove-netdev ipvlan1 dev ens37 kind ipvlan
+```
+
 ### How to configure users ?
 
 ##### Unix domain socket
