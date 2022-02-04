@@ -131,6 +131,28 @@ func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 	return &n, nil
 }
 
+func netDevKindToNetworkKind(s string) string {
+		var kind string
+		switch s {
+		case "vlan":
+			kind = "VLAN"
+		case "bond":
+			kind = "bond"
+		case "bridge":
+			kind = "bridge"
+		case "macvlan":
+			kind = "macvlan"
+		case "ipvlan":
+			kind = "ipvlan"
+		case "wireguard":
+			kind = "wireguard"
+		default:
+			kind = "n/a"
+		}
+
+	return kind
+}
+
 func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	m.NewSection("NetDev")
 
@@ -350,23 +372,7 @@ func (n *NetDev) BuildKindInLinkNetworkFile() error {
 			return fmt.Errorf("link='%s' %v", l, err.Error())
 		}
 
-		var kind string
-		switch n.Kind {
-		case "vlan":
-			kind = "VLAN"
-		case "bond":
-			kind = "bond"
-		case "bridge":
-			kind = "bridge"
-		case "macvlan":
-			kind = "macvlan"
-		case "ipvlan":
-			kind = "ipvlan"
-		case "wireguard":
-			kind = "wireguard"
-		}
-
-		if err := m.NewKeyToSectionString("Network", kind, n.Name); err != nil {
+		if err := m.NewKeyToSectionString("Network", netDevKindToNetworkKind(n.Kind), n.Name); err != nil {
 			log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 			return err
 		}
@@ -470,23 +476,7 @@ func (n *NetDev) RemoveKindFromLinkNetworkFile() error {
 			return fmt.Errorf("link='%s' %v", l, err.Error())
 		}
 
-		var kind string
-		switch n.Kind {
-		case "vlan":
-			kind =  "VLAN"
-		case "bond":
-			kind = "Bond"
-		case "bridge":
-			kind = "Bridge"
-		case "macvlan":
-			kind = "MACVLAN"
-		case "ipvlan":
-			kind = "IPVLAN"
-		case "wireguard":
-			kind = "WireGuard"
-		}
-
-		if err := m.RemoveSection("Network", kind, n.Name); err != nil {
+		if err := m.RemoveSection("Network", netDevKindToNetworkKind(n.Kind), n.Name); err != nil {
 			log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 			return err
 		}
