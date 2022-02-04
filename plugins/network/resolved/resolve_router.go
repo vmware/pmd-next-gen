@@ -41,9 +41,19 @@ func routerAcquireDomains(w http.ResponseWriter, r *http.Request) {
 	web.JSONResponse(domains, w)
 }
 
+func routerDescribeDns(w http.ResponseWriter, r *http.Request) {
+	d, err := DescribeDns(r.Context())
+	if err != nil {
+		web.JSONResponseError(err, w)
+	}
+
+	web.JSONResponse(d, w)
+}
+
 func RegisterRouterResolved(router *mux.Router) {
 	n := router.PathPrefix("/resolved").Subrouter().StrictSlash(false)
 
+	n.HandleFunc("/describe", routerDescribeDns).Methods("GET")
 	n.HandleFunc("/dns", routerAcquireDNS).Methods("GET")
 	n.HandleFunc("/domains", routerAcquireDomains).Methods("GET")
 	n.HandleFunc("/{link}/dns", routerAcquireLinkDNS).Methods("GET")

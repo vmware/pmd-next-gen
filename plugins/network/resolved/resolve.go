@@ -6,6 +6,7 @@ package resolved
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
@@ -22,6 +23,12 @@ type Dns struct {
 type Domains struct {
 	Link   string `json:"Link"`
 	Domain string `json:"Domain"`
+}
+
+type Describe struct {
+	CurrentDNS string    `json:"CurrentDNS"`
+	DnsServers []Dns     `json:"DnsServers"`
+	Domains    []Domains `json:"Domains"`
 }
 
 func AcquireLinkDns(ctx context.Context, link string, w http.ResponseWriter) error {
@@ -96,4 +103,36 @@ func AcquireDomains(ctx context.Context) ([]Domains, error) {
 	}
 
 	return domains, nil
+}
+
+func DescribeDns(ctx context.Context) (*Describe, error) {
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return nil, err
+	}
+	defer c.Close()
+
+	d := Describe{}
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		dns, err := c.DBusAcquireDnsFromResolveManager(ctx)
+		if err == nil {
+			d.DnsServers = dns
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		domains, err := c.DBusAcquireDomainsFromResolveManager(ctx)
+		if err == nil {
+			d.Domains = domains
+		}
+	}()
+
+	wg.Wait()
+	return &d, nil
 }

@@ -6,6 +6,7 @@ package resolved
 import (
 	"context"
 	"fmt"
+	"syscall"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/vishvananda/netlink"
@@ -51,7 +52,12 @@ func buildDNSMessage(variant dbus.Variant, link bool) ([]Dns, error) {
 			d.Dns = parser.BuildIPFromBytes(v[1].([]uint8))
 		} else {
 			d.Family = v[1].(int32)
-			d.Dns = parser.BuildIPFromBytes(v[2].([]uint8))
+
+			if d.Family == syscall.AF_INET6 {
+				d.Dns = parser.BuildIpv6(parser.BuildHexFromBytes(v[2].([]uint8)))
+			} else {
+				d.Dns = parser.BuildIPFromBytes(v[2].([]uint8))
+			}
 
 			index := v[0].(int32)
 			if index != 0 {
@@ -62,7 +68,6 @@ func buildDNSMessage(variant dbus.Variant, link bool) ([]Dns, error) {
 				d.Link = link.Attrs().Name
 			}
 		}
-
 		dns = append(dns, d)
 	}
 
@@ -87,7 +92,6 @@ func buildDomainsMessage(variant dbus.Variant) ([]Domains, error) {
 
 		domains = append(domains, d)
 	}
-
 	return domains, nil
 }
 
@@ -97,7 +101,7 @@ func (c *SDConnection) DBusAcquireDnsFromResolveLink(ctx context.Context, index 
 	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, index).Store(&linkPath)
 	variant, err := c.conn.Object("org.freedesktop.resolve1", linkPath).GetProperty("org.freedesktop.resolve1.Link.DNS")
 	if err != nil {
-		return nil, fmt.Errorf("error fetching DNS from resolve: %v", err)
+		return nil, fmt.Errorf("error fetching DNS from resolved: %v", err)
 	}
 
 	return buildDNSMessage(variant, true)
@@ -109,7 +113,7 @@ func (c *SDConnection) DBusAcquireDomainsFromResolveLink(ctx context.Context, in
 	c.object.CallWithContext(ctx, dbusManagerinterface+".GetLink", 0, index).Store(&linkPath)
 	variant, err := c.conn.Object("org.freedesktop.resolve1", linkPath).GetProperty("org.freedesktop.resolve1.Link.Domains")
 	if err != nil {
-		return nil, fmt.Errorf("error fetching Domains from resolve: %v", err)
+		return nil, fmt.Errorf("error fetching Domains from resolved: %v", err)
 	}
 
 	return buildDomainsMessage(variant)
@@ -118,7 +122,16 @@ func (c *SDConnection) DBusAcquireDomainsFromResolveLink(ctx context.Context, in
 func (c *SDConnection) DBusAcquireDnsFromResolveManager(ctx context.Context) ([]Dns, error) {
 	variant, err := c.object.GetProperty(dbusManagerinterface + ".DNS")
 	if err != nil {
-		return nil, fmt.Errorf("error fetching DNS from resolve: %v", err)
+		return nil, fmt.Errorf("error fetching DNS from resolved: %v", err)
+	}
+
+	return buildDNSMessage(variant, false)
+}
+
+func (c *SDConnection) DBusAcquireCurrentDnsFromResolveManager(ctx context.Context) ([]Dns, error) {
+	variant, err := c.object.GetProperty(dbusManagerinterface + ".CurrentDNSServer")
+	if err != nil {
+		return nil, fmt.Errorf("error fetching current DNS from resolved: %v", err)
 	}
 
 	return buildDNSMessage(variant, false)
@@ -127,7 +140,7 @@ func (c *SDConnection) DBusAcquireDnsFromResolveManager(ctx context.Context) ([]
 func (c *SDConnection) DBusAcquireDomainsFromResolveManager(ctx context.Context) ([]Domains, error) {
 	variant, err := c.object.GetProperty(dbusManagerinterface + ".Domains")
 	if err != nil {
-		return nil, fmt.Errorf("error fetching Domains from resolve: %v", err)
+		return nil, fmt.Errorf("error fetching Domains from resolved: %v", err)
 	}
 
 	return buildDomainsMessage(variant)
