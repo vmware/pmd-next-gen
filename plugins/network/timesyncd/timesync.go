@@ -52,7 +52,6 @@ func DescribeNTPServers(ctx context.Context) (*Describe, error) {
 	defer c.Close()
 
 	s := Describe{}
-
 	var wg sync.WaitGroup
 	wg.Add(3)
 

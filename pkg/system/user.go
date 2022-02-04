@@ -39,12 +39,7 @@ func GetUserCredentials(usr string) (*syscall.Credential, error) {
 }
 
 func GetUserCredentialsByUid(uid uint32) (*user.User, error) {
-	u, err := user.LookupId(strconv.FormatInt(int64(uid), 10))
-	if err != nil {
-		return nil, err
-	}
-
-	return u, nil
+	return user.LookupId(strconv.FormatInt(int64(uid), 10))
 }
 
 func SwitchUser(c *syscall.Credential) (err error) {
@@ -56,14 +51,9 @@ func SwitchUser(c *syscall.Credential) (err error) {
 		return err
 	}
 
-	return nil
+	return err
 }
 
 func GetGroupCredentials(grp string) (*user.Group, error) {
-	group, err := user.LookupGroup(grp)
-	if err != nil {
-		return nil, err
-	}
-
-	return group, nil
+	return user.LookupGroup(grp)
 }

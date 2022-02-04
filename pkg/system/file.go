@@ -59,7 +59,6 @@ func WriteFullFile(path string, lines []string) error {
 	}
 
 	w.Flush()
-
 	return nil
 }
 
@@ -135,11 +134,7 @@ func ChangePermission(u string, file string) (err error) {
 		return err
 	}
 
-	if err := os.Chmod(file, 0660); err != nil {
-		return err
-	}
-
-	return nil
+	return os.Chmod(file, 0660)
 }
 
 func CreateStateDirs(path string, uid int, gid int) error {
@@ -147,9 +142,5 @@ func CreateStateDirs(path string, uid int, gid int) error {
 		return err
 	}
 
-	if err := syscall.Chown(path, uid, gid); err != nil {
-		return err
-	}
-
-	return nil
+	return syscall.Chown(path, uid, gid)
 }

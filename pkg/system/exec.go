@@ -44,10 +44,7 @@ func ExecAndRenounce(cmds ...string) error {
 
 func ExecRun(cmd string, args ...string) error {
 	c := exec.Command(cmd, args...)
-	if err := c.Start(); err != nil {
-		return nil
-	}
-	return nil
+	return  c.Start()
 }
 
 func ExecAndShowProgess(cmd string, args ...string) error {
