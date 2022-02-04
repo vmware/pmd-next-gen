@@ -217,7 +217,7 @@ func (n *NetDev) buildBondSection(m *configfile.Meta) error {
 		m.SetKeyToNewSectionString("LACPTransmitRate", n.BondSection.LACPTransmitRate)
 	}
 	// MIIMonitorSec Validate
-	if validator.IsEmpty(n.BondSection.MIIMonitorSec) {
+	if !validator.IsEmpty(n.BondSection.MIIMonitorSec) {
 		m.SetKeyToNewSectionString("MIIMonitorSec", n.BondSection.MIIMonitorSec)
 	}
 
@@ -364,7 +364,7 @@ func (n *NetDev) BuildKindInLinkNetworkFile() error {
 			}
 		case "bridge":
 			if err := m.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
-				log.Errorf("Failed to update .network file of link='%s': %v", n.Link, err)
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "macvlan":
@@ -486,6 +486,31 @@ func (n *NetDev) RemoveKindFromLinkNetworkFile() error {
 		switch n.Kind {
 		case "vlan":
 			if err := m.RemoveSection("Network", "VLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
+		case "bond":
+			if err := m.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
+		case "bridge":
+			if err := m.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
+		case "macvlan":
+			if err := m.NewKeyToSectionString("Network", "MACVLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
+		case "ipvlan":
+			if err := m.NewKeyToSectionString("Network", "IPVLAN", n.Name); err != nil {
+				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
+				return err
+			}
+		case "wireguard":
+			if err := m.NewKeyToSectionString("Network", "WireGuard", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
