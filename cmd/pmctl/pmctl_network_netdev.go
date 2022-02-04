@@ -321,3 +321,42 @@ func networkCreateWireGuard(args cli.Args, host string, token map[string]string)
 		fmt.Printf("Failed to create WireGuard: %v\n", m.Errors)
 	}
 }
+
+func networkRemoveNetDev(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	n := networkd.NetDev{
+		Name: argStrings[0],
+	}
+
+	for i := 1; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "kind":
+			n.Kind = argStrings[i+1]
+		}
+
+		i++
+	}
+
+	if validator.IsEmpty(n.Link) || validator.IsEmpty(n.Kind) || validator.IsEmpty(n.Name) {
+		fmt.Printf("Failed to remove netdev. Missing name, dev or kind\n")
+		return
+	}
+
+	resp, err := web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/netdev/remove", token, n)
+	if err != nil {
+		fmt.Printf("Failed to remove netdev: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove netdev %v\n", m.Errors)
+	}
+}
