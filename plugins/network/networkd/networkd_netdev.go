@@ -488,27 +488,27 @@ func (n *NetDev) RemoveKindFromLinkNetworkFile() error {
 				return err
 			}
 		case "bond":
-			if err := m.NewKeyToSectionString("Network", "Bond", n.Name); err != nil {
+			if err := m.RemoveSection("Network", "Bond", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "bridge":
-			if err := m.NewKeyToSectionString("Network", "Bridge", n.Name); err != nil {
+			if err := m.RemoveSection("Network", "Bridge", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "macvlan":
-			if err := m.NewKeyToSectionString("Network", "MACVLAN", n.Name); err != nil {
+			if err := m.RemoveSection("Network", "MACVLAN", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "ipvlan":
-			if err := m.NewKeyToSectionString("Network", "IPVLAN", n.Name); err != nil {
+			if err := m.RemoveSection("Network", "IPVLAN", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
 		case "wireguard":
-			if err := m.NewKeyToSectionString("Network", "WireGuard", n.Name); err != nil {
+			if err := m.RemoveSection("Network", "WireGuard", n.Name); err != nil {
 				log.Errorf("Failed to update .network file of link='%s': %v", l, err)
 				return err
 			}
