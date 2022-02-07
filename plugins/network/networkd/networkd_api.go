@@ -303,9 +303,13 @@ func CreateOrParseLinkFile(link string) (*configfile.Meta, error) {
 			return nil, err
 		}
 
-		if err := CreateMatchSection(m, link); err != nil {
+		m.NewSection("Match")
+		l, err := netlink.LinkByName(link)
+		if err != nil {
 			return nil, err
 		}
+		m.SetKeyToNewSectionString("MACAddress", l.Attrs().HardwareAddr.String())
+
 		system.ChangePermission("systemd-network", m.Path)
 	} else {
 		m, err = configfile.Load(path.Join("/etc/systemd/network", file))

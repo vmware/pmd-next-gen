@@ -32,14 +32,12 @@ func (r *SysNet) getPath() (string, error) {
 	switch r.Path {
 	case sysNetPathCore:
 		procPath = path.Join(path.Join(sysNetPath, sysNetPathCore), r.Property)
-
 	case sysNetPathIPv4:
 		if r.Link != "" {
 			procPath = path.Join(path.Join(path.Join(path.Join(sysNetPath, sysNetPathIPv4), "conf"), r.Link), r.Property)
 		} else {
 			procPath = path.Join(path.Join(sysNetPath, sysNetPathIPv4), r.Property)
 		}
-
 	case sysNetPathIPv6:
 		if r.Link != "" {
 			procPath = path.Join(path.Join(path.Join(path.Join(sysNetPath, sysNetPathIPv6), "conf"), r.Link), r.Property)
