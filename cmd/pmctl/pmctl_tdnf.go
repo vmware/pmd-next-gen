@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"reflect"
+	"strings"
 
 	"github.com/fatih/color"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
@@ -44,6 +47,96 @@ type StatusDesc struct {
 	Success bool               `json:"success"`
 	Message web.StatusResponse `json:"message"`
 	Errors  string             `json:"errors"`
+}
+
+func tdnfParseFlags(c *cli.Context) tdnf.Options {
+	var options tdnf.Options
+
+	v := reflect.ValueOf(&options).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		name := strings.ToLower(field.Name)
+		value := v.Field(i).Interface()
+		switch value.(type) {
+		case bool:
+			v.Field(i).SetBool(c.Bool(name))
+		case string:
+			v.Field(i).SetString(c.String(name))
+		case []string:
+			str := c.String(name)
+			if str != "" {
+				list := strings.Split(str, ",")
+				size := len(list)
+				if size > 0 {
+					v.Field(i).Set(reflect.MakeSlice(reflect.TypeOf([]string{}), size, size))
+					for j, s := range list {
+						v.Field(i).Index(j).Set(reflect.ValueOf(s))
+					}
+				}
+			}
+		}
+	}
+	return options
+}
+
+func tdnfCreateFlags() []cli.Flag {
+	var options tdnf.Options
+	var flags []cli.Flag
+
+	v := reflect.ValueOf(&options).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		name := strings.ToLower(field.Name)
+		value := v.Field(i).Interface()
+		switch value.(type) {
+		case bool:
+			flags = append(flags, &cli.BoolFlag{Name: name})
+		case string:
+			flags = append(flags, &cli.StringFlag{Name: name})
+		case []string:
+			flags = append(flags, &cli.StringFlag{Name: name, Usage: "Separate by ,"})
+		}
+	}
+	return flags
+}
+
+func tdnfOptionsQuery(options *tdnf.Options) string {
+	var qlist []string
+
+	v := reflect.ValueOf(options).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		name := strings.ToLower(field.Name)
+		value := v.Field(i).Interface()
+		switch value.(type) {
+		case bool:
+			if value.(bool) {
+				qlist = append(qlist, name+"=true")
+			}
+		case string:
+			str := value.(string)
+			if str != "" {
+				qlist = append(qlist, name+"="+str)
+			}
+		case []string:
+			list := value.([]string)
+			if len(list) != 0 {
+				for _, s := range list {
+					qlist = append(qlist, name+"="+s)
+				}
+			}
+		}
+	}
+
+	var qstr string
+	for i, s := range qlist {
+		sep := "&"
+		if i == 0 {
+			sep = "?"
+		}
+		qstr = qstr + sep + s
+	}
+	return qstr
 }
 
 func displayTdnfList(l *ItemListDesc) {
@@ -80,13 +173,15 @@ func displayTdnfInfoList(l *InfoListDesc) {
 	}
 }
 
-func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemListDesc, error) {
+func acquireTdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
 	var path string
 	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/list/" + pkg
 	} else {
 		path = "/api/v1/tdnf/list"
 	}
+	path = path + tdnfOptionsQuery(options)
+
 	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
 		return nil, err
@@ -104,8 +199,8 @@ func acquireTdnfList(pkg string, host string, token map[string]string) (*ItemLis
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfRepoList(host string, token map[string]string) (*RepoListDesc, error) {
-	resp, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/repolist", token, nil)
+func acquireTdnfRepoList(options *tdnf.Options, host string, token map[string]string) (*RepoListDesc, error) {
+	resp, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/repolist"+tdnfOptionsQuery(options), token, nil)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf repolist: %v\n", err)
 		return nil, err
@@ -123,13 +218,14 @@ func acquireTdnfRepoList(host string, token map[string]string) (*RepoListDesc, e
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*InfoListDesc, error) {
+func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) (*InfoListDesc, error) {
 	var path string
 	if pkg != "" {
 		path = "/api/v1/tdnf/info/" + pkg
 	} else {
 		path = "/api/v1/tdnf/info"
 	}
+	path = path + tdnfOptionsQuery(options)
 
 	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
@@ -149,10 +245,10 @@ func acquireTdnfInfoList(pkg string, host string, token map[string]string) (*Inf
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfSimpleCommand(cmd string, host string, token map[string]string) (*NilDesc, error) {
+func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, token map[string]string) (*NilDesc, error) {
 	var msg []byte
 
-	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd, token, nil)
+	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd+tdnfOptionsQuery(options), token, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +266,8 @@ func acquireTdnfSimpleCommand(cmd string, host string, token map[string]string) 
 	return nil, errors.New(m.Errors)
 }
 
-func tdnfClean(host string, token map[string]string) {
-	_, err := acquireTdnfSimpleCommand("clean", host, token)
+func tdnfClean(options *tdnf.Options, host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand(options, "clean", host, token)
 	if err != nil {
 		fmt.Printf("Failed execute tdnf clean: %v\n", err)
 		return
@@ -179,8 +275,8 @@ func tdnfClean(host string, token map[string]string) {
 	fmt.Printf("package cache cleaned\n")
 }
 
-func tdnfList(pkg string, host string, token map[string]string) {
-	l, err := acquireTdnfList(pkg, host, token)
+func tdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfList(options, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf list: %v\n", err)
 		return
@@ -188,8 +284,8 @@ func tdnfList(pkg string, host string, token map[string]string) {
 	displayTdnfList(l)
 }
 
-func tdnfMakeCache(host string, token map[string]string) {
-	_, err := acquireTdnfSimpleCommand("makecache", host, token)
+func tdnfMakeCache(options *tdnf.Options, host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand(options, "makecache", host, token)
 	if err != nil {
 		fmt.Printf("Failed tdnf makecache: %v\n", err)
 		return
@@ -197,8 +293,8 @@ func tdnfMakeCache(host string, token map[string]string) {
 	fmt.Printf("package cache acquired\n")
 }
 
-func tdnfRepoList(host string, token map[string]string) {
-	l, err := acquireTdnfRepoList(host, token)
+func tdnfRepoList(options *tdnf.Options, host string, token map[string]string) {
+	l, err := acquireTdnfRepoList(options, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf repolist: %v\n", err)
 		return
@@ -206,8 +302,8 @@ func tdnfRepoList(host string, token map[string]string) {
 	displayTdnfRepoList(l)
 }
 
-func tdnfInfoList(pkg string, host string, token map[string]string) {
-	l, err := acquireTdnfInfoList(pkg, host, token)
+func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfInfoList(options, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf info: %v\n", err)
 		return
