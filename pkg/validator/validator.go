@@ -179,9 +179,90 @@ func IsWireGuardPeerEndpoint(endPoint string) bool {
 	return true
 }
 
+func IsLinkMACAddressPolicy(policy string) bool {
+	return policy == "persistent" || policy == "random" || policy == "none"
+}
+
+func IsLinkNamePolicy(policy string) bool {
+	return policy == "kernel" || policy == "database" || policy == "onboard" ||
+		policy == "slot" || policy == "path" || policy == "mac" || policy == "keep"
+}
+
+func IsLinkName(name string) bool {
+	if strings.HasPrefix(name, "eth") || strings.HasPrefix(name, "ens") || strings.HasPrefix(name, "lo") {
+		return false
+	}
+
+	return true
+}
+
+func IsLinkAlternativeNamesPolicy(policy string) bool {
+	return policy == "database" || policy == "onboard" || policy == "slot" ||
+		policy == "path" || policy == "mac"
+}
+
 func IsLinkQueue(id string) bool {
 	l, err := strconv.ParseUint(id, 10, 32)
 	if err != nil || l > 4096 {
+		return false
+	}
+
+	return true
+}
+
+func IsLinkQueueLength(queueLength string) bool {
+	l, err := strconv.ParseUint(queueLength, 10, 32)
+	if err != nil || l > 4294967294 {
+		return false
+	}
+
+	return true
+}
+
+func IsLinkMtu(value string) bool {
+	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
+		return true
+	}
+	_, err := strconv.ParseUint(value, 10, 32)
+	return err == nil
+}
+
+func IsLinkBitsPerSecond(value string) bool {
+	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
+		return true
+	}
+	_, err := strconv.ParseUint(value, 10, 32)
+	return err == nil
+}
+
+func IsLinkDuplex(duplex string) bool {
+	return duplex == "full" || duplex == "half"
+}
+
+func IsLinkWakeOnLan(value string) bool {
+	return value == "off" || value == "phy" || value == "unicast" || value == "multicast" ||
+		value == "broadcast" || value == "arp" || value == "magic" || value == "secureon"
+}
+
+func IsLinkPort(port string) bool {
+	return port == "tp" || port == "aui" || port == "bnc" || port == "mii" || port == "fibre"
+}
+
+func IsLinkAdvertise(advertise string) bool {
+	return advertise == "10baset-half" || advertise == "10baset-full" || advertise == "100baset-half" ||
+		advertise == "100baset-full" || advertise == "1000baset-half" || advertise == "1000baset-full" ||
+		advertise == "10000baset-full" || advertise == "2500basex-full" || advertise == "1000basekx-full" ||
+		advertise == "10000basekx4-full" || advertise == "10000basekr-full" || advertise == "10000baser-fec" ||
+		advertise == "20000basemld2-full" || advertise == "20000basekr2-full"
+}
+
+func IsLinkGSO(value string) bool {
+	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
+		return true
+	}
+
+	l, err := strconv.ParseUint(value, 10, 32)
+	if err != nil || l > 65536 {
 		return false
 	}
 

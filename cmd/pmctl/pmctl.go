@@ -493,9 +493,264 @@ func main() {
 			Usage:   "Network device configuration",
 			Subcommands: []*cli.Command{
 				{
-					Name:        "set-txqueue",
-					UsageText:   "set-txqueue dev [LINK] txqueuelen [TransmitQueues {1-4096}]",
-					Description: "Sets the device's number of transmit queues. An integer in the range 1…4096.",
+					Name:        "set-mac",
+					UsageText:   "set-mac dev [LINK] macpolicy [string] macaddr [string]",
+					Description: "Sets the device's MAC configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkMAC(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-name",
+					UsageText:   "set-name dev [LINK] namepolicy [string] name [string]",
+					Description: "Sets the device's Name configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkName(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-alt-name",
+					UsageText:   "set-alt-name dev [LINK] altnamespolicy [string] altname [string]",
+					Description: "Sets the device's AlternativeName configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkAltName(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-csum-offload",
+					UsageText:   "set-csum-offload dev [LINK] rxco [string] txco [string]",
+					Description: "Sets the device's ChecksumOffload configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkChecksumOffload(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-tcp-offload",
+					UsageText:   "set-tcp-offload dev [LINK] tcpso [string] tcp6so [string]",
+					Description: "Sets the device's TCPSegmentationOffload configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkTCPOffload(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-generic-offload",
+					UsageText:   "set-generic-offload dev [LINK] gso [string] gro [string] grohw [string] gsomaxbytes [int] gsomaxseg [int]",
+					Description: "Sets the device's GenericOffload configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkGenericOffload(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-vlan-tags",
+					UsageText:   "set-vlan-tags dev [LINK] rxvlanctaghwacl [string] txvlanctaghwacl [string] rxvlanctagfilter [string] txvlanstaghwacl [string]",
+					Description: "Sets the device's VLANTags configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkVLANTags(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-channel",
+					UsageText:   "set-channel dev [LINK] rxch [int] txch [int] och [int] coch [int]",
+					Description: "Sets the device's Channel configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkChannel(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-buffer",
+					UsageText:   "set-buffer dev [LINK] rxbufsz [int] rxmbufsz [int] rxjbufsz [int] txbufsz [int]",
+					Description: "Sets the device's Buffer configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkBuffer(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-flow-ctrl",
+					UsageText:   "set-flow-ctrl dev [LINK] rxfctrl [string] txfctrl [string] anfctrl [string]",
+					Description: "Sets the device's Buffer configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkFlowControl(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-adpt-coalesce",
+					UsageText:   "set-adpt-coalesce dev [LINK] uarxc [string] uatxc [string]",
+					Description: "Sets the device's AdpativeCoalesce configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkAdaptiveCoalesce(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-rx-coalesce",
+					UsageText:   "set-rx-coalesce dev [LINK] rxcs [int] rxcsirq [int] rxcslow [int] rxcshigh [int]",
+					Description: "Sets the device's ReceiveCoalesce configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkRxCoalesce(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-tx-coalesce",
+					UsageText:   "set-tx-coalesce dev [LINK] txcs [int] txcsirq [int] txcslow [int] txcshigh [int]",
+					Description: "Sets the device's TransmitCoalesce configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkTxCoalesce(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-rx-coald-frames",
+					UsageText:   "set-rx-coald-frames dev [LINK] rxmcf [int] rxmcfirq [int] rxmcflow [int] rxmcfhigh [int]",
+					Description: "Sets the device's ReceiveCoalescedFrames configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkRxCoalescedFrames(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-tx-coald-frames",
+					UsageText:   "set-tx-coald-frames dev [LINK] txmcf [int] txmcfirq [int] txmcflow [int] txmcfhigh [int]",
+					Description: "Sets the device's TransmitCoalescedFrames configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkTxCoalescedFrames(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-coalesce-pkt",
+					UsageText:   "set-coalesce-pkt dev [LINK] cprlow [int] cprhigh [int] cprsis [int]",
+					Description: "Sets the device's CoalescePacketRate configuration.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkCoalescePacketRate(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-link",
+					UsageText:   "set-link dev [LINK] alias,desc... [string]",
+					Description: "Sets the device's alias,description,port,duplex,wakeonlan.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLink(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-queue",
+					UsageText:   "set-queue dev [LINK] txq [TransmitQueues {1...4096}] rxq [TransmitQueues {1...4096}] txqlen [TransmitQueuesLength {0...4294967294}]",
+					Description: "Sets the device's queue configuration.",
 
 					Action: func(c *cli.Context) error {
 						if c.NArg() < 4 {
