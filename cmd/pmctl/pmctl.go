@@ -132,6 +132,15 @@ func main() {
 					},
 					Subcommands: []*cli.Command{
 						{
+							Name:        "dns",
+							Description: "Show dns and domaains",
+
+							Action: func(c *cli.Context) error {
+								acquireResolveDescribe(c.String("url"), token)
+								return nil
+							},
+						},
+						{
 							Name:        "iostat",
 							Description: "Show iostat of interfaces",
 

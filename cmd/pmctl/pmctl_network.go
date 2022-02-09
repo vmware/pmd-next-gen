@@ -43,6 +43,12 @@ type NetworkDescribe struct {
 	Errors  string           `json:"errors"`
 }
 
+type ResolveDescribe struct {
+	Success bool             `json:"success"`
+	Message resolved.Describe`json:"message"`
+	Errors  string           `json:"errors"`
+}
+
 func displayInterfaces(i *Interface) {
 	for _, n := range i.Message {
 		fmt.Printf("            %v %v\n", color.HiBlueString("Name:"), n.Name)
@@ -173,6 +179,33 @@ func displayOneLinkDnsAndDomains(link string, dns []resolved.Dns, domains []reso
 	}
 }
 
+func displayDnsAndDomains(n *resolved.Describe) {
+	fmt.Printf("%v\n\n", color.HiBlueString("Global"))
+	if !validator.IsEmpty(n.CurrentDNS) {
+		fmt.Printf("%v %v\n", color.HiBlueString("CurrentDNS:"), n.CurrentDNS)
+	}
+
+	fmt.Printf("%v", color.HiBlueString("        DNS:"))
+	for _,d := range n.DnsServers {
+		if validator.IsEmpty(d.Link) {
+			fmt.Printf("%v ", d.Dns)
+		}
+	}
+	fmt.Printf("\n%v", color.HiBlueString("DNS Domains:"))
+	for _,d := range n.Domains {
+			fmt.Printf("%v ", d.Domain)
+	}
+
+	fmt.Println("\n")
+
+	fmt.Printf("%v   %v    %v\n", color.HiBlueString("INDEX"), color.HiBlueString("LINK"), color.HiBlueString("DNS"))
+	for _,d := range n.DnsServers {
+		if !validator.IsEmpty(d.Link) {
+			fmt.Printf("%v       %v   %v\n", d.Index, d.Link, d.Dns)
+		}
+	}
+}
+
 func displayOneLinkNTP(link string, ntp *timesyncd.Describe) {
 	if len(ntp.LinkNTPServers) > 0 {
 		fmt.Printf("              %v %v\n", color.HiBlueString("NTP:"), ntp.LinkNTPServers)
@@ -214,7 +247,7 @@ func displayNetworkStatus(ifName string, network *network.Describe) {
 func acquireNetworkDescribe(host string, token map[string]string) (*network.Describe, error) {
 	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/network/describe", token, nil)
 	if err != nil {
-		fmt.Printf("Failed to network info: %v\n", err)
+		fmt.Printf("Failed to acquire network info: %v\n", err)
 		return nil, err
 	}
 
@@ -229,6 +262,27 @@ func acquireNetworkDescribe(host string, token map[string]string) (*network.Desc
 	}
 
 	return nil, errors.New(n.Errors)
+}
+
+
+func acquireResolveDescribe(host string, token map[string]string)  error {
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/network/resolved/describe", token, nil)
+	if err != nil {
+		fmt.Printf("Failed to acquire resolve info: %v\n", err)
+		return  err
+	}
+
+	n := ResolveDescribe{}
+	if err := json.Unmarshal(resp, &n); err != nil {
+		fmt.Printf("Failed to decode link json message: %v\n", err)
+		return err
+	}
+
+	if n.Success {
+		displayDnsAndDomains(&n.Message)
+	}
+
+	return nil
 }
 
 func acquireNetworkStatus(cmd string, host string, ifName string, token map[string]string) {
