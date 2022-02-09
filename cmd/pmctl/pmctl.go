@@ -768,14 +768,16 @@ func main() {
 			Name:    "pkg",
 			Aliases: []string{"p", "tdnf"},
 			Usage:   "Package Management",
+			Flags:   tdnfCreateFlags(),
 			Subcommands: []*cli.Command{
 				{
 					Name:        "clean",
-					Aliases:     []string{"mc"},
+					Aliases:     []string{"c"},
 					Description: "Clean Package Metadata",
 
 					Action: func(c *cli.Context) error {
-						tdnfClean(c.String("url"), token)
+						options := tdnfParseFlags(c)
+						tdnfClean(&options, c.String("url"), token)
 						return nil
 					},
 				},
@@ -785,10 +787,11 @@ func main() {
 					Description: "List Packages",
 
 					Action: func(c *cli.Context) error {
+						options := tdnfParseFlags(c)
 						if c.NArg() >= 1 {
-							tdnfList(c.Args().First(), c.String("url"), token)
+							tdnfList(&options, c.Args().First(), c.String("url"), token)
 						} else {
-							tdnfList("", c.String("url"), token)
+							tdnfList(&options, "", c.String("url"), token)
 						}
 						return nil
 					},
@@ -799,7 +802,8 @@ func main() {
 					Description: "Download Package Metadata",
 
 					Action: func(c *cli.Context) error {
-						tdnfMakeCache(c.String("url"), token)
+						options := tdnfParseFlags(c)
+						tdnfMakeCache(&options, c.String("url"), token)
 						return nil
 					},
 				},
@@ -809,7 +813,8 @@ func main() {
 					Description: "List Repositories",
 
 					Action: func(c *cli.Context) error {
-						tdnfRepoList(c.String("url"), token)
+						options := tdnfParseFlags(c)
+						tdnfRepoList(&options, c.String("url"), token)
 						return nil
 					},
 				},
@@ -819,10 +824,11 @@ func main() {
 					Description: "Package Info",
 
 					Action: func(c *cli.Context) error {
+						options := tdnfParseFlags(c)
 						if c.NArg() >= 1 {
-							tdnfInfoList(c.Args().First(), c.String("url"), token)
+							tdnfInfoList(&options, c.Args().First(), c.String("url"), token)
 						} else {
-							tdnfInfoList("", c.String("url"), token)
+							tdnfInfoList(&options, "", c.String("url"), token)
 						}
 						return nil
 					},
