@@ -15,12 +15,14 @@ import (
 )
 
 type Dns struct {
+	Index  int32  `json:"Index"`
 	Link   string `json:"Link"`
 	Family int32  `json:"Family"`
 	Dns    string `json:"Dns"`
 }
 
 type Domains struct {
+	Index  int32  `json:"Index"`
 	Link   string `json:"Link"`
 	Domain string `json:"Domain"`
 }

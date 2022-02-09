@@ -48,20 +48,20 @@ func buildDNSMessage(variant dbus.Variant, link bool) ([]Dns, error) {
 	for _, v := range variant.Value().([][]interface{}) {
 		d := Dns{}
 		if link {
-			d.Family = v[0].(int32)
+			d.Index = v[0].(int32)
+			d.Family = v[1].(int32)
 			d.Dns = parser.BuildIPFromBytes(v[1].([]uint8))
 		} else {
 			d.Family = v[1].(int32)
-
 			if d.Family == syscall.AF_INET6 {
 				d.Dns = parser.BuildIpv6(parser.BuildHexFromBytes(v[2].([]uint8)))
 			} else {
 				d.Dns = parser.BuildIPFromBytes(v[2].([]uint8))
 			}
 
-			index := v[0].(int32)
-			if index != 0 {
-				link, err := netlink.LinkByIndex(int(index))
+			d.Index = v[0].(int32)
+			if d.Index  != 0 {
+				link, err := netlink.LinkByIndex(int(d.Index))
 				if err != nil {
 					return nil, err
 				}
@@ -81,9 +81,9 @@ func buildDomainsMessage(variant dbus.Variant) ([]Domains, error) {
 			Domain: fmt.Sprintf("%v", v[1]),
 		}
 
-		index := v[0].(int32)
-		if index != 0 {
-			link, err := netlink.LinkByIndex(int(index))
+		d.Index = v[0].(int32)
+		if d.Index != 0 {
+			link, err := netlink.LinkByIndex(int(d.Index))
 			if err != nil {
 				return nil, err
 			}
