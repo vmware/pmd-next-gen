@@ -44,9 +44,9 @@ type NetworkDescribe struct {
 }
 
 type ResolveDescribe struct {
-	Success bool             `json:"success"`
-	Message resolved.Describe`json:"message"`
-	Errors  string           `json:"errors"`
+	Success bool              `json:"success"`
+	Message resolved.Describe `json:"message"`
+	Errors  string            `json:"errors"`
 }
 
 func displayInterfaces(i *Interface) {
@@ -186,23 +186,49 @@ func displayDnsAndDomains(n *resolved.Describe) {
 	}
 
 	fmt.Printf("%v", color.HiBlueString("        DNS:"))
-	for _,d := range n.DnsServers {
+	for _, d := range n.DnsServers {
 		if validator.IsEmpty(d.Link) {
 			fmt.Printf("%v ", d.Dns)
 		}
 	}
 	fmt.Printf("\n%v", color.HiBlueString("DNS Domains:"))
-	for _,d := range n.Domains {
-			fmt.Printf("%v ", d.Domain)
+	for _, d := range n.Domains {
+		fmt.Printf("%v ", d.Domain)
 	}
 
 	fmt.Println("\n")
 
 	fmt.Printf("%v   %v    %v\n", color.HiBlueString("INDEX"), color.HiBlueString("LINK"), color.HiBlueString("DNS"))
-	for _,d := range n.DnsServers {
+
+	type linkDns struct {
+		Index int32
+		Link  string
+		Dns   []string
+	}
+
+	l := linkDns{}
+	for _, d := range n.DnsServers {
 		if !validator.IsEmpty(d.Link) {
-			fmt.Printf("%v       %v   %v\n", d.Index, d.Link, d.Dns)
+			if d.Index != l.Index && l.Index != 0 && len(l.Dns) > 0 {
+				fmt.Printf("%v       %v   %v\n", l.Index, l.Link, strings.Join(l.Dns, " "))
+
+				l = linkDns{}
+				l = linkDns{
+					Index: d.Index,
+					Link:  d.Link,
+					Dns:   append(l.Dns, d.Dns),
+				}
+			} else {
+				l = linkDns{
+					Index: d.Index,
+					Link:  d.Link,
+					Dns:   append(l.Dns, d.Dns),
+				}
+			}
 		}
+	}
+	if l.Index > 0 {
+		fmt.Printf("%v       %v   %v\n", l.Index, l.Link, strings.Join(l.Dns, " "))
 	}
 }
 
@@ -264,12 +290,11 @@ func acquireNetworkDescribe(host string, token map[string]string) (*network.Desc
 	return nil, errors.New(n.Errors)
 }
 
-
-func acquireResolveDescribe(host string, token map[string]string)  error {
+func acquireResolveDescribe(host string, token map[string]string) error {
 	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/network/resolved/describe", token, nil)
 	if err != nil {
 		fmt.Printf("Failed to acquire resolve info: %v\n", err)
-		return  err
+		return err
 	}
 
 	n := ResolveDescribe{}
