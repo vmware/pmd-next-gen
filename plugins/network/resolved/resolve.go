@@ -54,6 +54,29 @@ func AcquireLinkDns(ctx context.Context, link string, w http.ResponseWriter) err
 	return web.JSONResponse(links, w)
 }
 
+
+func AcquireLinkCurrentDns(ctx context.Context, link string, w http.ResponseWriter) error {
+	c, err := NewSDConnection()
+	if err != nil {
+		log.Errorf("Failed to establish connection to the system bus: %s", err)
+		return err
+	}
+	defer c.Close()
+
+	l, err := netlink.LinkByName(link)
+	if err != nil {
+		return err
+	}
+
+	links, err := c.DBusAcquireCurrentDnsFromResolveLink(ctx, l.Attrs().Index)
+	if err != nil {
+		return web.JSONResponseError(err, w)
+	}
+
+	return web.JSONResponse(links, w)
+}
+
+
 func AcquireLinkDomains(ctx context.Context, link string, w http.ResponseWriter) error {
 	c, err := NewSDConnection()
 	if err != nil {

@@ -11,8 +11,14 @@ import (
 	"github.com/pmd-nextgen/pkg/web"
 )
 
-func routerAcquireLinkDNS(w http.ResponseWriter, r *http.Request) {
+func routerAcquireLinkDns(w http.ResponseWriter, r *http.Request) {
 	if err := AcquireLinkDns(r.Context(), mux.Vars(r)["link"], w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerAcquireLinkCurrentDns(w http.ResponseWriter, r *http.Request) {
+	if err := AcquireLinkCurrentDns(r.Context(), mux.Vars(r)["link"], w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -23,7 +29,7 @@ func routerAcquireLinkDomains(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerAcquireDNS(w http.ResponseWriter, r *http.Request) {
+func routerAcquireDns(w http.ResponseWriter, r *http.Request) {
 	dns, err := AcquireDns(r.Context())
 	if err != nil {
 		web.JSONResponseError(err, w)
@@ -54,8 +60,9 @@ func RegisterRouterResolved(router *mux.Router) {
 	n := router.PathPrefix("/resolved").Subrouter().StrictSlash(false)
 
 	n.HandleFunc("/describe", routerDescribeDns).Methods("GET")
-	n.HandleFunc("/dns", routerAcquireDNS).Methods("GET")
+	n.HandleFunc("/dns", routerAcquireDns).Methods("GET")
 	n.HandleFunc("/domains", routerAcquireDomains).Methods("GET")
-	n.HandleFunc("/{link}/dns", routerAcquireLinkDNS).Methods("GET")
+	n.HandleFunc("/{link}/dns", routerAcquireLinkDns).Methods("GET")
 	n.HandleFunc("/{link}/domains", routerAcquireLinkDomains).Methods("GET")
+	n.HandleFunc("/{link}/currentdns", routerAcquireLinkCurrentDns).Methods("GET")
 }
