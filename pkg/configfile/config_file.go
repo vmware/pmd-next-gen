@@ -75,6 +75,10 @@ func (m *Meta) SetKeySectionUint(section string, key string, value uint) error {
 	return nil
 }
 
+func (m *Meta) GetKeySectionString(section string, key string) string {
+	return m.Cfg.Section(section).Key(key).String()
+}
+
 func (m *Meta) NewKeyToSectionString(section string, key string, value string) error {
 	_, err := m.Cfg.SectionsByName(section)
 	if err != nil {
