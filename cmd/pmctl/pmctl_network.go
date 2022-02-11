@@ -182,24 +182,21 @@ func displayOneLinkDnsAndDomains(link string, dns []resolved.Dns, domains []reso
 func displayDnsAndDomains(n *resolved.Describe) {
 	fmt.Printf("%v\n\n", color.HiBlueString("Global"))
 	if !validator.IsEmpty(n.CurrentDNS) {
-		fmt.Printf("%v %v\n", color.HiBlueString("CurrentDNS:"), n.CurrentDNS)
+		fmt.Printf("%v %v\n", color.HiBlueString("CurrentDNS: "), n.CurrentDNS)
 	}
 
-	fmt.Printf("%v", color.HiBlueString("        DNS:"))
+	fmt.Printf("%v", color.HiBlueString("        DNS: "))
 	for _, d := range n.DnsServers {
 		if validator.IsEmpty(d.Link) {
 			fmt.Printf("%v ", d.Dns)
 		}
 	}
-	fmt.Printf("\n%v", color.HiBlueString("DNS Domains:"))
+	fmt.Printf("\n%v", color.HiBlueString("DNS Domains: "))
 	for _, d := range n.Domains {
 		fmt.Printf("%v ", d.Domain)
 	}
 
 	fmt.Println("\n")
-
-	fmt.Printf("%v   %v    %v\n", color.HiBlueString("INDEX"), color.HiBlueString("LINK"), color.HiBlueString("DNS"))
-
 	type linkDns struct {
 		Index int32
 		Link  string
@@ -207,19 +204,14 @@ func displayDnsAndDomains(n *resolved.Describe) {
 	}
 
 	l := linkDns{}
+	dns := make(map[int32]*linkDns)
 	for _, d := range n.DnsServers {
 		if !validator.IsEmpty(d.Link) {
-			if d.Index != l.Index && l.Index != 0 && len(l.Dns) > 0 {
-				fmt.Printf("%v       %v   %v\n", l.Index, l.Link, strings.Join(l.Dns, " "))
-
-				l = linkDns{}
-				l = linkDns{
-					Index: d.Index,
-					Link:  d.Link,
-					Dns:   append(l.Dns, d.Dns),
-				}
+			if dns[d.Index] != nil {
+				l := dns[d.Index]
+				l.Dns = append(l.Dns, d.Dns)
 			} else {
-				l = linkDns{
+				dns[d.Index] = &linkDns{
 					Index: d.Index,
 					Link:  d.Link,
 					Dns:   append(l.Dns, d.Dns),
@@ -227,8 +219,15 @@ func displayDnsAndDomains(n *resolved.Describe) {
 			}
 		}
 	}
-	if l.Index > 0 {
-		fmt.Printf("%v       %v   %v\n", l.Index, l.Link, strings.Join(l.Dns, " "))
+
+	for _, d := range dns {
+		fmt.Printf("%v %v (%v)\n", color.HiBlueString("Link"), d.Index, d.Link)
+		for _, c := range n.LinkCurrentDNS {
+			if c.Index == d.Index {
+				fmt.Printf("%v %v\n", color.HiBlueString("Current DNS Server: "), c.Dns)
+			}
+		}
+		fmt.Printf("       %v %v\n\n", color.HiBlueString("DNS Servers: "), strings.Join(d.Dns, " "))
 	}
 }
 
