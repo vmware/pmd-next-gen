@@ -28,9 +28,10 @@ type Domains struct {
 }
 
 type Describe struct {
-	CurrentDNS string    `json:"CurrentDNS"`
-	DnsServers []Dns     `json:"DnsServers"`
-	Domains    []Domains `json:"Domains"`
+	CurrentDNS     string    `json:"CurrentDNS"`
+	DnsServers     []Dns     `json:"DnsServers"`
+	LinkCurrentDNS []Dns     `json:"LinkCurrentDNS"`
+	Domains        []Domains `json:"Domains"`
 }
 
 func AcquireLinkDns(ctx context.Context, link string, w http.ResponseWriter) error {
@@ -54,7 +55,6 @@ func AcquireLinkDns(ctx context.Context, link string, w http.ResponseWriter) err
 	return web.JSONResponse(links, w)
 }
 
-
 func AcquireLinkCurrentDns(ctx context.Context, link string, w http.ResponseWriter) error {
 	c, err := NewSDConnection()
 	if err != nil {
@@ -68,14 +68,16 @@ func AcquireLinkCurrentDns(ctx context.Context, link string, w http.ResponseWrit
 		return err
 	}
 
-	links, err := c.DBusAcquireCurrentDnsFromResolveLink(ctx, l.Attrs().Index)
+	dns, err := c.DBusAcquireCurrentDnsFromResolveLink(ctx, l.Attrs().Index)
 	if err != nil {
 		return web.JSONResponseError(err, w)
 	}
 
-	return web.JSONResponse(links, w)
-}
+	dns.Link = l.Attrs().Name
+	dns.Index = int32(l.Attrs().Index)
 
+	return web.JSONResponse(dns, w)
+}
 
 func AcquireLinkDomains(ctx context.Context, link string, w http.ResponseWriter) error {
 	c, err := NewSDConnection()
@@ -90,12 +92,12 @@ func AcquireLinkDomains(ctx context.Context, link string, w http.ResponseWriter)
 		return err
 	}
 
-	links, err := c.DBusAcquireDomainsFromResolveLink(ctx, l.Attrs().Index)
+	d, err := c.DBusAcquireDomainsFromResolveLink(ctx, l.Attrs().Index)
 	if err != nil {
 		return web.JSONResponseError(err, w)
 	}
 
-	return web.JSONResponse(links, w)
+	return web.JSONResponse(d, w)
 }
 
 func AcquireDns(ctx context.Context) ([]Dns, error) {
@@ -140,7 +142,7 @@ func DescribeDns(ctx context.Context) (*Describe, error) {
 
 	d := Describe{}
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -155,6 +157,24 @@ func DescribeDns(ctx context.Context) (*Describe, error) {
 		domains, err := c.DBusAcquireDomainsFromResolveManager(ctx)
 		if err == nil {
 			d.Domains = domains
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		links, _ := netlink.LinkList()
+		for _, l := range links {
+			if l.Attrs().Index == 1 {
+				continue
+			}
+
+			dns, err := c.DBusAcquireCurrentDnsFromResolveLink(ctx, l.Attrs().Index)
+			if err == nil {
+				dns.Link = l.Attrs().Name
+				dns.Index = int32(l.Attrs().Index)
+				d.LinkCurrentDNS = append(d.LinkCurrentDNS, *dns)
+			}
 		}
 	}()
 

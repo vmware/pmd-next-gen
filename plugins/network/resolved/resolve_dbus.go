@@ -6,6 +6,7 @@ package resolved
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"syscall"
 
 	"github.com/godbus/dbus/v5"
@@ -80,7 +81,7 @@ func buildDnsMessage(variant dbus.Variant, link bool) ([]Dns, error) {
 func buildCurrentDnsMessage(variant dbus.Variant) (*Dns, error) {
 	d := Dns{}
 	for _, v := range variant.Value().([]interface{}) {
-		if d.Family == 0 {
+		if reflect.ValueOf(v).Type().Kind() == reflect.Int32 {
 			d.Family = v.(int32)
 		} else {
 			if d.Family == syscall.AF_INET6 {
