@@ -6,6 +6,7 @@ package resolved
 import (
 	"context"
 	"fmt"
+	"net"
 	"reflect"
 	"syscall"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/vishvananda/netlink"
 
 	"github.com/pmd-nextgen/pkg/bus"
-	"github.com/pmd-nextgen/pkg/parser"
 )
 
 const (
@@ -50,17 +50,19 @@ func buildDnsMessage(variant dbus.Variant, link bool) ([]Dns, error) {
 		d := Dns{}
 		if link {
 			d.Family = v[0].(int32)
+			ip := net.IP(v[1].([]uint8))
 			if d.Family == syscall.AF_INET6 {
-				d.Dns = parser.BuildIpv6(parser.BuildHexFromBytes(v[1].([]uint8)))
+				d.Dns = ip.To16().To16().String()
 			} else {
-				d.Dns = parser.BuildIPFromBytes(v[1].([]uint8))
+				d.Dns = ip.To4().String()
 			}
 		} else {
 			d.Family = v[1].(int32)
+			ip := net.IP(v[2].([]uint8))
 			if d.Family == syscall.AF_INET6 {
-				d.Dns = parser.BuildIpv6(parser.BuildHexFromBytes(v[2].([]uint8)))
+				d.Dns = ip.To16().String()
 			} else {
-				d.Dns = parser.BuildIPFromBytes(v[2].([]uint8))
+				d.Dns = ip.To4().String()
 			}
 
 			d.Index = v[0].(int32)
@@ -84,10 +86,11 @@ func buildCurrentDnsMessage(variant dbus.Variant) (*Dns, error) {
 		if reflect.ValueOf(v).Type().Kind() == reflect.Int32 {
 			d.Family = v.(int32)
 		} else {
+			ip := net.IP(v.([]uint8))
 			if d.Family == syscall.AF_INET6 {
-				d.Dns = parser.BuildIpv6(parser.BuildHexFromBytes(v.([]uint8)))
+				d.Dns = ip.To16().To16().String()
 			} else {
-				d.Dns = parser.BuildIPFromBytes(v.([]uint8))
+				d.Dns = ip.To4().String()
 			}
 		}
 	}

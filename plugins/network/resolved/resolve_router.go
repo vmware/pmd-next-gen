@@ -56,6 +56,31 @@ func routerDescribeDns(w http.ResponseWriter, r *http.Request) {
 	web.JSONResponse(d, w)
 }
 
+func routerAddDns(w http.ResponseWriter, r *http.Request) {
+	d, err := decodeJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := d.AddDns(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerRemoveDns(w http.ResponseWriter, r *http.Request) {
+	d, err := decodeJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := d.RemoveDns(r.Context(), w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+
 func RegisterRouterResolved(router *mux.Router) {
 	n := router.PathPrefix("/resolved").Subrouter().StrictSlash(false)
 
@@ -65,4 +90,7 @@ func RegisterRouterResolved(router *mux.Router) {
 	n.HandleFunc("/{link}/dns", routerAcquireLinkDns).Methods("GET")
 	n.HandleFunc("/{link}/domains", routerAcquireLinkDomains).Methods("GET")
 	n.HandleFunc("/{link}/currentdns", routerAcquireLinkCurrentDns).Methods("GET")
+
+	n.HandleFunc("/add", routerAddDns).Methods("POST")
+	n.HandleFunc("/remove", routerRemoveDns).Methods("DELETE")
 }

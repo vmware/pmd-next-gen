@@ -5,13 +5,20 @@ package resolved
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
+	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
+
+	sd "github.com/coreos/go-systemd/v22/dbus"
 )
 
 type Dns struct {
@@ -28,10 +35,24 @@ type Domains struct {
 }
 
 type Describe struct {
-	CurrentDNS     string    `json:"CurrentDNS"`
+	CurrentDNS     string    `json:"CurrentDns"`
 	DnsServers     []Dns     `json:"DnsServers"`
-	LinkCurrentDNS []Dns     `json:"LinkCurrentDNS"`
+	LinkCurrentDNS []Dns     `json:"LinkCurrentDns"`
 	Domains        []Domains `json:"Domains"`
+}
+
+type GlobalDns struct {
+	DnsServers []string `json:"DnsServers"`
+	Domains    []string `json:"Domains"`
+}
+
+func decodeJSONRequest(r *http.Request) (*GlobalDns, error) {
+	dns := GlobalDns{}
+	if err := json.NewDecoder(r.Body).Decode(&dns); err != nil {
+		return nil, err
+	}
+
+	return &dns, nil
 }
 
 func AcquireLinkDns(ctx context.Context, link string, w http.ResponseWriter) error {
@@ -180,4 +201,86 @@ func DescribeDns(ctx context.Context) (*Describe, error) {
 
 	wg.Wait()
 	return &d, nil
+}
+
+func (d *GlobalDns) AddDns(ctx context.Context, w http.ResponseWriter) error {
+	m, err := configfile.Load("/etc/systemd/resolved.conf")
+	if err != nil {
+		return err
+	}
+
+	if !validator.IsArrayEmpty(d.DnsServers) {
+		s := m.GetKeySectionString("Resolve", "DNS")
+		m.SetKeySectionString("Resolve", "DNS", s+" "+strings.Join(d.DnsServers, " "))
+	}
+	if !validator.IsArrayEmpty(d.Domains) {
+		s := m.GetKeySectionString("Resolve", "Domains")
+		m.SetKeySectionString("Resolve", "Domains", s+" "+strings.Join(d.Domains, " "))
+	}
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+		return err
+	}
+
+	conn, err := sd.NewSystemdConnectionContext(ctx)
+	if err != nil {
+		log.Errorf("Failed to establish connection with system bus: %v", err)
+		return err
+	}
+	defer conn.Close()
+
+	ch := make(chan string)
+	_, err = conn.StartUnitContext(ctx, "systemd-resolved.service", "replace", ch)
+	if err != nil {
+		log.Errorf("Failed to start systemd unit='systemd-resolved.service': %v", err)
+		return err
+	}
+
+	return web.JSONResponse("configured", w)
+}
+
+func (d *GlobalDns) RemoveDns(ctx context.Context, w http.ResponseWriter) error {
+	m, err := configfile.Load("/etc/systemd/resolved.conf")
+	if err != nil {
+		return err
+	}
+
+	if !validator.IsArrayEmpty(d.DnsServers) {
+		s := m.GetKeySectionString("Resolve", "DNS")
+		dns := strings.Split(s, " ")
+		for _, d := range d.DnsServers {
+			dns, _ = share.StringDeleteSlice(dns, d)
+		}
+		m.SetKeySectionString("Resolve", "DNS", strings.Join(dns, " "))
+	}
+	if !validator.IsArrayEmpty(d.Domains) {
+		s := m.GetKeySectionString("Resolve", "Domains")
+		domains := strings.Split(s, " ")
+		for _, s := range d.DnsServers {
+			domains, _ = share.StringDeleteSlice(domains, s)
+		}
+		m.SetKeySectionString("Resolve", "Domains", strings.Join(domains, " "))
+	}
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+		return err
+	}
+
+	conn, err := sd.NewSystemdConnectionContext(ctx)
+	if err != nil {
+		log.Errorf("Failed to establish connection with system bus: %v", err)
+		return err
+	}
+	defer conn.Close()
+
+	ch := make(chan string)
+	_, err = conn.StartUnitContext(ctx, "systemd-resolved.service", "replace", ch)
+	if err != nil {
+		log.Errorf("Failed to start systemd unit='systemd-resolved.service': %v", err)
+		return err
+	}
+
+	return web.JSONResponse("removed", w)
 }
