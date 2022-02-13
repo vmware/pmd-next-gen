@@ -58,8 +58,7 @@ func IsHost(host string) bool {
 
 func IsValidIP(ip string) bool {
 	a := net.ParseIP(ip)
-
-	if a.To4() == nil || a.To16() == nil {
+	if a.To4() == nil && a.To16() == nil {
 		return false
 	}
 
@@ -74,6 +73,16 @@ func IsIP(str string) bool {
 	}
 
 	return err == nil
+}
+
+func IsIPs(s []string) bool {
+	for _, ip := range s {
+		if !IsValidIP(ip) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func IsClientIdentifier(identifier string) bool {
