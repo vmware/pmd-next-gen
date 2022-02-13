@@ -32,3 +32,24 @@ func StringDeleteSlice(list []string, s string) ([]string, error) {
 
 	return nil, errors.New("slice not found")
 }
+
+func UniqueString(s []string, t []string) []string {
+	set := NewSet()
+
+	list := []string{}
+	for _, e := range s {
+		if v := set.Contains(e); !v {
+			set.Add(e)
+			list = append(list, e)
+		}
+	}
+
+	for _, e := range t {
+		if v := set.Contains(e); !v {
+			set.Add(e)
+			list = append(list, e)
+		}
+	}
+
+	return list
+}
