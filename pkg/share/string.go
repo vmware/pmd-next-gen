@@ -5,6 +5,7 @@ package share
 
 import (
 	"errors"
+	"strings"
 )
 
 func StringContains(list []string, s string) bool {
@@ -38,16 +39,22 @@ func UniqueString(s []string, t []string) []string {
 
 	list := []string{}
 	for _, e := range s {
+		if e == "" {
+			continue
+		}
 		if v := set.Contains(e); !v {
 			set.Add(e)
-			list = append(list, e)
+			list = append(list, strings.TrimSpace(e))
 		}
 	}
 
 	for _, e := range t {
+		if e == "" {
+			continue
+		}
 		if v := set.Contains(e); !v {
 			set.Add(e)
-			list = append(list, e)
+			list = append(list, strings.TrimSpace(e))
 		}
 	}
 
