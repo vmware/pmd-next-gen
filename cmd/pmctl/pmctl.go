@@ -263,6 +263,21 @@ func main() {
 			Usage:   "Network device configuration",
 			Subcommands: []*cli.Command{
 				{
+					Name:        "add-ntp",
+					UsageText:   "dev [LINK] ntp [NTP]",
+					Description: "Add Link or global NTP server address. This option may be specified more than once separated by ,",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkAddNTP(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "set-dhcp",
 					UsageText:   "set-dhcp [LINK] [DHCP-MODE {yes|no|ipv4|ipv6}]",
 					Description: "Enables DHCPv4 and/or DHCPv6 client support. Accepts \"yes\", \"no\", \"ipv4\", or \"ipv6\".",

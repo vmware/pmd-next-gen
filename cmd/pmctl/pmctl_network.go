@@ -457,31 +457,31 @@ func networkConfigureAddress(link string, args cli.Args, host string, token map[
 	argStrings := args.Slice()
 
 	a := networkd.AddressSection{}
-	for index := 1; index < args.Len()-1; {
-		switch argStrings[index] {
+	for i := 1; i < args.Len()-1; {
+		switch argStrings[i] {
 		case "address":
-			a.Address = argStrings[index+1]
+			a.Address = argStrings[i+1]
 			if !validator.IsIP(a.Address) {
 				fmt.Printf("Invalid IP address: %v\n", a.Address)
 				return
 			}
 		case "peer":
-			a.Peer = argStrings[index+1]
+			a.Peer = argStrings[i+1]
 			if !validator.IsIP(a.Peer) {
 				fmt.Printf("Invalid Peer IP address: %v\n", a.Peer)
 				return
 			}
 		case "label":
-			a.Label = argStrings[index+1]
+			a.Label = argStrings[i+1]
 		case "scope":
-			a.Scope = argStrings[index+1]
+			a.Scope = argStrings[i+1]
 			if !validator.IsScope(a.Scope) {
 				fmt.Printf("Invalid scope: %s", a.Scope)
 				return
 			}
 		default:
 		}
-		index++
+		i++
 	}
 	n := networkd.Network{
 		Link: link,
@@ -490,4 +490,55 @@ func networkConfigureAddress(link string, args cli.Args, host string, token map[
 		},
 	}
 	networkConfigure(&n, host, token)
+}
+
+func networkAddNTP(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	var dev string
+	var ntp []string
+	for i := range argStrings {
+		switch argStrings[i] {
+		case "dev":
+			dev = argStrings[i+1]
+		case "ntp":
+			ntp = strings.Split(argStrings[i+1], ",")
+		}
+		i++
+	}
+
+	var resp []byte
+	var err error
+	if validator.IsEmpty(dev) {
+		n := timesyncd.NTP {
+			NTPServers: ntp,
+		}
+		resp, err = web.DispatchSocket(http.MethodPost, host, "/api/v1/network/timesyncd/add", token, n)
+		if err != nil {
+			fmt.Printf("Failed to add global NTP server: %v\n", err)
+			return
+		}
+	} else {
+		n := networkd.Network {
+			Link: dev,
+			NetworkSection: networkd.NetworkSection {
+				NTP: ntp,
+			},
+		}
+		resp, err = web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, n)
+		if err != nil {
+			fmt.Printf("Failed to add link NTP server: %v\n", err)
+			return
+		}
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to add NTP server: %v\n", m.Errors)
+	}
 }
