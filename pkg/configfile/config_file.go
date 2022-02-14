@@ -56,7 +56,6 @@ func (m *Meta) SetKeySectionString(section string, key string, value string) err
 	}
 
 	m.Cfg.Section(section).Key(key).SetValue(value)
-
 	return nil
 }
 
@@ -71,7 +70,6 @@ func (m *Meta) SetKeySectionUint(section string, key string, value uint) error {
 
 	s := strconv.FormatUint(uint64(value), 10)
 	m.Cfg.Section(section).Key(key).SetValue(s)
-
 	return nil
 }
 
@@ -89,7 +87,6 @@ func (m *Meta) NewKeyToSectionString(section string, key string, value string) e
 	}
 
 	m.Cfg.Section(section).NewKey(key, value)
-
 	return nil
 }
 
@@ -113,6 +110,22 @@ func (m *Meta) RemoveSection(section string, key string, value string) error {
 	for i, s := range sections {
 		if s.HasKey(key) && s.HasValue(value) {
 			m.Cfg.DeleteSectionWithIndex(section, i)
+			return nil
+		}
+	}
+
+	return errors.New("not found")
+}
+
+func (m *Meta) RemoveKeyFromSectionString(section string, key string, value string) error {
+	sections, err := m.Cfg.SectionsByName(section)
+	if err != nil {
+		return err
+	}
+
+	for _, s := range sections {
+		if s.HasKey(key) && s.HasValue(value) {
+			s.DeleteKey(key)
 			return nil
 		}
 	}
