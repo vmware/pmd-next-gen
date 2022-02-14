@@ -542,3 +542,55 @@ func networkAddNTP(args cli.Args, host string, token map[string]string) {
 		fmt.Printf("Failed to add NTP server: %v\n", m.Errors)
 	}
 }
+
+func networkRemoveNTP(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	var dev string
+	var ntp []string
+	for i := range argStrings {
+		switch argStrings[i] {
+		case "dev":
+			dev = argStrings[i+1]
+		case "ntp":
+			ntp = strings.Split(argStrings[i+1], ",")
+		}
+		i++
+	}
+
+	var resp []byte
+	var err error
+	if validator.IsEmpty(dev) {
+		n := timesyncd.NTP {
+			NTPServers: ntp,
+		}
+		resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/timesyncd/remove", token, n)
+		if err != nil {
+			fmt.Printf("Failed to remove global NTP server: %v\n", err)
+			return
+		}
+	} else {
+		n := networkd.Network {
+			Link: dev,
+			NetworkSection: networkd.NetworkSection {
+				NTP: ntp,
+			},
+		}
+		resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/network/remove", token, n)
+		if err != nil {
+			fmt.Printf("Failed to remove link NTP server: %v\n", err)
+			return
+		}
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove NTP server: %v\n", m.Errors)
+	}
+}
+
