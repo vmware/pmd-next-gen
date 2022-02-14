@@ -6,6 +6,8 @@ package share
 import (
 	"errors"
 	"strings"
+
+	"github.com/pmd-nextgen/pkg/validator"
 )
 
 func StringContains(list []string, s string) bool {
@@ -32,6 +34,20 @@ func StringDeleteSlice(list []string, s string) ([]string, error) {
 	}
 
 	return nil, errors.New("slice not found")
+}
+
+func StringDeleteAllSlice(a []string, b []string) ([]string, error) {
+	var s []string
+	var err error
+	for _, v := range b {
+		if validator.IsArrayEmpty(s) {
+			s, err = StringDeleteSlice(a, v)
+		} else {
+			s, err = StringDeleteSlice(s, v)
+		}
+	}
+
+	return s, err
 }
 
 func UniqueString(s []string, t []string) []string {
