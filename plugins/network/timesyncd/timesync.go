@@ -6,6 +6,7 @@ package timesyncd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -146,11 +147,18 @@ func (n *NTP) RemoveNTP(ctx context.Context, w http.ResponseWriter) error {
 
 	if !validator.IsArrayEmpty(n.NTPServers) {
 		s := m.GetKeySectionString("Time", "NTP")
-		dns := strings.Split(s, " ")
-		for _, d := range n.NTPServers {
-			dns, _ = share.StringDeleteSlice(dns, d)
+		fmt.Println(s)
+		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), n.NTPServers)
+		if err != nil {
+			return err
 		}
-		m.SetKeySectionString("Time", "NTP", strings.Join(dns, " "))
+		fmt.Println(t)
+		m.SetKeySectionString("Time", "NTP", strings.Join(t[:], " "))
+	}
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+		return err
 	}
 
 	if err := restartTimesyncd(ctx); err != nil {

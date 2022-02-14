@@ -264,7 +264,7 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 
 	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
 		s := m.GetKeySectionString("Network", "Domains")
-		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.Domains)
 		m.SetKeySectionString("Network", "Domains", strings.Join(t[:], " "))
 	}
 
@@ -283,6 +283,63 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 	if !validator.IsArrayEmpty(n.NetworkSection.NTP) {
 		s := m.GetKeySectionString("Network", "NTP")
 		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		m.SetKeySectionString("Network", "NTP", strings.Join(t[:], " "))
+	}
+
+	return nil
+}
+
+func (n *Network) removeNetworkSection(m *configfile.Meta) error {
+	if !validator.IsEmpty(n.NetworkSection.Address) {
+		if validator.IsIP(n.NetworkSection.Address) {
+			m.RemoveKeyFromSectionString("Network", "Address", n.NetworkSection.Address)
+		}
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.Gateway) {
+		if validator.IsIP(n.NetworkSection.Gateway) {
+			m.RemoveKeyFromSectionString("Network", "Gateway", n.NetworkSection.Gateway)
+		}
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) && validator.IsBool(n.NetworkSection.IPv6AcceptRA) {
+		m.RemoveKeyFromSectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.LinkLocalAddressing) {
+		if validator.IsLinkLocalAddressing(n.NetworkSection.LinkLocalAddressing) {
+			m.RemoveKeyFromSectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
+		}
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) && validator.IsBool(n.NetworkSection.MulticastDNS) {
+		m.RemoveKeyFromSectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
+	}
+
+	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
+		s := m.GetKeySectionString("Network", "Domains")
+		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), n.NetworkSection.Domains)
+		if err != nil {
+			return err
+		}
+		m.SetKeySectionString("Network", "Domains", strings.Join(t[:], " "))
+	}
+
+	if !validator.IsArrayEmpty(n.NetworkSection.DNS) {
+		s := m.GetKeySectionString("Network", "DNS")
+		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), n.NetworkSection.DNS)
+		if err != nil {
+			return err
+		}
+		m.SetKeySectionString("Network", "DNS", strings.Join(t[:], " "))
+	}
+
+	if !validator.IsArrayEmpty(n.NetworkSection.NTP) {
+		s := m.GetKeySectionString("Network", "NTP")
+		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), n.NetworkSection.NTP)
+		if err != nil {
+			return err
+		}
 		m.SetKeySectionString("Network", "NTP", strings.Join(t[:], " "))
 	}
 
@@ -537,6 +594,11 @@ func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) erro
 	m, err := CreateOrParseNetworkFile(n.Link)
 	if err != nil {
 		log.Errorf("Failed to parse network file for link='%s': %v", n.Link, err)
+		return err
+	}
+
+	if err := n.removeNetworkSection(m); err != nil {
+		log.Errorf("Failed to remove key from network section: %v", err)
 		return err
 	}
 
