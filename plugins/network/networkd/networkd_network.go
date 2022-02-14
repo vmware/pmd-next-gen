@@ -17,6 +17,7 @@ import (
 	"github.com/vishvananda/netlink"
 
 	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/share"
 	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
@@ -262,7 +263,9 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 	}
 
 	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
-		m.SetKeySectionString("Network", "Domains", strings.Join(n.NetworkSection.Domains, " "))
+		s := m.GetKeySectionString("Network", "Domains")
+		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		m.SetKeySectionString("Network", "Domains", strings.Join(t[:], " "))
 	}
 
 	if !validator.IsArrayEmpty(n.NetworkSection.DNS) {
@@ -272,17 +275,15 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 				return fmt.Errorf("invalid DNS='%s'", dns)
 			}
 		}
-		m.SetKeySectionString("Network", "DNS", strings.Join(n.NetworkSection.DNS, " "))
+		s := m.GetKeySectionString("Network", "DNS")
+		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		m.SetKeySectionString("Network", "DNS", strings.Join(t[:], " "))
 	}
 
 	if !validator.IsArrayEmpty(n.NetworkSection.NTP) {
-		for _, ntp := range n.NetworkSection.NTP {
-			if !validator.IsIP(ntp) {
-				log.Errorf("Failed to parse NTP='%s'", ntp)
-				return fmt.Errorf("invalid NTP='%s'", ntp)
-			}
-			m.SetKeySectionString("Network", "NTP", strings.Join(n.NetworkSection.NTP, " "))
-		}
+		s := m.GetKeySectionString("Network", "NTP")
+		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		m.SetKeySectionString("Network", "NTP", strings.Join(t[:], " "))
 	}
 
 	return nil

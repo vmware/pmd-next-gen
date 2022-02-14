@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -230,7 +229,6 @@ func (d *GlobalDns) AddDns(ctx context.Context, w http.ResponseWriter) error {
 
 		s := m.GetKeySectionString("Resolve", "DNS")
 		t := share.UniqueString(strings.Split(s, " "), d.DnsServers)
-		fmt.Println()
 		m.SetKeySectionString("Resolve", "DNS", strings.Join(t[:], " "))
 	}
 	if !validator.IsArrayEmpty(d.Domains) {

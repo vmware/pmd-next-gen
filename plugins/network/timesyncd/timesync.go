@@ -5,8 +5,16 @@ package timesyncd
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"strings"
 	"sync"
 
+	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/pmd-nextgen/pkg/web"
+	"github.com/pmd-nextgen/plugins/systemd"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -16,6 +24,19 @@ type Describe struct {
 	Address          string   `json:"Address"`
 	SystemNTPServers []string `json:"SystemNTPServers"`
 	LinkNTPServers   []string `json:"LinkNTPServers"`
+}
+
+type NTP struct {
+	NTPServers []string `json:"NTPServers"`
+}
+
+func decodeJSONRequest(r *http.Request) (*NTP, error) {
+	n := NTP{}
+	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+		return nil, err
+	}
+
+	return &n, nil
 }
 
 func AcquireNTPServer(kind string, ctx context.Context) (*Describe, error) {
@@ -77,4 +98,65 @@ func DescribeNTPServers(ctx context.Context) (*Describe, error) {
 	}
 
 	return &s, nil
+}
+
+func restartTimesyncd(ctx context.Context) error {
+	u := systemd.UnitAction{
+		Unit:   "systemd-timesyncd.service",
+		Action: "restart",
+	}
+
+	if err := u.UnitCommands(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *NTP) AddNTP(ctx context.Context, w http.ResponseWriter) error {
+	m, err := configfile.Load("/etc/systemd/timesyncd.conf")
+	if err != nil {
+		return err
+	}
+
+	if !validator.IsArrayEmpty(n.NTPServers) {
+		s := m.GetKeySectionString("Time", "NTP")
+		t := share.UniqueString(strings.Split(s, " "), n.NTPServers)
+		m.SetKeySectionString("Time", "NTP", strings.Join(t[:], " "))
+	}
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+		return err
+	}
+
+	if err := restartTimesyncd(ctx); err != nil {
+		log.Errorf("Failed to restart systemd-timesyncd: %v", err)
+		return err
+	}
+
+	return web.JSONResponse("added", w)
+}
+
+func (n *NTP) RemoveNTP(ctx context.Context, w http.ResponseWriter) error {
+	m, err := configfile.Load("/etc/systemd/timesyncd.conf")
+	if err != nil {
+		return err
+	}
+
+	if !validator.IsArrayEmpty(n.NTPServers) {
+		s := m.GetKeySectionString("Time", "NTP")
+		dns := strings.Split(s, " ")
+		for _, d := range n.NTPServers {
+			dns, _ = share.StringDeleteSlice(dns, d)
+		}
+		m.SetKeySectionString("Time", "NTP", strings.Join(dns, " "))
+	}
+
+	if err := restartTimesyncd(ctx); err != nil {
+		log.Errorf("Failed to restart systemd-timesyncd: %v", err)
+		return err
+	}
+
+	return web.JSONResponse("removed", w)
 }
