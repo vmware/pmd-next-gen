@@ -547,7 +547,6 @@ func networkAddDns(args cli.Args, host string, token map[string]string) {
 	}
 }
 
-
 func networkRemoveDns(args cli.Args, host string, token map[string]string) {
 	argStrings := args.Slice()
 
@@ -643,7 +642,7 @@ func networkAddDomains(args cli.Args, host string, token map[string]string) {
 		}
 		resp, err = web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, n)
 		if err != nil {
-			fmt.Printf("Failed to add link domain domains: %v\n", err)
+			fmt.Printf("Failed to add link  domains: %v\n", err)
 			return
 		}
 	}
@@ -656,6 +655,62 @@ func networkAddDomains(args cli.Args, host string, token map[string]string) {
 
 	if !m.Success {
 		fmt.Printf("Failed to add domains: %v\n", m.Errors)
+	}
+}
+
+func networkRemoveDomains(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	var dev string
+	var domains []string
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			dev = argStrings[i+1]
+		case "domains":
+			domains = strings.Split(argStrings[i+1], ",")
+		}
+	}
+
+	if validator.IsArrayEmpty(domains) {
+		fmt.Printf("Failed to remove domains. Missing domains server\n")
+		return
+	}
+
+	var resp []byte
+	var err error
+	if validator.IsEmpty(dev) {
+		n := resolved.GlobalDns{
+			Domains: domains,
+		}
+		resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/resolved/remove", token, n)
+		if err != nil {
+			fmt.Printf("Failed to remove global Dns server: %v\n", err)
+			return
+		}
+	} else {
+		n := networkd.Network{
+			Link: dev,
+			NetworkSection: networkd.NetworkSection{
+				Domains: domains,
+			},
+		}
+
+		resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/network/remove", token, n)
+		if err != nil {
+			fmt.Printf("Failed to remove link domains: %v\n", err)
+			return
+		}
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove domains: %v\n", m.Errors)
 	}
 }
 

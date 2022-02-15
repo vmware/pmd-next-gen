@@ -295,7 +295,7 @@ func main() {
 				{
 					Name:        "add-domains",
 					UsageText:   "dev [LINK] domains [DNS]",
-					Description: "Remove Link or global DNS domain name. This option may be specified more than once separated by ,",
+					Description: "Add Link or global DNS domain name. This option may be specified more than once separated by ,",
 
 					Action: func(c *cli.Context) error {
 						if c.NArg() < 1 {
@@ -304,6 +304,21 @@ func main() {
 						}
 
 						networkAddDomains(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "remove-domains",
+					UsageText:   "dev [LINK] domains [DNS]",
+					Description: "Remove Link or global DNS domain name. This option may be specified more than once separated by ,",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkRemoveDomains(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
