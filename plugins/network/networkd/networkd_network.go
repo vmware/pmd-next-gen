@@ -270,13 +270,13 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 
 	if !validator.IsArrayEmpty(n.NetworkSection.DNS) {
 		for _, dns := range n.NetworkSection.DNS {
-			if !govalidator.IsDNSName(dns) {
+			if !validator.IsIP(dns) {
 				log.Errorf("Failed to parse DNS='%s'", dns)
 				return fmt.Errorf("invalid DNS='%s'", dns)
 			}
 		}
 		s := m.GetKeySectionString("Network", "DNS")
-		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.DNS)
 		m.SetKeySectionString("Network", "DNS", strings.Join(t[:], " "))
 	}
 

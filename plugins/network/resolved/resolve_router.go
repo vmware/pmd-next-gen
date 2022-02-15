@@ -80,7 +80,6 @@ func routerRemoveDns(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func RegisterRouterResolved(router *mux.Router) {
 	n := router.PathPrefix("/resolved").Subrouter().StrictSlash(false)
 
