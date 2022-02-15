@@ -32,3 +32,6 @@ jobs:
 
     - name: Show sytem status
       run: sudo pmctl status system
+
+    - name: Run pmctl tests
+      run: sudo go test -v ./cmd/pmctl
