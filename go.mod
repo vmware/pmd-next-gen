@@ -3,25 +3,26 @@ module github.com/pmd-nextgen
 go 1.18
 
 require (
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/coreos/go-systemd/v22 v22.3.2
 	github.com/fatih/color v1.13.0
-	github.com/go-ini/ini v1.66.2
+	github.com/go-ini/ini v1.66.4
 	github.com/godbus/dbus/v5 v5.0.6
 	github.com/gorilla/mux v1.8.0
 	github.com/jaypipes/ghw v0.8.0
 	github.com/pkg/errors v0.9.1
-	github.com/shirou/gopsutil/v3 v3.21.12
+	github.com/safchain/ethtool v0.1.0
+	github.com/shirou/gopsutil/v3 v3.22.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.10.1
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/vishvananda/netlink v1.1.0
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158
 )
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
@@ -37,7 +38,6 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
-	github.com/safchain/ethtool v0.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect

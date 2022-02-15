@@ -19,7 +19,7 @@ github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
 ## explicit
 github.com/ghodss/yaml
-# github.com/go-ini/ini v1.66.2
+# github.com/go-ini/ini v1.66.4
 ## explicit
 github.com/go-ini/ini
 # github.com/go-ole/go-ole v1.2.6
@@ -103,7 +103,7 @@ github.com/russross/blackfriday/v2
 # github.com/safchain/ethtool v0.1.0
 ## explicit; go 1.16
 github.com/safchain/ethtool
-# github.com/shirou/gopsutil/v3 v3.21.12
+# github.com/shirou/gopsutil/v3 v3.22.1
 ## explicit; go 1.15
 github.com/shirou/gopsutil/v3/cpu
 github.com/shirou/gopsutil/v3/disk
@@ -165,7 +165,7 @@ github.com/vishvananda/netns
 # github.com/yusufpapurcu/wmi v1.2.2
 ## explicit; go 1.16
 github.com/yusufpapurcu/wmi
-# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
+# golang.org/x/sys v0.0.0-20220209214540-3681064d5158
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
