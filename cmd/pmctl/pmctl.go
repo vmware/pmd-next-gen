@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
-	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -444,9 +443,9 @@ func main() {
 					},
 				},
 				{
-					Name:        "set-link-mode",
-					UsageText:   "set-link-mode [LINK] [MODE BOOLEAN]",
-					Description: "Set Link mode.",
+					Name:        "set-group",
+					UsageText:   "set-group [LINK] [GROUP INTEGER]",
+					Description: "Configures Link Group.",
 
 					Action: func(c *cli.Context) error {
 						if c.NArg() < 2 {
@@ -454,13 +453,52 @@ func main() {
 							return nil
 						}
 
-						mode, err := strconv.ParseBool(c.Args().Get(1))
-						if err != nil {
-							fmt.Printf("Invalid mode.\n")
+						networkConfigureLinkGroup(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-rf-online",
+					UsageText:   "set-rf-online [LINK] [FAMILY STRING]",
+					Description: "Configures Link RequiredFamilyForOnline.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
 							return nil
 						}
 
-						networkConfigureMode(c.Args().First(), mode, c.String("url"), token)
+						networkConfigureLinkRequiredFamilyForOnline(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-active-policy",
+					UsageText:   "set-active-policy [LINK] [POLICY STRING]",
+					Description: "Configures Link ActivationPolicy.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkActivationPolicy(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-link-mode",
+					UsageText:   "set-link-mode [LINK] mode [BOOLEAN] arp [BOOLEAN] mc [BOOLEAN] amc [BOOLEAN] pcs [BOOLEAN] rfo [BOOLEAN]",
+					Description: "Set Link mode,arp,multicast,allmulticast,promiscuous and requiredforonline.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureMode(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},

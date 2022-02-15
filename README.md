@@ -404,6 +404,26 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"
 >curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
 ```
 
+#### Configure network link section using pmctl
+```bash
+# Configure link mode
+pmctl network set-link-mode dev <device> mode <unmanagedValue> arp <arpValue> mc <multicastValue> amc <allmulticastValue> pcs <PromiscuousValue> rfo <RequiredForOnline>
+>pmctl network set-link-mode dev ens37 arp 1 mc no amc true pcs yes rfo on
+
+# Configure link group
+pmctl network set-group <deviceName> <groupValue>
+>pmctl network set-group ens37 2147483647
+
+# Configure link requiredFamilyForOnline
+pmctl network set-rf-online <deviceName> <familyValue>
+>pmctl network set-rf-online ens37 ipv4
+
+# Configure link activationPolicy
+pmctl network set-active-policy <deviceName> <policyValue>
+>pmctl network set-active-policy ens37 always-up
+
+```
+
 #### Configure network device using pmctl
 ```bash
 # Configure VLan
@@ -446,7 +466,7 @@ pmctl network remove-netdev <kindDeviceName> dev <device> kind <kindType>
 >pmctl network remove-netdev ipvlan1 dev ens37 kind ipvlan
 ```
 
-#### Configure network link using pmctl
+#### Configure link using pmctl
 ```bash
 
 # Configure Link MACAddress.

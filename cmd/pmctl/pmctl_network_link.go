@@ -179,13 +179,13 @@ func networkConfigureLinkChecksumOffload(args cli.Args, host string, token map[s
 				fmt.Printf("Failed to set link rxco: Invalid rxco=%s\n", argStrings[i+1])
 				return
 			}
-			l.ReceiveChecksumOffload = argStrings[i+1]
+			l.ReceiveChecksumOffload = validator.BoolToString(argStrings[i+1])
 		case "txco":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link txco: Invalid txco=%s\n", argStrings[i+1])
 				return
 			}
-			l.TransmitChecksumOffload = argStrings[i+1]
+			l.TransmitChecksumOffload = validator.BoolToString(argStrings[i+1])
 		}
 
 		i++
@@ -208,13 +208,13 @@ func networkConfigureLinkTCPOffload(args cli.Args, host string, token map[string
 				fmt.Printf("Failed to set link tcpsgmtold: Invalid tcpsgmtold=%s\n", argStrings[i+1])
 				return
 			}
-			l.TCPSegmentationOffload = argStrings[i+1]
+			l.TCPSegmentationOffload = validator.BoolToString(argStrings[i+1])
 		case "tcp6so":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link tcp6sgmtold: Invalid tcp6sgmtold=%s\n", argStrings[i+1])
 				return
 			}
-			l.TCP6SegmentationOffload = argStrings[i+1]
+			l.TCP6SegmentationOffload = validator.BoolToString(argStrings[i+1])
 		}
 
 		i++
@@ -237,19 +237,19 @@ func networkConfigureLinkGenericOffload(args cli.Args, host string, token map[st
 				fmt.Printf("Failed to set link gso: Invalid gso=%s\n", argStrings[i+1])
 				return
 			}
-			l.GenericSegmentationOffload = argStrings[i+1]
+			l.GenericSegmentationOffload = validator.BoolToString(argStrings[i+1])
 		case "gro":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link gro: Invalid gro=%s\n", argStrings[i+1])
 				return
 			}
-			l.GenericReceiveOffload = argStrings[i+1]
+			l.GenericReceiveOffload = validator.BoolToString(argStrings[i+1])
 		case "grohw":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link grohw: Invalid grohw=%s\n", argStrings[i+1])
 				return
 			}
-			l.GenericReceiveOffloadHardware = argStrings[i+1]
+			l.GenericReceiveOffloadHardware = validator.BoolToString(argStrings[i+1])
 		case "gsomaxbytes":
 			if !validator.IsLinkGSO(argStrings[i+1]) {
 				fmt.Printf("Failed to set link gsomaxbytes: Invalid gsomaxbytes=%s\n", argStrings[i+1])
@@ -286,25 +286,25 @@ func networkConfigureLinkVLANTags(args cli.Args, host string, token map[string]s
 				fmt.Printf("Failed to set link rxvlanctaghwacl: Invalid rxvlanctaghwacl=%s\n", argStrings[i+1])
 				return
 			}
-			l.ReceiveVLANCTAGHardwareAcceleration = argStrings[i+1]
+			l.ReceiveVLANCTAGHardwareAcceleration = validator.BoolToString(argStrings[i+1])
 		case "txvlanctaghwacl":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link txvlanctaghwacl: Invalid txvlanctaghwacl=%s\n", argStrings[i+1])
 				return
 			}
-			l.TransmitVLANCTAGHardwareAcceleration = argStrings[i+1]
+			l.TransmitVLANCTAGHardwareAcceleration = validator.BoolToString(argStrings[i+1])
 		case "rxvlanctagfilter":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link rxvlanctagfilter: Invalid rxvlanctagfilter=%s\n", argStrings[i+1])
 				return
 			}
-			l.ReceiveVLANCTAGFilter = argStrings[i+1]
+			l.ReceiveVLANCTAGFilter = validator.BoolToString(argStrings[i+1])
 		case "txvlanstaghwacl":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link txvlanstaghwacl: Invalid txvlanstaghwacl=%s\n", argStrings[i+1])
 				return
 			}
-			l.TransmitVLANSTAGHardwareAcceleration = argStrings[i+1]
+			l.TransmitVLANSTAGHardwareAcceleration = validator.BoolToString(argStrings[i+1])
 		}
 
 		i++
@@ -409,19 +409,19 @@ func networkConfigureLinkFlowControl(args cli.Args, host string, token map[strin
 				fmt.Printf("Failed to set link rxfctrl: Invalid rxfctrl=%s\n", argStrings[i+1])
 				return
 			}
-			l.RxFlowControl = argStrings[i+1]
+			l.RxFlowControl = validator.BoolToString(argStrings[i+1])
 		case "txfctrl":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link txfctrl: Invalid txfctrl=%s\n", argStrings[i+1])
 				return
 			}
-			l.TxFlowControl = argStrings[i+1]
+			l.TxFlowControl = validator.BoolToString(argStrings[i+1])
 		case "anfctrl":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link anfctrl: Invalid anfctrl=%s\n", argStrings[i+1])
 				return
 			}
-			l.AutoNegotiationFlowControl = argStrings[i+1]
+			l.AutoNegotiationFlowControl = validator.BoolToString(argStrings[i+1])
 		}
 
 		i++
@@ -444,13 +444,13 @@ func networkConfigureLinkAdaptiveCoalesce(args cli.Args, host string, token map[
 				fmt.Printf("Failed to set link uarxc: Invalid uarxc=%s\n", argStrings[i+1])
 				return
 			}
-			l.UseAdaptiveRxCoalesce = argStrings[i+1]
+			l.UseAdaptiveRxCoalesce = validator.BoolToString(argStrings[i+1])
 		case "uatxc":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link uatxc: Invalid uatxc=%s\n", argStrings[i+1])
 				return
 			}
-			l.UseAdaptiveTxCoalesce = argStrings[i+1]
+			l.UseAdaptiveTxCoalesce = validator.BoolToString(argStrings[i+1])
 		}
 
 		i++
@@ -713,7 +713,7 @@ func networkConfigureLink(args cli.Args, host string, token map[string]string) {
 				fmt.Printf("Failed to set link auton: Invalid auton=%s\n", argStrings[i+1])
 				return
 			}
-			l.AutoNegotiation = argStrings[i+1]
+			l.AutoNegotiation = validator.BoolToString(argStrings[i+1])
 		case "wol":
 			lansPolicy := strings.Split(argStrings[i+1], ",")
 			for _, policy := range lansPolicy {
@@ -749,13 +749,13 @@ func networkConfigureLink(args cli.Args, host string, token map[string]string) {
 				fmt.Printf("Failed to set link lrxo: Invalid lrxo=%s\n", argStrings[i+1])
 				return
 			}
-			l.LargeReceiveOffload = argStrings[i+1]
+			l.LargeReceiveOffload = validator.BoolToString(argStrings[i+1])
 		case "ntf":
 			if !validator.IsBool(argStrings[i+1]) {
 				fmt.Printf("Failed to set link ntf: Invalid ntf=%s\n", argStrings[i+1])
 				return
 			}
-			l.NTupleFilter = argStrings[i+1]
+			l.NTupleFilter = validator.BoolToString(argStrings[i+1])
 		case "ssbcs":
 			if !validator.IsUintOrMax(argStrings[i+1]) {
 				fmt.Printf("Failed to set link ssbcs: Invalid ssbcs=%s\n", argStrings[i+1])

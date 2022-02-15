@@ -435,18 +435,101 @@ func networkConfigureMAC(link string, mac string, host string, token map[string]
 	networkConfigure(&n, host, token)
 }
 
-func networkConfigureMode(link string, mode bool, host string, token map[string]string) {
-	unmanaged := "no"
-
-	if !mode {
-		unmanaged = "yes"
+func networkConfigureLinkGroup(link string, group string, host string, token map[string]string) {
+	if !validator.IsEmpty(group) {
+		if !validator.IsLinkGroup(group) {
+			fmt.Printf("Failed to parse group: Invalid Group=%s\n", group)
+			return
+		}
 	}
 
 	n := networkd.Network{
 		Link: link,
 		LinkSection: networkd.LinkSection{
-			Unmanaged: unmanaged,
+			Group: group,
 		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureLinkRequiredFamilyForOnline(link string, rfonline string, host string, token map[string]string) {
+	if !validator.IsEmpty(rfonline) {
+		if !validator.IsLinkRequiredFamilyForOnline(rfonline) {
+			fmt.Printf("Failed to parse online family='%s'\n", rfonline)
+			return
+		}
+	}
+
+	n := networkd.Network{
+		Link: link,
+		LinkSection: networkd.LinkSection{
+			RequiredFamilyForOnline: rfonline,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureLinkActivationPolicy(link string, policy string, host string, token map[string]string) {
+	if !validator.IsEmpty(policy) {
+		if !validator.IsLinkActivationPolicy(policy) {
+			fmt.Printf("Failed to parse activation policy='%s'\n", policy)
+			return
+		}
+	}
+
+	n := networkd.Network{
+		Link: link,
+		LinkSection: networkd.LinkSection{
+			ActivationPolicy: policy,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureMode(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "arp":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Failed to parse arp='%s'\n", argStrings[i+1])
+				return
+			}
+			n.LinkSection.ARP = validator.BoolToString(argStrings[i+1])
+		case "mc":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Failed to parse mc='%s'\n", argStrings[i+1])
+				return
+			}
+			n.LinkSection.Multicast = validator.BoolToString(argStrings[i+1])
+		case "amc":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Failed to parse amc='%s'\n", argStrings[i+1])
+				return
+			}
+			n.LinkSection.AllMulticast = validator.BoolToString(argStrings[i+1])
+		case "pcs":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Failed to parse pcs='%s'\n", argStrings[i+1])
+				return
+			}
+			n.LinkSection.Promiscuous = validator.BoolToString(argStrings[i+1])
+		case "rfo":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Failed to parse rfo='%s'\n", argStrings[i+1])
+				return
+			}
+			n.LinkSection.RequiredForOnline = validator.BoolToString(argStrings[i+1])
+		}
+
+		i++
 	}
 
 	networkConfigure(&n, host, token)
