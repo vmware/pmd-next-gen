@@ -6,7 +6,6 @@ package timesyncd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -147,12 +146,10 @@ func (n *NTP) RemoveNTP(ctx context.Context, w http.ResponseWriter) error {
 
 	if !validator.IsArrayEmpty(n.NTPServers) {
 		s := m.GetKeySectionString("Time", "NTP")
-		fmt.Println(s)
 		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), n.NTPServers)
 		if err != nil {
 			return err
 		}
-		fmt.Println(t)
 		m.SetKeySectionString("Time", "NTP", strings.Join(t[:], " "))
 	}
 

@@ -258,19 +258,24 @@ func (d *GlobalDns) RemoveDns(ctx context.Context, w http.ResponseWriter) error 
 
 	if !validator.IsArrayEmpty(d.DnsServers) {
 		s := m.GetKeySectionString("Resolve", "DNS")
-		dns := strings.Split(s, " ")
-		for _, d := range d.DnsServers {
-			dns, _ = share.StringDeleteSlice(dns, d)
+		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), d.DnsServers)
+		if err != nil {
+			return err
 		}
-		m.SetKeySectionString("Resolve", "DNS", strings.Join(dns, " "))
+		m.SetKeySectionString("Resolve", "DNS", strings.Join(t[:], " "))
 	}
 	if !validator.IsArrayEmpty(d.Domains) {
 		s := m.GetKeySectionString("Resolve", "Domains")
-		domains := strings.Split(s, " ")
-		for _, s := range d.DnsServers {
-			domains, _ = share.StringDeleteSlice(domains, s)
+		t, err := share.StringDeleteAllSlice(strings.Split(s, " "), d.Domains)
+		if err != nil {
+			return err
 		}
-		m.SetKeySectionString("Resolve", "Domains", strings.Join(domains, " "))
+		m.SetKeySectionString("Resolve", "Domains", strings.Join(t[:], " "))
+	}
+
+	if err := m.Save(); err != nil {
+		log.Errorf("Failed to update config file='%s': %v", m.Path, err)
+		return err
 	}
 
 	if err := restartResolved(ctx); err != nil {

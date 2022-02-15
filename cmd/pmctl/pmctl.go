@@ -278,6 +278,21 @@ func main() {
 					},
 				},
 				{
+					Name:        "remove-dns",
+					UsageText:   "dev [LINK] dns [DNS]",
+					Description: "Remove Link or global DNS server address. This option may be specified more than once separated by ,",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkRemoveDns(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "add-ntp",
 					UsageText:   "dev [LINK] ntp [NTP]",
 					Description: "Add Link or global NTP server address. This option may be specified more than once separated by ,",

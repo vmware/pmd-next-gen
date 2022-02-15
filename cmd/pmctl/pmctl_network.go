@@ -517,7 +517,6 @@ func networkAddDns(args cli.Args, host string, token map[string]string) {
 		n := resolved.GlobalDns{
 			DnsServers: dns,
 		}
-		fmt.Println(n)
 		resp, err = web.DispatchSocket(http.MethodPost, host, "/api/v1/network/resolved/add", token, n)
 		if err != nil {
 			fmt.Printf("Failed to add global Dns server: %v\n", err)
@@ -545,6 +544,63 @@ func networkAddDns(args cli.Args, host string, token map[string]string) {
 
 	if !m.Success {
 		fmt.Printf("Failed to add Dns server: %v\n", m.Errors)
+	}
+}
+
+
+func networkRemoveDns(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	var dev string
+	var dns []string
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			dev = argStrings[i+1]
+		case "dns":
+			dns = strings.Split(argStrings[i+1], ",")
+		}
+	}
+
+	if validator.IsArrayEmpty(dns) {
+		fmt.Printf("Failed to remove dns. Missing dns server\n")
+		return
+	}
+
+	var resp []byte
+	var err error
+	if validator.IsEmpty(dev) {
+		n := resolved.GlobalDns{
+			DnsServers: dns,
+		}
+		resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/resolved/remove", token, n)
+		if err != nil {
+			fmt.Printf("Failed to remove global Dns server: %v\n", err)
+			return
+		}
+	} else {
+		n := networkd.Network{
+			Link: dev,
+			NetworkSection: networkd.NetworkSection{
+				DNS: dns,
+			},
+		}
+
+		resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/network/remove", token, n)
+		if err != nil {
+			fmt.Printf("Failed to remove link Dns server: %v\n", err)
+			return
+		}
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove Dns server: %v\n", m.Errors)
 	}
 }
 
