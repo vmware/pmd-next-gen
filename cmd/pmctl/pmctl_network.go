@@ -196,7 +196,6 @@ func displayDnsAndDomains(n *resolved.Describe) {
 		fmt.Printf("%v ", d.Domain)
 	}
 
-	fmt.Println("\n")
 	type linkDns struct {
 		Index int32
 		Link  string
@@ -221,13 +220,13 @@ func displayDnsAndDomains(n *resolved.Describe) {
 	}
 
 	for _, d := range dns {
-		fmt.Printf("%v %v (%v)\n", color.HiBlueString("Link"), d.Index, d.Link)
+		fmt.Printf("\n%v %v (%v)\n", color.HiBlueString("Link"), d.Index, d.Link)
 		for _, c := range n.LinkCurrentDNS {
 			if c.Index == d.Index {
 				fmt.Printf("%v %v\n", color.HiBlueString("Current DNS Server: "), c.Dns)
 			}
 		}
-		fmt.Printf("       %v %v\n\n", color.HiBlueString("DNS Servers: "), strings.Join(d.Dns, " "))
+		fmt.Printf("       %v %v\n", color.HiBlueString("DNS Servers: "), strings.Join(d.Dns, " "))
 	}
 }
 

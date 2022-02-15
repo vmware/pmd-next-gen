@@ -13,6 +13,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pmd-nextgen/pkg/share"
+	"github.com/pmd-nextgen/pkg/system"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/management"
 	"github.com/pmd-nextgen/plugins/management/hostname"
@@ -72,14 +73,14 @@ func displayHostname(h *hostname.Describe) {
 }
 
 func displayTimeDate(t *timedate.Describe) {
-	tm := time.UnixMicro(int64(t.TimeUSec))
+	tm := system.UnixMicro(int64(t.TimeUSec))
 	location, _ := time.LoadLocation(t.Timezone)
 
 	fmt.Printf("                %v %v (%v)\n", color.HiBlueString("Time zone:"), t.Timezone, tm.In(location))
 	fmt.Printf("         %v %v\n", color.HiBlueString("NTP synchronized:"), t.NTPSynchronized)
 
 	fmt.Printf("       %v %v\n", color.HiBlueString("              Time:"), tm.Format(time.UnixDate))
-	tm = time.UnixMicro(int64(t.TimeUSec))
+	tm = system.UnixMicro(int64(t.TimeUSec))
 	fmt.Printf("       %v %v\n", color.HiBlueString("          RTC Time:"), tm.UTC())
 }
 

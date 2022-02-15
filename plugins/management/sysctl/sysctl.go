@@ -5,6 +5,7 @@ package sysctl
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -111,7 +112,7 @@ func createSysctlMapFromDir(baseDirPath string, sysctlMap map[string]string) err
 		// Reading all files from procSysPath so need to create key and insert in map.
 		if baseDirPath == procSysPath {
 			key := keyFromPath(path)
-			val, err := os.ReadFile(path)
+			val, err := ioutil.ReadFile(path)
 			if err != nil {
 				log.Errorf("Failed to read file='%s': %v", path, err)
 			} else {
@@ -132,7 +133,7 @@ func createSysctlMapFromDir(baseDirPath string, sysctlMap map[string]string) err
 
 // Fetch key value from proc/sys directory
 func getKeyValueFromProcSys(key string, sysctlMap map[string]string) error {
-	data, err := os.ReadFile(pathFromKey(key))
+	data, err := ioutil.ReadFile(pathFromKey(key))
 	if err != nil {
 		return err
 	}
