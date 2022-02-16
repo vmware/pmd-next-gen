@@ -47,29 +47,30 @@ func ParseKeyFromSectionString(path string, section string, key string) (string,
 }
 
 func (m *Meta) SetKeySectionString(section string, key string, value string) error {
-	_, err := m.Cfg.SectionsByName(section)
+	s, err := m.Cfg.GetSection(section)
 	if err != nil {
-		_, err = m.Cfg.NewSection(section)
+		s, err = m.Cfg.NewSection(section)
 		if err != nil {
 			return err
 		}
 	}
 
-	m.Cfg.Section(section).Key(key).SetValue(value)
+	s.Key(key).SetValue(value)
 	return nil
 }
 
 func (m *Meta) SetKeySectionUint(section string, key string, value uint) error {
 	_, err := m.Cfg.SectionsByName(section)
+	s, err := m.Cfg.GetSection(section)
 	if err != nil {
-		_, err = m.Cfg.NewSection(section)
+		s, err = m.Cfg.NewSection(section)
 		if err != nil {
 			return err
 		}
 	}
 
-	s := strconv.FormatUint(uint64(value), 10)
-	m.Cfg.Section(section).Key(key).SetValue(s)
+	v := strconv.FormatUint(uint64(value), 10)
+	s.Key(key).SetValue(v)
 	return nil
 }
 
