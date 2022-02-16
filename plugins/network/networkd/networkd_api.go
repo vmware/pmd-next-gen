@@ -169,11 +169,13 @@ func CreateMatchSection(m *configfile.Meta, link string) error {
 func CreateNetworkFile(link string) (*configfile.Meta, error) {
 	file := "10-" + link + ".network"
 
-	f, err := os.Create(path.Join("/etc/systemd/network", file))
-	if err != nil {
-		return nil, err
+	if !system.PathExists(path.Join("/etc/systemd/network", file)) {
+		f, err := os.Create(path.Join("/etc/systemd/network", file))
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
 	}
-	defer f.Close()
 
 	m, err := configfile.Load(path.Join("/etc/systemd/network", file))
 	if err != nil {
