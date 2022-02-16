@@ -505,6 +505,10 @@ pmctl link set-channel dev <deviceName> rxch <RxChannels> txch <TxChannels> oth 
 pmctl link set-buffer dev <deviceName> rxbufsz <RxBufferSize> rxmbufsz <RxMiniBufferSize> rxjbufsz <RxJumboBufferSize> txbufsz <TxBufferSize>
 >pmctl link set-buffer dev ens37 rxbufsz 100009 rxmbufsz 1998 rxjbufsz 10999888 txbufsz 83724
 
+# Configure Link Queues.
+pmctl link set-queue dev <deviceName> rxq <ReceiveQueues> txq <TransmitQueues> txqlen <TransmitQueueLength>
+>pmctl link set-queue dev ens37 rxq 4096 txq 4096 txqlen 4294967294
+
 # Configure Link FlowControls.
 pmctl link set-flow-ctrl dev <deviceName> rxfctrl <RxFlowControl> txfctrl <TxFlowControl> anfctrl <AutoNegotiationFlowControl>
 >pmctl link set-flow-ctrl dev ens37 rxfctrl true txfctrl true anfctrl true

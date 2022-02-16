@@ -63,8 +63,7 @@ type Link struct {
 	TxBufferSize                         string   `json:"TxBufferSize"`      // range 1…4294967295 or "max
 	RxFlowControl                        string   `json:"RxFlowControl"`
 	TxFlowControl                        string   `json:"TxFlowControl"`
-	RxFlowContrAutoNegotiation           string   `json:"AutoNegotiationFlowControl"`
-	AutoNegotiationFlowControl           string   `json:"TAutoNegotiationFlowControl"`
+	AutoNegotiationFlowControl           string   `json:"AutoNegotiationFlowControl"`
 	GenericSegmentOffloadMaxBytes        uint     `json:"GenericSegmentOffloadMaxBytes"`
 	GenericSegmentOffloadMaxSegments     uint     `json:"GenericSegmentOffloadMaxSegments"`
 	UseAdaptiveRxCoalesce                string   `json:"UseAdaptiveRxCoalesce"`
