@@ -48,7 +48,7 @@ func StringDeleteAllSlice(a []string, b []string) ([]string, error) {
 	return s, err
 }
 
-func UniqueString(s []string, t []string) []string {
+func UniqueSlices(s []string, t []string) []string {
 	set := NewSet()
 
 	list := []string{}

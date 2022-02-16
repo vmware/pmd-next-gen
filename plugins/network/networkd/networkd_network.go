@@ -272,7 +272,7 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 
 	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
 		s := m.GetKeySectionString("Network", "Domains")
-		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.Domains)
+		t := share.UniqueSlices(strings.Split(s, " "), n.NetworkSection.Domains)
 		m.SetKeySectionString("Network", "Domains", strings.Join(t[:], " "))
 	}
 
@@ -284,13 +284,13 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 			}
 		}
 		s := m.GetKeySectionString("Network", "DNS")
-		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.DNS)
+		t := share.UniqueSlices(strings.Split(s, " "), n.NetworkSection.DNS)
 		m.SetKeySectionString("Network", "DNS", strings.Join(t[:], " "))
 	}
 
 	if !validator.IsArrayEmpty(n.NetworkSection.NTP) {
 		s := m.GetKeySectionString("Network", "NTP")
-		t := share.UniqueString(strings.Split(s, " "), n.NetworkSection.NTP)
+		t := share.UniqueSlices(strings.Split(s, " "), n.NetworkSection.NTP)
 		m.SetKeySectionString("Network", "NTP", strings.Join(t[:], " "))
 	}
 

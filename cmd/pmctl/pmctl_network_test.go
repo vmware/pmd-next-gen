@@ -5,7 +5,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -57,8 +56,7 @@ func TestNetworkAddGlobalDns(t *testing.T) {
 	var err error
 	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/resolved/add", nil, n)
 	if err != nil {
-		fmt.Printf("Failed to add global Dns server: %v\n", err)
-		return
+		t.Fatalf("Failed to add global Dns server: %v\n", err)
 	}
 
 	j := web.JSONResponseMessage{}
@@ -66,7 +64,7 @@ func TestNetworkAddGlobalDns(t *testing.T) {
 		t.Fatalf("Failed to decode json message: %v\n", err)
 	}
 	if !j.Success {
-		t.Fatalf("Failed to configure DNS: %v\n", j.Errors)
+		t.Fatalf("Failed to add Dns servers: %v\n", j.Errors)
 	}
 
 	time.Sleep(time.Second * 3)
@@ -77,8 +75,8 @@ func TestNetworkAddGlobalDns(t *testing.T) {
 	}
 
 	dns := m.GetKeySectionString("Resolve", "DNS")
-	for _, d := range strings.Split(dns, " ") {
-		if !share.StringContains(s, d) {
+	for _, d := range s {
+		if !share.StringContains(strings.Split(dns, " "), d) {
 			t.Fatalf("Failed")
 		}
 	}
@@ -94,8 +92,7 @@ func TestNetworkRemoveGlobalDns(t *testing.T) {
 	var err error
 	resp, err = web.DispatchSocket(http.MethodDelete, "", "/api/v1/network/resolved/remove", nil, n)
 	if err != nil {
-		fmt.Printf("Failed to add global Dns server: %v\n", err)
-		return
+		t.Fatalf("Failed to add global Dns servers: %v\n", err)
 	}
 
 	j := web.JSONResponseMessage{}
@@ -103,7 +100,7 @@ func TestNetworkRemoveGlobalDns(t *testing.T) {
 		t.Fatalf("Failed to decode json message: %v\n", err)
 	}
 	if !j.Success {
-		t.Fatalf("Failed to configure DNS: %v\n", j.Errors)
+		t.Fatalf("Failed to configure Dns: %v\n", j.Errors)
 	}
 
 	time.Sleep(time.Second * 3)
@@ -114,8 +111,79 @@ func TestNetworkRemoveGlobalDns(t *testing.T) {
 	}
 
 	dns := m.GetKeySectionString("Resolve", "DNS")
-	for _, d := range strings.Split(dns, " ") {
-		if share.StringContains(s, d) {
+	for _, d := range s {
+		if share.StringContains(strings.Split(dns, " "), d) {
+			t.Fatalf("Failed")
+		}
+	}
+}
+
+func TestNetworkAddGlobalDomain(t *testing.T) {
+	s := []string{"test1.com", "test2.com", "test3.com", "test4.com"}
+	n := resolved.GlobalDns{
+		Domains: s,
+	}
+	var resp []byte
+	var err error
+	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/resolved/add", nil, n)
+	if err != nil {
+		t.Fatalf("Failed to add global domain: %v\n", err)
+	}
+
+	j := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &j); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+	if !j.Success {
+		t.Fatalf("Failed to configure domain: %v\n", j.Errors)
+	}
+
+	time.Sleep(time.Second * 3)
+
+	m, err := configfile.Load("/etc/systemd/resolved.conf")
+	if err != nil {
+		t.Fatalf("Failed to load resolved.conf: %v\n", err)
+	}
+
+	domains := m.GetKeySectionString("Resolve", "Domains")
+	for _, d := range s {
+		if !share.StringContains(strings.Split(domains, " "), d) {
+			t.Fatalf("Failed")
+		}
+	}
+}
+
+func TestNetworkRemoveGlobalDomain(t *testing.T) {
+	TestNetworkAddGlobalDomain(t)
+	s := []string{"test1.com", "test2.com"}
+	n := resolved.GlobalDns{
+		Domains: s,
+	}
+	var resp []byte
+	var err error
+	resp, err = web.DispatchSocket(http.MethodDelete, "", "/api/v1/network/resolved/remove", nil, n)
+	if err != nil {
+		t.Fatalf("Failed to add global Ddomain: %v\n", err)
+	}
+
+	j := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &j); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+	if !j.Success {
+		t.Fatalf("Failed to remove Domain: %v\n", j.Errors)
+	}
+
+	time.Sleep(time.Second * 3)
+
+	m, err := configfile.Load("/etc/systemd/resolved.conf")
+	if err != nil {
+		t.Fatalf("Failed to load resolved.conf: %v\n", err)
+	}
+
+	domains := m.GetKeySectionString("Resolve", "Domains")
+	for _, d := range s {
+		if share.StringContains(strings.Split(domains, " "), d) {
 			t.Fatalf("Failed")
 		}
 	}
