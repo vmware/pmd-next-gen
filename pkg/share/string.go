@@ -11,13 +11,11 @@ import (
 )
 
 func StringContains(list []string, s string) bool {
-	set := make(map[string]int)
-
-	for k, v := range list {
-		set[v] = k
+	set := NewSet()
+	for _, v := range list {
+		set.Add(v)
 	}
-
-	return set[s] != 0
+	return set.Contains(s)
 }
 
 func StringDeleteSlice(list []string, s string) ([]string, error) {

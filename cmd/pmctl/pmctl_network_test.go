@@ -5,15 +5,19 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/pmd-nextgen/pkg/configfile"
+	"github.com/pmd-nextgen/pkg/share"
 	"github.com/pmd-nextgen/pkg/system"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/network/networkd"
+	"github.com/pmd-nextgen/plugins/network/resolved"
 	"github.com/vishvananda/netlink"
 )
 
@@ -42,6 +46,42 @@ func removeDummy(t *testing.T, link netlink.Link) {
 	}
 
 	netlink.LinkDel(l)
+}
+
+func TestNetworkGlobalDns(t *testing.T) {
+	s := []string{"8.8.8.8", "8.8.4.4", "8.8.8.1", "8.8.8.2"}
+	n := resolved.GlobalDns{
+		DnsServers: s,
+	}
+	var resp []byte
+	var err error
+	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/resolved/add", nil, n)
+	if err != nil {
+		fmt.Printf("Failed to add global Dns server: %v\n", err)
+		return
+	}
+
+	j := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &j); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+	if !j.Success {
+		t.Fatalf("Failed to configure DNS: %v\n", j.Errors)
+	}
+
+	time.Sleep(time.Second * 3)
+
+	m, err := configfile.Load("/etc/systemd/resolved.conf")
+	if err != nil {
+		t.Fatalf("Failed to load resolved.conf: %v\n", err)
+	}
+
+	dns := m.GetKeySectionString("Resolve", "DNS")
+	for _, d := range strings.Split(dns, " ") {
+		if !share.StringContains(s, d) {
+			t.Fatalf("Failed")
+		}
+	}
 }
 
 func TestNetworkDHCP(t *testing.T) {
