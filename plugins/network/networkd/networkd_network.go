@@ -27,9 +27,17 @@ type MatchSection struct {
 }
 
 type LinkSection struct {
-	MTUBytes   string `json:"MTUBytes"`
-	MACAddress string `json:"MACAddress"`
-	Unmanaged  string `json:"Unmanaged"`
+	MTUBytes                string `json:"MTUBytes"`
+	MACAddress              string `json:"MACAddress"`
+	ARP                     string `json:"ARP"`
+	Multicast               string `json:"Multicast"`
+	AllMulticast            string `json:"AllMulticast"`
+	Promiscuous             string `json:"Promiscuous"`
+	Unmanaged               string `json:"Unmanaged"`
+	Group                   string `json:"Group"`
+	RequiredForOnline       string `json:"RequiredForOnline"`
+	RequiredFamilyForOnline string `json:"RequiredFamilyForOnline"`
+	ActivationPolicy        string `json:"ActivationPolicy"`
 }
 
 type NetworkSection struct {
@@ -366,8 +374,55 @@ func (n *Network) buildLinkSection(m *configfile.Meta) error {
 		}
 	}
 
+	if !validator.IsEmpty(n.LinkSection.ARP) && validator.IsBool(n.LinkSection.ARP) {
+		m.SetKeySectionString("Link", "ARP", n.LinkSection.ARP)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.Multicast) && validator.IsBool(n.LinkSection.Multicast) {
+		m.SetKeySectionString("Link", "Multicast", n.LinkSection.Multicast)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.AllMulticast) && validator.IsBool(n.LinkSection.AllMulticast) {
+		m.SetKeySectionString("Link", "AllMulticast", n.LinkSection.AllMulticast)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.Promiscuous) && validator.IsBool(n.LinkSection.Promiscuous) {
+		m.SetKeySectionString("Link", "Promiscuous", n.LinkSection.Promiscuous)
+	}
+
 	if !validator.IsEmpty(n.LinkSection.Unmanaged) && validator.IsBool(n.LinkSection.Unmanaged) {
 		m.SetKeySectionString("Link", "Unmanaged", n.LinkSection.Unmanaged)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.Group) {
+		if !validator.IsLinkGroup(n.LinkSection.Group) {
+			log.Errorf("Failed to parse Group='%s'", n.LinkSection.Group)
+			return fmt.Errorf("invalid group='%s'", n.LinkSection.Group)
+
+		}
+		m.SetKeySectionString("Link", "Group", n.LinkSection.Group)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.RequiredForOnline) && validator.IsBool(n.LinkSection.RequiredForOnline) {
+		m.SetKeySectionString("Link", "RequiredForOnline", n.LinkSection.RequiredForOnline)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.RequiredFamilyForOnline) {
+		if !validator.IsLinkRequiredFamilyForOnline(n.LinkSection.RequiredFamilyForOnline) {
+			log.Errorf("Failed to parse RequiredFamilyForOnline='%s'", n.LinkSection.RequiredFamilyForOnline)
+			return fmt.Errorf("invalid online family='%s'", n.LinkSection.RequiredFamilyForOnline)
+
+		}
+		m.SetKeySectionString("Link", "RequiredFamilyForOnline", n.LinkSection.RequiredFamilyForOnline)
+	}
+
+	if !validator.IsEmpty(n.LinkSection.ActivationPolicy) {
+		if !validator.IsLinkActivationPolicy(n.LinkSection.ActivationPolicy) {
+			log.Errorf("Failed to parse ActivationPolicy='%s'", n.LinkSection.ActivationPolicy)
+			return fmt.Errorf("invalid activation policy='%s'", n.LinkSection.ActivationPolicy)
+
+		}
+		m.SetKeySectionString("Link", "ActivationPolicy", n.LinkSection.ActivationPolicy)
 	}
 
 	return nil

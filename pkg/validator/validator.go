@@ -21,6 +21,17 @@ func IsBool(str string) bool {
 	return false
 }
 
+func BoolToString(str string) string {
+	switch str {
+	case "1", "t", "T", "true", "TRUE", "True", "YES", "yes", "Yes", "y", "ON", "on", "On":
+		return "yes"
+	case "0", "f", "F", "false", "FALSE", "False", "NO", "no", "No", "n", "OFF", "off", "Off":
+		return "no"
+	}
+
+	return "n/a"
+}
+
 func IsArrayEmpty(str []string) bool {
 	return len(str) == 0
 }
@@ -276,4 +287,22 @@ func IsLinkGSO(value string) bool {
 	}
 
 	return true
+}
+
+func IsLinkGroup(value string) bool {
+	l, err := strconv.ParseUint(value, 10, 32)
+	if err != nil || l > 2147483647 {
+		return false
+	}
+
+	return true
+}
+
+func IsLinkRequiredFamilyForOnline(family string) bool {
+	return family == "ipv4" || family == "ipv6" || family == "both" || family == "any"
+}
+
+func IsLinkActivationPolicy(policy string) bool {
+	return policy == "up" || policy == "always-up" || policy == "down" ||
+		policy == "always-down" || policy == "manual" || policy == "bound"
 }
