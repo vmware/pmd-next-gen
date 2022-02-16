@@ -292,8 +292,8 @@ func main() {
 					},
 				},
 				{
-					Name:        "add-domains",
-					UsageText:   "dev [LINK] domains [DNS]",
+					Name:        "add-domain",
+					UsageText:   "dev [LINK] domain [DNS]",
 					Description: "Add Link or global DNS domain name. This option may be specified more than once separated by ,",
 
 					Action: func(c *cli.Context) error {
@@ -307,8 +307,8 @@ func main() {
 					},
 				},
 				{
-					Name:        "remove-domains",
-					UsageText:   "dev [LINK] domains [DNS]",
+					Name:        "remove-domain",
+					UsageText:   "dev [LINK] domain [DNS]",
 					Description: "Remove Link or global DNS domain name. This option may be specified more than once separated by ,",
 
 					Action: func(c *cli.Context) error {
