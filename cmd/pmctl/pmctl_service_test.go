@@ -21,31 +21,28 @@ func TestExecuteSystemdUnitCommand(t *testing.T) {
 
 	resp, err := web.DispatchSocket(http.MethodPost, "", "/api/v1/service/systemd", nil, c)
 	if err != nil {
-		t.Errorf("Failed to execute systemd command: %v\n", err)
+		t.Fatalf("Failed to execute systemd command: %v\n", err)
 	}
 
 	m := web.JSONResponseMessage{}
 	if err := json.Unmarshal(resp, &m); err != nil {
-		t.Errorf("Failed to decode json message: %v\n", err)
-		return
+		t.Fatalf("Failed to decode json message: %v\n", err)
 	}
 
 	if !m.Success {
-		t.Errorf("Failed to execute systemd command: %v\n", m.Errors)
+		t.Fatalf("Failed to execute systemd command: %v\n", m.Errors)
 	}
 }
 
 func TestAcquireSystemdUnitStatus(t *testing.T) {
 	resp, err := web.DispatchSocket(http.MethodGet, "", "/api/v1/service/systemd/sshd.service/status", nil, nil)
 	if err != nil {
-		t.Errorf("Failed to fetch unit status: %v\n", err)
-		return
+		t.Fatalf("Failed to fetch unit status: %v\n", err)
 	}
 
 	u := UnitStatus{}
 	if err := json.Unmarshal(resp, &u); err != nil {
-		t.Errorf("Failed to decode json message: %v\n", err)
-		return
+		t.Fatalf("Failed to decode json message: %v\n", err)
 	}
 
 	if u.Success {
@@ -57,6 +54,6 @@ func TestAcquireSystemdUnitStatus(t *testing.T) {
 		fmt.Printf("             SubState:%+v \n", u.Message.SubState)
 		fmt.Printf("        UnitFileState: %+v \n", u.Message.UnitFileState)
 	} else {
-		t.Errorf(u.Errors)
+		t.Fatalf(u.Errors)
 	}
 }

@@ -121,7 +121,7 @@ func (n *NTP) AddNTP(ctx context.Context, w http.ResponseWriter) error {
 
 	if !validator.IsArrayEmpty(n.NTPServers) {
 		s := m.GetKeySectionString("Time", "NTP")
-		t := share.UniqueString(strings.Split(s, " "), n.NTPServers)
+		t := share.UniqueSlices(strings.Split(s, " "), n.NTPServers)
 		m.SetKeySectionString("Time", "NTP", strings.Join(t[:], " "))
 	}
 
