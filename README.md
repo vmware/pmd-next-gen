@@ -410,6 +410,14 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"
 pmctl network set-link-mode dev <device> mode <unmanagedValue> arp <arpValue> mc <multicastValue> amc <allmulticastValue> pcs <PromiscuousValue> rfo <RequiredForOnline>
 >pmctl network set-link-mode dev ens37 arp 1 mc no amc true pcs yes rfo on
 
+# Configure link mtubytes
+pmctl network set-mtu <deviceName> <mtubytesValue>
+>pmctl network set-mtu ens37 2048
+
+# Configure link mac
+pmctl network set-mac <deviceName> <MACAddress>
+>pmctl network set-gmac ens37 00:a0:de:63:7a:e6
+
 # Configure link group
 pmctl network set-group <deviceName> <groupValue>
 >pmctl network set-group ens37 2147483647
