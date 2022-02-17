@@ -406,6 +406,43 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"
 
 #### Configure network link section using pmctl
 ```bash
+
+# Configure network dhcp
+pmctl network set-dhcp <deviceName> <DHCPMode>
+>pmctl network set-dhcp ens37 ipv4
+
+# Configure network linkLocalAddressing
+pmctl network set-link-local-addr <deviceName> <linkLocalAddressingMode>
+>pmctl network set-link-local-addr ens37 ipv4
+
+# Configure network multicastDNS
+pmctl network set-multicast-dns <deviceName> <MulticastDNSMode>
+>pmctl network set-multicast-dns ens37 resolve
+
+# Configure network address
+pmctl network add-link-address <deviceName> address <Address> peer <Address> label <labelValue> scope <scopeValue>
+>pmctl network add-link-address ens37 address 192.168.0.15/24
+
+# Configure network route
+pmctl network add-route dev <deviceName> gw <Gateway> gwonlink <GatewayOnlink> src <Source> dest <Destination> prefsrc <preferredSource> table <Table> scope <Scope>
+>pmctl network add-route dev ens33 gw 192.168.1.0 gwonlink no src 192.168.1.15/24 dest 192.168.10.10/24 prefsrc 192.168.8.9 table 1234 scope link
+
+# Configure network dns
+pmctl network add-dns dev <deviceName> dns <dnslist>
+>pmctl network add-dns dev ens37 dns 8.8.8.8,8.8.4.4,8.8.8.1,8.8.8.2
+
+#Configure network domains
+pmctl network add-domain dev <deviceName> domains <domainlist>
+>pmctl network add-domain dev ens37 domains test1.com,test2.com,test3.com,test4.com
+
+#Configure network domains
+pmctl network add-ntp dev <deviceName> ntp <ntplist>
+>pmctl network add-ntp dev ens37 ntp 198.162.1.15,test3.com
+
+# Configure network ipv6AcceptRA
+pmctl network set-ipv6-accept-ra <deviceName> <IPv6AcceptRA>
+>pmctl network set-ipv6-accept-ra ens37 false
+
 # Configure link mode
 pmctl network set-link-mode dev <device> mode <unmanagedValue> arp <arpValue> mc <multicastValue> amc <allmulticastValue> pcs <PromiscuousValue> rfo <RequiredForOnline>
 >pmctl network set-link-mode dev ens37 arp 1 mc no amc true pcs yes rfo on

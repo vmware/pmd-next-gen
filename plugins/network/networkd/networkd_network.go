@@ -235,6 +235,19 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
+	if !validator.IsEmpty(n.NetworkSection.LinkLocalAddressing) {
+		if validator.IsLinkLocalAddressing(n.NetworkSection.LinkLocalAddressing) {
+			m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
+		} else {
+			log.Errorf("Failed to parse LinkLocalAddressing='%s'", n.NetworkSection.LinkLocalAddressing)
+			return fmt.Errorf("invalid LinkLocalAddressing='%s'", n.NetworkSection.LinkLocalAddressing)
+		}
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) && validator.IsMulticastDNS(n.NetworkSection.MulticastDNS) {
+		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
+	}
+
 	if !validator.IsEmpty(n.NetworkSection.Address) {
 		if validator.IsIP(n.NetworkSection.Address) {
 			m.SetKeySectionString("Network", "Address", n.NetworkSection.Address)
@@ -253,29 +266,6 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
-	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) && validator.IsBool(n.NetworkSection.IPv6AcceptRA) {
-		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
-	}
-
-	if !validator.IsEmpty(n.NetworkSection.LinkLocalAddressing) {
-		if validator.IsLinkLocalAddressing(n.NetworkSection.LinkLocalAddressing) {
-			m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
-		} else {
-			log.Errorf("Failed to parse LinkLocalAddressin='%s'", n.NetworkSection.LinkLocalAddressing)
-			return fmt.Errorf("invalid LinkLocalAddressin='%s'", n.NetworkSection.LinkLocalAddressing)
-		}
-	}
-
-	if !validator.IsEmpty(n.NetworkSection.MulticastDNS) && validator.IsBool(n.NetworkSection.MulticastDNS) {
-		m.SetKeySectionString("Network", "MulticastDNS", n.NetworkSection.MulticastDNS)
-	}
-
-	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
-		s := m.GetKeySectionString("Network", "Domains")
-		t := share.UniqueSlices(strings.Split(s, " "), n.NetworkSection.Domains)
-		m.SetKeySectionString("Network", "Domains", strings.Join(t[:], " "))
-	}
-
 	if !validator.IsArrayEmpty(n.NetworkSection.DNS) {
 		for _, dns := range n.NetworkSection.DNS {
 			if !validator.IsIP(dns) {
@@ -288,10 +278,20 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		m.SetKeySectionString("Network", "DNS", strings.Join(t[:], " "))
 	}
 
+	if !validator.IsArrayEmpty(n.NetworkSection.Domains) {
+		s := m.GetKeySectionString("Network", "Domains")
+		t := share.UniqueSlices(strings.Split(s, " "), n.NetworkSection.Domains)
+		m.SetKeySectionString("Network", "Domains", strings.Join(t[:], " "))
+	}
+
 	if !validator.IsArrayEmpty(n.NetworkSection.NTP) {
 		s := m.GetKeySectionString("Network", "NTP")
 		t := share.UniqueSlices(strings.Split(s, " "), n.NetworkSection.NTP)
 		m.SetKeySectionString("Network", "NTP", strings.Join(t[:], " "))
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.IPv6AcceptRA) && validator.IsBool(n.NetworkSection.IPv6AcceptRA) {
+		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
 
 	return nil
@@ -522,12 +522,16 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 			if validator.IsIP(rt.Gateway) {
 				m.SetKeyToNewSectionString("Gateway", rt.Gateway)
 			} else {
-				log.Errorf("Failed to parse Peer='%s'", rt.Gateway)
-				return fmt.Errorf("invalid Peer='%s'", rt.Gateway)
+				log.Errorf("Failed to parse Gateway='%s'", rt.Gateway)
+				return fmt.Errorf("invalid Gateway='%s'", rt.Gateway)
 			}
 		}
 
 		if !validator.IsEmpty(rt.GatewayOnlink) {
+			if !validator.IsBool(rt.GatewayOnlink) {
+				log.Errorf("Failed to parse GatewayOnlink='%s'", rt.GatewayOnlink)
+				return fmt.Errorf("invalid GatewayOnlink='%s'", rt.GatewayOnlink)
+			}
 			m.SetKeyToNewSectionString("GatewayOnlink", rt.GatewayOnlink)
 		}
 
@@ -551,10 +555,10 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 
 		if !validator.IsEmpty(rt.PreferredSource) {
 			if validator.IsIP(rt.PreferredSource) {
-				m.SetKeyToNewSectionString("Source", rt.PreferredSource)
+				m.SetKeyToNewSectionString("PreferredSource", rt.PreferredSource)
 			} else {
-				log.Errorf("Failed to parse Source='%s'", rt.PreferredSource)
-				return fmt.Errorf("invalid Source='%s'", rt.PreferredSource)
+				log.Errorf("Failed to parse PreferredSource='%s'", rt.PreferredSource)
+				return fmt.Errorf("invalid PreferredSource='%s'", rt.PreferredSource)
 			}
 		}
 

@@ -150,6 +150,10 @@ func IsLinkLocalAddressing(s string) bool {
 	return IsBoolWithIp(s)
 }
 
+func IsMulticastDNS(s string) bool {
+	return IsBool(s) || s == "resolve"
+}
+
 func IsBondMode(mode string) bool {
 	return mode == "balance-rr" || mode == "active-backup" || mode == "balance-xor" ||
 		mode == "broadcast" || mode == "802.3ad" || mode == "balance-tlb" || mode == "balance-alb"
