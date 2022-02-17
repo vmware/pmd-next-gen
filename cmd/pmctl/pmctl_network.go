@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/fatih/color"
 	"github.com/pmd-nextgen/pkg/share"
 	"github.com/pmd-nextgen/pkg/validator"
@@ -380,6 +381,104 @@ func networkConfigureDHCP(link string, dhcp string, host string, token map[strin
 		Link: link,
 		NetworkSection: networkd.NetworkSection{
 			DHCP: dhcp,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureLinkLocalAddressing(link string, linkLocalAddr string, host string, token map[string]string) {
+	if !validator.IsLinkLocalAddressing(linkLocalAddr) {
+		fmt.Printf("Invalid LinkLocalAddressing: %s\n", linkLocalAddr)
+		return
+	}
+
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			LinkLocalAddressing: linkLocalAddr,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureMulticastDNS(link string, mcastDns string, host string, token map[string]string) {
+	if !validator.IsMulticastDNS(mcastDns) {
+		fmt.Printf("Invalid MulticastDNS: %s\n", mcastDns)
+		return
+	}
+
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			MulticastDNS: mcastDns,
+		},
+	}
+
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureRoute(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	link := ""
+
+	r := networkd.RouteSection{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			link = argStrings[i+1]
+		case "gw":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Failed to parse gw='%s'\n", argStrings[i+1])
+				return
+			}
+			r.Gateway = argStrings[i+1]
+		case "gwonlink":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Failed to parse gwonlink='%s'\n", argStrings[i+1])
+				return
+			}
+			r.GatewayOnlink = argStrings[i+1]
+		case "dest":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Failed to parse dest='%s'\n", argStrings[i+1])
+				return
+			}
+			r.Destination = argStrings[i+1]
+		case "src":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Failed to parse src='%s'\n", argStrings[i+1])
+				return
+			}
+			r.Source = argStrings[i+1]
+		case "prefsrc":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Failed to parse prefsrc='%s'\n", argStrings[i+1])
+				return
+			}
+			r.PreferredSource = argStrings[i+1]
+		case "table":
+			if !govalidator.IsInt(argStrings[i+1]) {
+				fmt.Printf("Failed to parse table='%s'\n", argStrings[i+1])
+				return
+			}
+			r.Table = argStrings[i+1]
+		case "scope":
+			if !validator.IsScope(argStrings[i+1]) {
+				fmt.Printf("Failed to parse scope='%s'\n", argStrings[i+1])
+				return
+			}
+			r.Scope = argStrings[i+1]
+		}
+
+		i++
+	}
+
+	n := networkd.Network{
+		Link: link,
+		RouteSections: []networkd.RouteSection{
+			r,
 		},
 	}
 
@@ -896,4 +995,20 @@ func networkRemoveNTP(args cli.Args, host string, token map[string]string) {
 	if !m.Success {
 		fmt.Printf("Failed to remove NTP server: %v\n", m.Errors)
 	}
+}
+
+func networkConfigureIPv6AcceptRA(link string, ipv6ara string, host string, token map[string]string) {
+	if !validator.IsBool(ipv6ara) {
+		fmt.Printf("Invalid IPv6AcceptRA: %s\n", ipv6ara)
+		return
+	}
+
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			IPv6AcceptRA: ipv6ara,
+		},
+	}
+
+	networkConfigure(&n, host, token)
 }

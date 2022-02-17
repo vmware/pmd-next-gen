@@ -262,6 +262,66 @@ func main() {
 			Usage:   "Network device configuration",
 			Subcommands: []*cli.Command{
 				{
+					Name:        "set-dhcp",
+					UsageText:   "set-dhcp [LINK] [DHCP-MODE {yes|no|ipv4|ipv6}]",
+					Description: "Enables DHCPv4 and/or DHCPv6 client support. Accepts \"yes\", \"no\", \"ipv4\", or \"ipv6\".",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCP(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-link-local-addr",
+					UsageText:   "set-link-local-addr [LINK] [LINK-LOCAL-ADDRESS {yes|no|ipv4|ipv6}]",
+					Description: "Enables link-local address autoconfiguration. Accepts \"yes\", \"no\", \"ipv4\", or \"ipv6\".",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureLinkLocalAddressing(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-multicast-dns",
+					UsageText:   "set-multicast-dns [LINK] [MulticastDNS {true|false|resolve}]",
+					Description: "Configure MulticastDNS. Accepts \"true\", \"false\", or \"resolve\".",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureMulticastDNS(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "add-route",
+					UsageText:   "add-route dev [LINK] gw [STRING] gwonlink [STRING] dest [STRING] src [STRING] prefsrc [STRING] table [STRING] scope [STRING]",
+					Description: "Configure network route.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureRoute(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "add-dns",
 					UsageText:   "dev [LINK] dns [DNS]",
 					Description: "Add Link or global DNS server address. This option may be specified more than once separated by ,",
@@ -352,9 +412,9 @@ func main() {
 					},
 				},
 				{
-					Name:        "set-dhcp",
-					UsageText:   "set-dhcp [LINK] [DHCP-MODE {yes|no|ipv4|ipv6}]",
-					Description: "Enables DHCPv4 and/or DHCPv6 client support. Accepts \"yes\", \"no\", \"ipv4\", or \"ipv6\".",
+					Name:        "set-ipv6-accept-ra",
+					UsageText:   "set-ipv6-accept-ra [LINK] [IPv6AcceptRA BOOLEAN]",
+					Description: "Takes a boolean. Controls IPv6 Router Advertisement (RA) reception support for the interface.",
 
 					Action: func(c *cli.Context) error {
 						if c.NArg() < 2 {
@@ -362,7 +422,7 @@ func main() {
 							return nil
 						}
 
-						networkConfigureDHCP(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						networkConfigureIPv6AcceptRA(c.Args().First(), c.Args().Get(1), c.String("url"), token)
 						return nil
 					},
 				},
