@@ -982,6 +982,13 @@ func main() {
 			Usage:   "Package Management",
 			Flags:   tdnfCreateFlags(),
 			Subcommands: []*cli.Command{
+				tdnfCreateAlterCommand("autoremove", []string{}, "Remove a Package and Dependencies", true, token),
+				tdnfCreateAlterCommand("downgrade", []string{}, "Downgrade Package(s)", false, token),
+				tdnfCreateAlterCommand("distro-sync", []string{}, "Distro Sync", false, token),
+				tdnfCreateAlterCommand("erase", []string{"remove", "r"}, "Remove a Package", true, token),
+				tdnfCreateAlterCommand("install", []string{"in"}, "Install a Package", true, token),
+				tdnfCreateAlterCommand("reinstall", []string{}, "Reinstall a Package", true, token),
+				tdnfCreateAlterCommand("update", []string{"upgrade", "up"}, "Update Package(s)", false, token),
 				{
 					Name:        "clean",
 					Aliases:     []string{"c"},
