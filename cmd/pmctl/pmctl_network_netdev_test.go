@@ -52,12 +52,11 @@ func TestNetDevCreateVLan(t *testing.T) {
 	}
 
 	if err := configureNetDev(t, n); err != nil {
-		fmt.Printf("Failed to create VLan: %v\n", err)
-		return
+		t.Fatalf("Failed to create VLan: %v\n", err)
 	}
 
 	time.Sleep(time.Second * 5)
-	s, _:=system.ExecAndCapture("ip", "-d", "link", "show", "vlan99")
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "vlan99")
 	fmt.Println(s)
 	if !validator.LinkExists("vlan99") {
 		t.Fatalf("Failed to create vlan='vlan99'")
@@ -72,5 +71,43 @@ func TestNetDevCreateVLan(t *testing.T) {
 
 	if m.GetKeySectionUint("VLAN", "Id") != 10 {
 		t.Fatalf("Invalid Vlan Id in .netdev file of vlan='vlan99'")
+	}
+}
+
+func TestNetDevCreateBond(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test98"}})
+	defer removeLink(t, "test99")
+	defer removeLink(t, "test98")
+
+	n := networkd.NetDev{
+		Name:  "bond99",
+		Kind:  "bond",
+		Links: []string{"test99", "test98"},
+		BondSection: networkd.Bond{
+			Mode: "balance-rr",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create Bond: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "bond99")
+	fmt.Println(s)
+	if !validator.LinkExists("bond99") {
+		t.Fatalf("Failed to create bond='bond99'")
+	}
+	defer removeLink(t, "bond99")
+
+	m, _, err := networkd.CreateOrParseNetDevFile("bond99", "bond")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of bond='bond99'")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Bond", "Mode") != "balance-rr" {
+		t.Fatalf("Invalid bond mode in .netdev file of bond='bond99'")
 	}
 }
