@@ -41,8 +41,8 @@ func configureLink(t *testing.T, l networkd.Link) (*configfile.Meta, error) {
 }
 
 func TestLink(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -111,8 +111,8 @@ func TestLink(t *testing.T) {
 }
 
 func TestLinkMACAddress(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -137,8 +137,8 @@ func TestLinkMACAddress(t *testing.T) {
 }
 
 func TestLinkName(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -163,8 +163,8 @@ func TestLinkName(t *testing.T) {
 }
 
 func TestLinkAltName(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -189,8 +189,8 @@ func TestLinkAltName(t *testing.T) {
 }
 
 func TestLinkCksumOffload(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -215,8 +215,8 @@ func TestLinkCksumOffload(t *testing.T) {
 }
 
 func TestLinkTCPOffload(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -241,8 +241,8 @@ func TestLinkTCPOffload(t *testing.T) {
 }
 
 func TestLinkGenericOffload(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -279,8 +279,8 @@ func TestLinkGenericOffload(t *testing.T) {
 }
 
 func TestLinkVLANTags(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -313,8 +313,8 @@ func TestLinkVLANTags(t *testing.T) {
 }
 
 func TestLinkChannels(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -347,8 +347,8 @@ func TestLinkChannels(t *testing.T) {
 }
 
 func TestLinkBuffer(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -381,8 +381,8 @@ func TestLinkBuffer(t *testing.T) {
 }
 
 func TestLinkQueues(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -411,8 +411,8 @@ func TestLinkQueues(t *testing.T) {
 }
 
 func TestLinkFlowControl(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -441,8 +441,8 @@ func TestLinkFlowControl(t *testing.T) {
 }
 
 func TestLinkCoalesce(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -499,8 +499,8 @@ func TestLinkCoalesce(t *testing.T) {
 }
 
 func TestLinkCoalescedFrames(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -549,8 +549,8 @@ func TestLinkCoalescedFrames(t *testing.T) {
 }
 
 func TestLinkPacketRate(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)

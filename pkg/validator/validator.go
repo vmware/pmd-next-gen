@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/vishvananda/netlink"
 )
 
 func IsBool(str string) bool {
@@ -309,4 +310,9 @@ func IsLinkRequiredFamilyForOnline(family string) bool {
 func IsLinkActivationPolicy(policy string) bool {
 	return policy == "up" || policy == "always-up" || policy == "down" ||
 		policy == "always-down" || policy == "manual" || policy == "bound"
+}
+
+func LinkExists(link string) bool {
+	_, err := netlink.LinkByName(link)
+	return err == nil
 }
