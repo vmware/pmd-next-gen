@@ -421,7 +421,7 @@ pmctl network set-multicast-dns <deviceName> <MulticastDNSMode>
 
 # Configure network address
 pmctl network add-link-address <deviceName> address <Address> peer <Address> label <labelValue> scope <scopeValue>
->pmctl network add-link-address ens37 address 192.168.0.15/24
+>pmctl network add-link-address ens37 address 192.168.0.15/24 peer 192.168.10.10/24 label ipv4 scope link
 
 # Configure network route
 pmctl network add-route dev <deviceName> gw <Gateway> gwonlink <GatewayOnlink> src <Source> dest <Destination> prefsrc <preferredSource> table <Table> scope <Scope>
@@ -435,7 +435,7 @@ pmctl network add-dns dev <deviceName> dns <dnslist>
 pmctl network add-domain dev <deviceName> domains <domainlist>
 >pmctl network add-domain dev ens37 domains test1.com,test2.com,test3.com,test4.com
 
-#Configure network domains
+#Configure network ntp
 pmctl network add-ntp dev <deviceName> ntp <ntplist>
 >pmctl network add-ntp dev ens37 ntp 198.162.1.15,test3.com
 
