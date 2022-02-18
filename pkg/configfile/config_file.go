@@ -60,7 +60,6 @@ func (m *Meta) SetKeySectionString(section string, key string, value string) err
 }
 
 func (m *Meta) SetKeySectionUint(section string, key string, value uint) error {
-	_, err := m.Cfg.SectionsByName(section)
 	s, err := m.Cfg.GetSection(section)
 	if err != nil {
 		s, err = m.Cfg.NewSection(section)
@@ -76,6 +75,11 @@ func (m *Meta) SetKeySectionUint(section string, key string, value uint) error {
 
 func (m *Meta) GetKeySectionString(section string, key string) string {
 	return m.Cfg.Section(section).Key(key).String()
+}
+
+func (m *Meta) GetKeySectionUint(section string, key string) uint {
+	v, _ := m.Cfg.Section(section).Key(key).Uint()
+	return v
 }
 
 func (m *Meta) NewKeyToSectionString(section string, key string, value string) error {
