@@ -14,32 +14,25 @@ import (
 	"github.com/pmd-nextgen/pkg/configfile"
 	"github.com/pmd-nextgen/pkg/share"
 	"github.com/pmd-nextgen/pkg/system"
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/network/networkd"
 	"github.com/pmd-nextgen/plugins/network/resolved"
 	"github.com/vishvananda/netlink"
 )
 
-func setupDummy(t *testing.T, link netlink.Link) {
-	_, err := netlink.LinkList()
-	if err != nil {
-		t.Fatal(err)
-	}
-
+func setupLink(t *testing.T, link netlink.Link) {
 	if err := netlink.LinkAdd(link); err != nil && err.Error() != "file exists" {
 		t.Fatal(err)
 	}
 
-	_, err = netlink.LinkByName(link.Attrs().Name)
-	if err != nil {
-		t.Fatal(err)
+	if !validator.LinkExists(link.Attrs().Name) {
+		t.Fatal("link does not exists")
 	}
-
-	time.Sleep(time.Second * 1)
 }
 
-func removeDummy(t *testing.T, link netlink.Link) {
-	l, err := netlink.LinkByName(link.Attrs().Name)
+func removeLink(t *testing.T, link string) {
+	l, err := netlink.LinkByName(link)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,8 +212,8 @@ func TestNetworkRemoveGlobalDomain(t *testing.T) {
 }
 
 func TestNetworkAddLinkDomain(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -247,8 +240,8 @@ func TestNetworkAddLinkDomain(t *testing.T) {
 }
 
 func TestNetworkRemoveLinkDomain(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -319,8 +312,8 @@ func TestNetworkRemoveLinkDomain(t *testing.T) {
 }
 
 func TestNetworkDHCP(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -343,8 +336,8 @@ func TestNetworkDHCP(t *testing.T) {
 }
 
 func TestNetworkLinkLocalAddressing(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -367,8 +360,8 @@ func TestNetworkLinkLocalAddressing(t *testing.T) {
 }
 
 func TestNetworkMulticastDNS(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -391,8 +384,8 @@ func TestNetworkMulticastDNS(t *testing.T) {
 }
 
 func TestNetworkIPv6AcceptRA(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -415,8 +408,8 @@ func TestNetworkIPv6AcceptRA(t *testing.T) {
 }
 
 func TestNetworkDHCP4ClientIdentifier(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -439,8 +432,8 @@ func TestNetworkDHCP4ClientIdentifier(t *testing.T) {
 }
 
 func TestNetworkDHCPIAID(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -463,8 +456,8 @@ func TestNetworkDHCPIAID(t *testing.T) {
 }
 
 func TestNetworkRoute(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -513,8 +506,8 @@ func TestNetworkRoute(t *testing.T) {
 }
 
 func TestNetworkAddress(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -551,8 +544,8 @@ func TestNetworkAddress(t *testing.T) {
 }
 
 func TestNetworkLinkMode(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -591,8 +584,8 @@ func TestNetworkLinkMode(t *testing.T) {
 }
 
 func TestNetworkLinkMTU(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -615,8 +608,8 @@ func TestNetworkLinkMTU(t *testing.T) {
 }
 
 func TestNetworkLinkMAC(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -639,8 +632,8 @@ func TestNetworkLinkMAC(t *testing.T) {
 }
 
 func TestNetworkLinkGroup(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -663,8 +656,8 @@ func TestNetworkLinkGroup(t *testing.T) {
 }
 
 func TestNetworkLinkOnlineFamily(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
@@ -687,8 +680,8 @@ func TestNetworkLinkOnlineFamily(t *testing.T) {
 }
 
 func TestNetworkLinkActPolicy(t *testing.T) {
-	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
-	defer removeDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
 
 	system.ExecRun("systemctl", "restart", "systemd-networkd")
 	time.Sleep(time.Second * 3)
