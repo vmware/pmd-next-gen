@@ -361,7 +361,7 @@ func networkConfigure(network *networkd.Network, host string, token map[string]s
 
 	resp, err = web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/network/configure", token, *network)
 	if err != nil {
-		fmt.Printf("Failed to configure DHCP: %v\n", err)
+		fmt.Printf("Failed to configure network: %v\n", err)
 		return
 	}
 
@@ -372,7 +372,7 @@ func networkConfigure(network *networkd.Network, host string, token map[string]s
 	}
 
 	if !m.Success {
-		fmt.Printf("Failed to configure DHCP: %v\n", m.Errors)
+		fmt.Printf("Failed to configure network: %v\n", m.Errors)
 	}
 }
 

@@ -10,11 +10,35 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pmd-nextgen/pkg/configfile"
 	"github.com/pmd-nextgen/pkg/system"
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/network/networkd"
 	"github.com/vishvananda/netlink"
 )
+
+func configureLink(t *testing.T, l networkd.Link) (*configfile.Meta, error) {
+	var resp []byte
+	var err error
+	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	if err != nil {
+		t.Fatalf("Failed to configure Link: %v\n", err)
+	}
+
+	j := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &j); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+	if !j.Success {
+		t.Fatalf("Failed to configure Link: %v\n", j.Errors)
+	}
+
+	time.Sleep(time.Second * 3)
+	m, err := networkd.CreateOrParseLinkFile("test99")
+	defer os.Remove(m.Path)
+
+	return m, err
+}
 
 func TestLink(t *testing.T) {
 	setupDummy(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
@@ -40,27 +64,10 @@ func TestLink(t *testing.T) {
 		StatisticsBlockCoalesceSec: 1024,
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "Alias") != "ifalias" {
 		t.Fatalf("Failed to set Alias")
@@ -116,27 +123,10 @@ func TestLinkMACAddress(t *testing.T) {
 		MACAddress:       "00:a0:de:63:7a:e6",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link MACAddress: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link MACAddress: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link MACAddress: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "MACAddressPolicy") != "none" {
 		t.Fatalf("Failed to set MACAddressPolicy")
@@ -159,27 +149,10 @@ func TestLinkName(t *testing.T) {
 		Name:       "demo0",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link Name: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link Name: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link Name: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "NamePolicy") != "mac kernel database onboard keep slot path" {
 		t.Fatalf("Failed to set NamePolicy")
@@ -202,27 +175,10 @@ func TestLinkAltName(t *testing.T) {
 		AlternativeName:        "demo0",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link AlternativeName: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link AlternativeName: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link AlternativeName: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "AlternativeNamesPolicy") != "mac database onboard slot path" {
 		t.Fatalf("Failed to set AlternativeNamesPolicy")
@@ -245,27 +201,10 @@ func TestLinkCksumOffload(t *testing.T) {
 		TransmitChecksumOffload: "yes",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link ChecksumOffload: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link ChecksumOffload: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link ChecksumOffload: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "ReceiveChecksumOffload") != "yes" {
 		t.Fatalf("Failed to set ReceiveChecksumOffload")
@@ -288,27 +227,10 @@ func TestLinkTCPOffload(t *testing.T) {
 		TCP6SegmentationOffload: "no",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link TCPOffload: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link TCPOffload: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link TCPOffload: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "TCPSegmentationOffload") != "yes" {
 		t.Fatalf("Failed to set TCPSegmentationOffload")
@@ -334,27 +256,10 @@ func TestLinkGenericOffload(t *testing.T) {
 		GenericSegmentOffloadMaxSegments: 65535,
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link GenericOffload: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link GenericOffload: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link GenericOffload: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "GenericSegmentationOffload") != "yes" {
 		t.Fatalf("Failed to set GenericSegmentationOffload")
@@ -388,27 +293,10 @@ func TestLinkVLANTags(t *testing.T) {
 		TransmitVLANSTAGHardwareAcceleration: "yes",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link VLANTags: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link VLANTags: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link VLANTags: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "ReceiveVLANCTAGHardwareAcceleration") != "yes" {
 		t.Fatalf("Failed to set ReceiveVLANCTAGHardwareAcceleration")
@@ -439,27 +327,10 @@ func TestLinkChannels(t *testing.T) {
 		CombinedChannels: "32456",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link Channels: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link Channels: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link Channels: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "RxChannels") != "1024" {
 		t.Fatalf("Failed to set RxChannels")
@@ -490,27 +361,10 @@ func TestLinkBuffer(t *testing.T) {
 		TxBufferSize:      "83724",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link Buffer: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link Buffer: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link Buffer: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "RxBufferSize") != "100009" {
 		t.Fatalf("Failed to set RxBufferSize")
@@ -540,27 +394,10 @@ func TestLinkQueues(t *testing.T) {
 		TransmitQueueLength: 4294967294,
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link Queues: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link Queues: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link Queues: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "TransmitQueues") != "4096" {
 		t.Fatalf("Failed to set TransmitQueues")
@@ -587,27 +424,10 @@ func TestLinkFlowControl(t *testing.T) {
 		AutoNegotiationFlowControl: "no",
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link FlowControl: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link FlowControl: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link FlowControl: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "RxFlowControl") != "yes" {
 		t.Fatalf("Failed to set RxFlowControl")
@@ -641,27 +461,10 @@ func TestLinkCoalesce(t *testing.T) {
 		TxCoalesceHighSec:     76788,
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link Coalesce: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link Coalesce: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link Coalesce: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "UseAdaptiveRxCoalesce") != "yes" {
 		t.Fatalf("Failed to set UseAdaptiveRxCoalesce")
@@ -714,27 +517,10 @@ func TestLinkCoalescedFrames(t *testing.T) {
 		TxMaxCoalescedHighFrames: 76788,
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link CoalescedFrames: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link CoalescedFrames: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link CoalescedFrames: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "RxMaxCoalescedFrames") != "23" {
 		t.Fatalf("Failed to set RxMaxCoalescedFrames")
@@ -776,27 +562,10 @@ func TestLinkPacketRate(t *testing.T) {
 		CoalescePacketRateSampleIntervalSec: 102,
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/link/configure", nil, l)
+	m, err := configureLink(t, l)
 	if err != nil {
 		t.Fatalf("Failed to configure Link PacketRate: %v\n", err)
 	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure Link PacketRate: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	m, err := networkd.CreateOrParseLinkFile("test99")
-	if err != nil {
-		t.Fatalf("Failed to configure Link PacketRate: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "CoalescePacketRateLow") != "1000" {
 		t.Fatalf("Failed to set CoalescePacketRateLow")
