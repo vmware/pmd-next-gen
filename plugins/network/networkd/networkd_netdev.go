@@ -18,7 +18,7 @@ import (
 )
 
 type VLan struct {
-	Id string `json:"Id"`
+	Id uint `json:"Id"`
 }
 
 type MacVLan struct {
@@ -197,17 +197,12 @@ func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 func (n *NetDev) buildVlanSection(m *configfile.Meta) error {
 	m.NewSection("VLAN")
 
-	if validator.IsEmpty(n.VLanSection.Id) {
+	if n.VLanSection.Id == 0 {
 		log.Errorf("Failed to create VLan='%s'. Missing Id,", n.Name)
 		return errors.New("missing vlan id")
 	}
 
-	if !validator.IsVLanId(n.VLanSection.Id) {
-		log.Errorf("Failed to create VLan='%s'. Invalid Id='%s'", n.Name, n.VLanSection.Id)
-		return fmt.Errorf("invalid vlan id='%s'", n.VLanSection.Id)
-	}
-	m.SetKeyToNewSectionString("Id", n.VLanSection.Id)
-
+	m.SetKeySectionUint("VLAN", "Id", n.VLanSection.Id)
 	return nil
 }
 

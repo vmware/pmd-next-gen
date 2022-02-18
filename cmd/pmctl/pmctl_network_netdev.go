@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/pmd-nextgen/pkg/validator"
@@ -28,17 +29,19 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 			n.Links = strings.Fields(argStrings[i+1])
 		case "id":
 			if validator.IsVLanId(argStrings[i+1]) {
-				n.VLanSection.Id = argStrings[i+1]
-			} else {
-				fmt.Printf("Failed to parse VLan Id: %s\n", argStrings[i+1])
-				return
+				id, err := strconv.ParseUint(argStrings[i+1], 10, 32)
+				if err != nil {
+					fmt.Printf("Failed to parse VLan Id: %s\n", argStrings[i+1])
+					return
+				}
+				n.VLanSection.Id = uint(id)
 			}
 		}
 
 		i++
 	}
 
-	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.VLanSection.Id) || validator.IsEmpty(n.Name) {
+	if validator.IsArrayEmpty(n.Links) || n.VLanSection.Id == 0 || validator.IsEmpty(n.Name) {
 		fmt.Printf("Failed to create VLan. Missing VLan name, dev or id\n")
 		return
 	}
