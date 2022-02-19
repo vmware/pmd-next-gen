@@ -27,19 +27,22 @@ $(BUILDDIR)/%/:
 .PHONY: build
 build:
 	- mkdir -p bin
-	go build -buildmode=pie -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/photon-mgmtd ./cmd/photon-mgmt
-	go build -buildmode=pie -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/pmctl ./cmd/pmctl
+	go build -buildmode=pie -ldflags="-w -X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/photon-mgmtd ./cmd/photon-mgmt
+	go build -buildmode=pie -ldflags="-w -X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'" -o bin/pmctl ./cmd/pmctl
 
 .PHONY: install
 install:
-	install bin/photon-mgmtd /usr/bin/
-	install bin/pmctl /usr/bin/
+	- mkdir -p $(DESTDIR)/usr/bin/
+	install bin/photon-mgmtd $(DESTDIR)/usr/bin/
+	install bin/pmctl $(DESTDIR)/usr/bin/
 
-	install -vdm 755 /etc/photon-mgmt
-	install -m 755 conf/photon-mgmt.toml /etc/photon-mgmt
-	install -m 755 conf/photon-mgmt-auth.conf /etc/photon-mgmt
+	- mkdir -p $(DESTDIR)/etc/photon-mgmt
+	install -vdm 755 $(DESTDIR)/etc/photon-mgmt
+	install -m 755 conf/photon-mgmt.toml $(DESTDIR)/etc/photon-mgmt
+	- mkdir -p $(DESTDIR)/lib/systemd/system/
+	install -m 755 conf/photon-mgmt-auth.conf $(DESTDIR)/etc/photon-mgmt
 
-	install -m 0644 units/photon-mgmtd.service /lib/systemd/system/
+	install -m 0644 units/photon-mgmtd.service $(DESTDIR)/lib/systemd/system/
 	systemctl daemon-reload
 
 PHONY: clean
