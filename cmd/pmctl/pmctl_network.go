@@ -554,7 +554,7 @@ func networkConfigureLinkGroup(link string, group string, host string, token map
 
 func networkConfigureLinkRequiredFamilyForOnline(link string, rfonline string, host string, token map[string]string) {
 	if !validator.IsEmpty(rfonline) {
-		if !validator.IsLinkRequiredFamilyForOnline(rfonline) {
+		if !validator.IsAddressFamily(rfonline) {
 			fmt.Printf("Failed to parse online family='%s'\n", rfonline)
 			return
 		}
@@ -668,6 +668,131 @@ func networkConfigureAddress(link string, args cli.Args, host string, token map[
 		Link: link,
 		AddressSections: []networkd.AddressSection{
 			a,
+		},
+	}
+	networkConfigure(&n, host, token)
+}
+
+func networkAddRoutingPolicyRule(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	link := ""
+
+	r := networkd.RoutingPolicyRuleSection{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			link = argStrings[i+1]
+		case "tos":
+			if !validator.IsRoutingTypeOfService(argStrings[i+1]) {
+				fmt.Printf("Invalid tos=%s\n", argStrings[i+1])
+				return
+			}
+			r.TypeOfService = argStrings[i+1]
+		case "from":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid from=%s\n", argStrings[i+1])
+				return
+			}
+			r.From = argStrings[i+1]
+		case "to":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid to=%s\n", argStrings[i+1])
+				return
+			}
+			r.To = argStrings[i+1]
+		case "fwmark":
+			if !validator.IsRoutingFirewallMark(argStrings[i+1]) {
+				fmt.Printf("Invalid fwmark=%s\n", argStrings[i+1])
+				return
+			}
+			r.FirewallMark = argStrings[i+1]
+		case "table":
+			if !validator.IsRoutingTable(argStrings[i+1]) {
+				fmt.Printf("Invalid table=%s\n", argStrings[i+1])
+				return
+			}
+			r.Table = argStrings[i+1]
+		case "prio":
+			if !validator.IsRoutingPriority(argStrings[i+1]) {
+				fmt.Printf("Invalid prio=%s\n", argStrings[i+1])
+				return
+			}
+			r.Priority = argStrings[i+1]
+		case "iif":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invalid iif=%s\n", argStrings[i+1])
+				return
+			}
+			r.IncomingInterface = argStrings[i+1]
+		case "oif":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invalid oif=%s\n", argStrings[i+1])
+				return
+			}
+			r.OutgoingInterface = argStrings[i+1]
+		case "srcport":
+			if !validator.IsRoutingPort(argStrings[i+1]) {
+				fmt.Printf("Invalid srcport=%s\n", argStrings[i+1])
+				return
+			}
+			r.SourcePort = argStrings[i+1]
+		case "destport":
+			if !validator.IsRoutingPort(argStrings[i+1]) {
+				fmt.Printf("Invalid destport=%s\n", argStrings[i+1])
+				return
+			}
+			r.DestinationPort = argStrings[i+1]
+		case "ipproto":
+			if !validator.IsRoutingIPProtocol(argStrings[i+1]) {
+				fmt.Printf("Invalid ipproto=%s\n", argStrings[i+1])
+				return
+			}
+			r.IPProtocol = argStrings[i+1]
+		case "invertrule":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid invertrule=%s\n", argStrings[i+1])
+				return
+			}
+			r.InvertRule = validator.BoolToString(argStrings[i+1])
+		case "family":
+			if !validator.IsAddressFamily(argStrings[i+1]) {
+				fmt.Printf("Invalid family=%s\n", argStrings[i+1])
+				return
+			}
+			r.Family = argStrings[i+1]
+		case "usr":
+			if !validator.IsRoutingUser(argStrings[i+1]) {
+				fmt.Printf("Invalid usr=%s\n", argStrings[i+1])
+				return
+			}
+			r.User = argStrings[i+1]
+		case "suppressprefixlen":
+			if !validator.IsRoutingSuppressPrefixLength(argStrings[i+1]) {
+				fmt.Printf("Invalid suppressprefixlen=%s\n", argStrings[i+1])
+				return
+			}
+			r.SuppressPrefixLength = argStrings[i+1]
+		case "suppressifgrp":
+			if !validator.IsRoutingSuppressInterfaceGroup(argStrings[i+1]) {
+				fmt.Printf("Invalid suppressifgrp=%s\n", argStrings[i+1])
+				return
+			}
+			r.SuppressInterfaceGroup = argStrings[i+1]
+		case "type":
+			if !validator.IsRoutingType(argStrings[i+1]) {
+				fmt.Printf("Invalid type=%s\n", argStrings[i+1])
+				return
+			}
+			r.Type = argStrings[i+1]
+		}
+
+		i++
+	}
+
+	n := networkd.Network{
+		Link: link,
+		RoutingPolicyRuleSections: []networkd.RoutingPolicyRuleSection{
+			r,
 		},
 	}
 	networkConfigure(&n, host, token)

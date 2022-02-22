@@ -578,6 +578,21 @@ func main() {
 					},
 				},
 				{
+					Name:        "add-rule",
+					UsageText:   "add-rule dev [LINK MASTER] tos [NUMBER] from [ADDRESS] to [ADDRESS] fwmark [STRING] table [STRING] prio [NUMBER] iif [STRING] oif [STRING] srcport [STRING] destport [STRING] ipproto [STRING] invertrule [STRING] family [STRING] usr [STRING] suppressprefixlen [NUMBER] suppressifgrp [NUMBER] type [STRING]",
+					Description: "Add RoutingPolicyRule.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkAddRoutingPolicyRule(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "create-vlan",
 					UsageText:   "create-vlan [VLAN name] dev [LINK MASTER] id [ID INTEGER]",
 					Description: "Create vlan.",

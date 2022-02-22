@@ -86,14 +86,35 @@ type DHCPv4Section struct {
 	IAID                  string `json:"IAID"`
 }
 
+type RoutingPolicyRuleSection struct {
+	TypeOfService          string `json:"TypeOfService"`
+	From                   string `json:"From"`
+	To                     string `json:"To"`
+	FirewallMark           string `json:"FirewallMark"`
+	Table                  string `json:"Table"`
+	Priority               string `json:"Priority"`
+	IncomingInterface      string `json:"IncomingInterface"`
+	OutgoingInterface      string `json:"OutgoingInterface"`
+	SourcePort             string `json:"SourcePort"`
+	DestinationPort        string `json:"DestinationPort"`
+	IPProtocol             string `json:"IPProtocol"`
+	InvertRule             string `json:"InvertRule"`
+	Family                 string `json:"Family"`
+	User                   string `json:"User"`
+	SuppressPrefixLength   string `json:"SuppressPrefixLength"`
+	SuppressInterfaceGroup string `json:"SuppressInterfaceGroup"`
+	Type                   string `json:"Type"`
+}
+
 type Network struct {
-	Link            string           `json:"Link"`
-	LinkSection     LinkSection      `json:"LinkSection"`
-	MatchSection    MatchSection     `json:"MatchSection"`
-	NetworkSection  NetworkSection   `json:"NetworkSection"`
-	DHCPv4Section   DHCPv4Section    `json:"DHCPv4Section"`
-	AddressSections []AddressSection `json:"AddressSections"`
-	RouteSections   []RouteSection   `json:"RouteSections"`
+	Link                      string                     `json:"Link"`
+	LinkSection               LinkSection                `json:"LinkSection"`
+	MatchSection              MatchSection               `json:"MatchSection"`
+	NetworkSection            NetworkSection             `json:"NetworkSection"`
+	DHCPv4Section             DHCPv4Section              `json:"DHCPv4Section"`
+	AddressSections           []AddressSection           `json:"AddressSections"`
+	RouteSections             []RouteSection             `json:"RouteSections"`
+	RoutingPolicyRuleSections []RoutingPolicyRuleSection `json:"RoutingPolicyRuleSections"`
 }
 
 type LinkDescribe struct {
@@ -408,7 +429,7 @@ func (n *Network) buildLinkSection(m *configfile.Meta) error {
 	}
 
 	if !validator.IsEmpty(n.LinkSection.RequiredFamilyForOnline) {
-		if !validator.IsLinkRequiredFamilyForOnline(n.LinkSection.RequiredFamilyForOnline) {
+		if !validator.IsAddressFamily(n.LinkSection.RequiredFamilyForOnline) {
 			log.Errorf("Failed to parse RequiredFamilyForOnline='%s'", n.LinkSection.RequiredFamilyForOnline)
 			return fmt.Errorf("invalid online family='%s'", n.LinkSection.RequiredFamilyForOnline)
 
@@ -574,6 +595,145 @@ func (n *Network) buildRouteSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
+	for _, rtpr := range n.RoutingPolicyRuleSections {
+		if err := m.NewSection("RoutingPolicyRule"); err != nil {
+			return err
+		}
+
+		if !validator.IsEmpty(rtpr.TypeOfService) {
+			if !validator.IsRoutingTypeOfService(rtpr.TypeOfService) {
+				log.Errorf("Failed to parse TypeOfService='%s'", rtpr.TypeOfService)
+				return fmt.Errorf("invalid TypeOfService='%s'", rtpr.TypeOfService)
+			}
+			m.SetKeyToNewSectionString("TypeOfService", rtpr.TypeOfService)
+		}
+
+		if !validator.IsEmpty(rtpr.From) {
+			if !validator.IsIP(rtpr.From) {
+				log.Errorf("Failed to parse From='%s'", rtpr.From)
+				return fmt.Errorf("invalid From='%s'", rtpr.From)
+			}
+			m.SetKeyToNewSectionString("From", rtpr.From)
+		}
+
+		if !validator.IsEmpty(rtpr.To) {
+			if !validator.IsIP(rtpr.To) {
+				log.Errorf("Failed to parse To='%s'", rtpr.To)
+				return fmt.Errorf("invalid To='%s'", rtpr.To)
+			}
+			m.SetKeyToNewSectionString("To", rtpr.To)
+		}
+
+		if !validator.IsEmpty(rtpr.FirewallMark) {
+			if !validator.IsRoutingFirewallMark(rtpr.FirewallMark) {
+				log.Errorf("Failed to parse FirewallMark='%s'", rtpr.FirewallMark)
+				return fmt.Errorf("invalid FirewallMark='%s'", rtpr.FirewallMark)
+			}
+			m.SetKeyToNewSectionString("FirewallMark", rtpr.FirewallMark)
+		}
+
+		if !validator.IsEmpty(rtpr.Table) {
+			if !validator.IsRoutingTable(rtpr.Table) {
+				log.Errorf("Failed to parse Table='%s'", rtpr.Table)
+				return fmt.Errorf("invalid Table='%s'", rtpr.Table)
+			}
+			m.SetKeyToNewSectionString("Table", rtpr.Table)
+		}
+
+		if !validator.IsEmpty(rtpr.Priority) {
+			if !validator.IsRoutingPriority(rtpr.Priority) {
+				log.Errorf("Failed to parse Priority='%s'", rtpr.Priority)
+				return fmt.Errorf("invalid Priority='%s'", rtpr.Priority)
+			}
+			m.SetKeyToNewSectionString("Priority", rtpr.Priority)
+		}
+
+		if !validator.IsEmpty(rtpr.IncomingInterface) {
+			m.SetKeyToNewSectionString("IncomingInterface", rtpr.IncomingInterface)
+		}
+
+		if !validator.IsEmpty(rtpr.OutgoingInterface) {
+			m.SetKeyToNewSectionString("OutgoingInterface", rtpr.OutgoingInterface)
+		}
+
+		if !validator.IsEmpty(rtpr.SourcePort) {
+			if !validator.IsRoutingPort(rtpr.SourcePort) {
+				log.Errorf("Failed to parse SourcePort='%s'", rtpr.SourcePort)
+				return fmt.Errorf("invalid SourcePort='%s'", rtpr.SourcePort)
+			}
+			m.SetKeyToNewSectionString("SourcePort", rtpr.SourcePort)
+		}
+
+		if !validator.IsEmpty(rtpr.DestinationPort) {
+			if !validator.IsRoutingPort(rtpr.DestinationPort) {
+				log.Errorf("Failed to parse DestinationPort='%s'", rtpr.DestinationPort)
+				return fmt.Errorf("invalid DestinationPort='%s'", rtpr.DestinationPort)
+			}
+			m.SetKeyToNewSectionString("DestinationPort", rtpr.DestinationPort)
+		}
+
+		if !validator.IsEmpty(rtpr.IPProtocol) {
+			if !validator.IsRoutingIPProtocol(rtpr.IPProtocol) {
+				log.Errorf("Failed to parse IPProtocol='%s'", rtpr.IPProtocol)
+				return fmt.Errorf("invalid IPProtocol='%s'", rtpr.IPProtocol)
+			}
+			m.SetKeyToNewSectionString("IPProtocol", rtpr.IPProtocol)
+		}
+
+		if !validator.IsEmpty(rtpr.InvertRule) {
+			if !validator.IsBool(rtpr.InvertRule) {
+				log.Errorf("Failed to parse InvertRule='%s'", rtpr.InvertRule)
+				return fmt.Errorf("invalid InvertRule='%s'", rtpr.InvertRule)
+			}
+			m.SetKeyToNewSectionString("InvertRule", rtpr.InvertRule)
+		}
+
+		if !validator.IsEmpty(rtpr.Family) {
+			if !validator.IsAddressFamily(rtpr.Family) {
+				log.Errorf("Failed to parse Family='%s'", rtpr.Family)
+				return fmt.Errorf("invalid Family='%s'", rtpr.Family)
+			}
+			m.SetKeyToNewSectionString("Family", rtpr.Family)
+		}
+
+		if !validator.IsEmpty(rtpr.User) {
+			if !validator.IsRoutingUser(rtpr.User) {
+				log.Errorf("Failed to parse User='%s'", rtpr.User)
+				return fmt.Errorf("invalid User='%s'", rtpr.User)
+			}
+			m.SetKeyToNewSectionString("User", rtpr.User)
+		}
+
+		if !validator.IsEmpty(rtpr.SuppressPrefixLength) {
+			if !validator.IsRoutingSuppressPrefixLength(rtpr.SuppressPrefixLength) {
+				log.Errorf("Failed to parse SuppressPrefixLength='%s'", rtpr.SuppressPrefixLength)
+				return fmt.Errorf("invalid SuppressPrefixLength='%s'", rtpr.SuppressPrefixLength)
+			}
+			m.SetKeyToNewSectionString("SuppressPrefixLength", rtpr.SuppressPrefixLength)
+		}
+
+		if !validator.IsEmpty(rtpr.SuppressInterfaceGroup) {
+			if !validator.IsRoutingSuppressInterfaceGroup(rtpr.SuppressInterfaceGroup) {
+				log.Errorf("Failed to parse SuppressInterfaceGroup='%s'", rtpr.SuppressInterfaceGroup)
+				return fmt.Errorf("invalid SuppressInterfaceGroup='%s'", rtpr.SuppressInterfaceGroup)
+			}
+			m.SetKeyToNewSectionString("SuppressInterfaceGroup", rtpr.SuppressInterfaceGroup)
+		}
+
+		if !validator.IsEmpty(rtpr.Type) {
+			if !validator.IsRoutingType(rtpr.Type) {
+				log.Errorf("Failed to parse Type='%s'", rtpr.Type)
+				return fmt.Errorf("invalid Type='%s'", rtpr.Type)
+			}
+			m.SetKeyToNewSectionString("Type", rtpr.Type)
+		}
+
+	}
+
+	return nil
+}
+
 func (n *Network) removeAddressSection(m *configfile.Meta) error {
 	for _, a := range n.AddressSections {
 		if !validator.IsEmpty(a.Address) {
@@ -627,6 +787,9 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 	if err := n.buildRouteSection(m); err != nil {
+		return err
+	}
+	if err := n.buildRoutingPolicyRuleSection(m); err != nil {
 		return err
 	}
 
