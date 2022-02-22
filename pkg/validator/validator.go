@@ -303,7 +303,7 @@ func IsLinkGroup(value string) bool {
 	return true
 }
 
-func IsLinkRequiredFamilyForOnline(family string) bool {
+func IsAddressFamily(family string) bool {
 	return family == "ipv4" || family == "ipv6" || family == "both" || family == "any"
 }
 
@@ -315,4 +315,114 @@ func IsLinkActivationPolicy(policy string) bool {
 func LinkExists(link string) bool {
 	_, err := netlink.LinkByName(link)
 	return err == nil
+}
+
+func IsRoutingTypeOfService(svc string) bool {
+	_, err := strconv.ParseUint(svc, 10, 8)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func IsRoutingFirewallMark(mark string) bool {
+	mrk := strings.Split(mark, "/")
+	if len(mrk) > 2 {
+		return false
+	}
+
+	for _, m := range mrk {
+		_, err := strconv.ParseUint(m, 10, 32)
+		if err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsRoutingTable(tbl string) bool {
+	_, err := strconv.ParseUint(tbl, 10, 32)
+	if err != nil {
+		return false
+	}
+
+	return true
+
+}
+
+func IsRoutingPriority(value string) bool {
+	_, err := strconv.ParseUint(value, 10, 32)
+	if err != nil {
+		return false
+	}
+
+	return true
+
+}
+
+func IsRoutingPort(port string) bool {
+	prt := strings.Split(port, "-")
+	if len(prt) > 2 {
+		return false
+	}
+
+	for _, p := range prt {
+		if !IsPort(p) {
+			return false
+		}
+	}
+
+	if len(prt) == 2 {
+		if prt[0] > prt[1] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsRoutingIPProtocol(p string) bool {
+	return p == "tcp" || p == "udp" || p == "sctp" || p == "6" || p == "17"
+}
+
+func IsRoutingUser(usr string) bool {
+	u := strings.Split(usr, "-")
+	if len(u) > 2 {
+		return false
+	}
+
+	for _, uu := range u {
+		_, err := strconv.ParseUint(uu, 10, 32)
+		if err != nil {
+			return false
+		}
+	}
+
+	if len(u) == 2 {
+		if u[0] > u[1] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsRoutingSuppressPrefixLength(value string) bool {
+	l, err := strconv.ParseUint(value, 10, 8)
+	if err != nil || l > 128 {
+		return false
+	}
+
+	return true
+}
+
+func IsRoutingSuppressInterfaceGroup(value string) bool {
+	_, err := strconv.ParseUint(value, 10, 32)
+	return err == nil
+}
+
+func IsRoutingType(typ string) bool {
+	return typ == "blackhole" || typ == "unreachable" || typ == "prohibit"
 }

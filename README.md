@@ -467,6 +467,10 @@ pmctl network set-rf-online <deviceName> <familyValue>
 pmctl network set-active-policy <deviceName> <policyValue>
 >pmctl network set-active-policy ens37 always-up
 
+# Configure network routingPolicyRule
+pmctl network add-rule dev <deviceName> tos <TypeOfService> from <Address> to <Address> fwmark <FirewallMark> table <Table> prio <Priority> iif <IncomingInterface> oif <OutgoingInterface> srcport <SourcePort> destport <DestinationPort> ipproto <IPProtocol> invertrule <InvertRule> family <Family> usr <User> suppressprefixlen <SuppressPrefixLength> suppressifgrp <SuppressInterfaceGroup> type <Type>
+>pmctl network add-rule dev ens37 tos 12 from 192.168.1.10/24 to 192.168.2.20/24 fwmark 7/255 table 8 prio 3 iif ens37 oif ens37 srcport 8000-8080 destport 9876 ipproto 17 invertrule yes family ipv4 usr 1001 suppressprefixlen 128 suppressifgrp 2098 type prohibit
+
 ```
 
 #### Configure network device using pmctl
