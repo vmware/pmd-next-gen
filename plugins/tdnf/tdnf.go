@@ -4,15 +4,17 @@
 package tdnf
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os/exec"
 	"reflect"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pmd-nextgen/pkg/jobs"
-	"github.com/pmd-nextgen/pkg/system"
 	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
@@ -22,6 +24,7 @@ type ListItem struct {
 	Arch string `json:"Arch"`
 	Evr  string `json:"Evr"`
 	Repo string `json:"Repo"`
+	Size int    `json:"Size"`
 }
 
 type Repo struct {
@@ -40,6 +43,18 @@ type Info struct {
 	Url         string `json:"Url"`
 	License     string `json:"License"`
 	Description string `json:"Description"`
+}
+
+type AlterResult struct {
+	Exist       []ListItem
+	Unavailable []ListItem
+	Install     []ListItem
+	Upgrade     []ListItem
+	Downgrade   []ListItem
+	Remove      []ListItem
+	UnNeeded    []ListItem
+	Reinstall   []ListItem
+	Obsolete    []ListItem
 }
 
 type Options struct {
@@ -98,6 +113,22 @@ func TdnfOptions(options *Options) []string {
 	return strOptions
 }
 
+type ExecResult struct {
+	Stdout bytes.Buffer
+	Stderr bytes.Buffer
+	Err    error
+}
+
+func execWithResult(cmd string, args ...string) *ExecResult {
+	var result ExecResult
+
+	c := exec.Command(cmd, args...)
+	c.Stdout = &result.Stdout
+	c.Stderr = &result.Stderr
+	result.Err = c.Run()
+	return &result
+}
+
 func TdnfExec(options *Options, args ...string) (string, error) {
 	args = append([]string{"-j"}, args...)
 
@@ -105,14 +136,14 @@ func TdnfExec(options *Options, args ...string) (string, error) {
 		args = append(TdnfOptions(options), args...)
 	}
 	fmt.Printf("calling tdnf %v\n", args)
-	s, err := system.ExecAndCapture("tdnf", args...)
-	if err != nil {
-		return "", err
+	result := execWithResult("tdnf", args...)
+	if result.Err != nil {
+		return "", errors.Wrap(result.Err, result.Stderr.String())
 	}
-	return s, nil
+	return result.Stdout.String(), nil
 }
 
-func AcquireList(w http.ResponseWriter, pkg string, options Options) error {
+func acquireList(w http.ResponseWriter, pkg string, options Options) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
@@ -125,13 +156,12 @@ func AcquireList(w http.ResponseWriter, pkg string, options Options) error {
 		if err := json.Unmarshal([]byte(s), &list); err != nil {
 			return nil, err
 		}
-
 		return list, err
 	})
 	return jobs.AcceptedResponse(w, job)
 }
 
-func AcquireRepoList(w http.ResponseWriter, options Options) error {
+func acquireRepoList(w http.ResponseWriter, options Options) error {
 	s, err := TdnfExec(&options, "repolist")
 	if err != nil {
 		log.Errorf("Failed to execute tdnf repolist: %v", err)
@@ -142,11 +172,10 @@ func AcquireRepoList(w http.ResponseWriter, options Options) error {
 	if err := json.Unmarshal([]byte(s), &repoList); err != nil {
 		return err
 	}
-
 	return web.JSONResponse(repoList, w)
 }
 
-func AcquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
+func acquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
@@ -169,7 +198,7 @@ func AcquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
 	return jobs.AcceptedResponse(w, job)
 }
 
-func AcquireMakeCache(w http.ResponseWriter, options Options) error {
+func acquireMakeCache(w http.ResponseWriter, options Options) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		_, err := TdnfExec(&options, "makecache")
 		return nil, err
@@ -177,12 +206,36 @@ func AcquireMakeCache(w http.ResponseWriter, options Options) error {
 	return jobs.AcceptedResponse(w, job)
 }
 
-func AcquireClean(w http.ResponseWriter, options Options) error {
+func acquireClean(w http.ResponseWriter, options Options) error {
 	_, err := TdnfExec(&options, "clean", "all")
 	if err != nil {
 		log.Errorf("Failed to execute tdnf clean all': %v", err)
 		return err
 	}
-
 	return web.JSONResponse("cleaned", w)
+}
+
+func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Options) error {
+	job := jobs.CreateJob(func() (interface{}, error) {
+		var s string
+		var err error
+		if !validator.IsEmpty(pkg) {
+			s, err = TdnfExec(&options, "-y", cmd, pkg)
+		} else {
+			s, err = TdnfExec(&options, "-y", cmd)
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		var alterResult interface{}
+		/* an empty response indicates that nothing was to do */
+		if s != "" {
+			if err := json.Unmarshal([]byte(s), &alterResult); err != nil {
+				return nil, err
+			}
+		}
+		return alterResult, err
+	})
+	return jobs.AcceptedResponse(w, job)
 }

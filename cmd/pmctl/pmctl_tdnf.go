@@ -38,6 +38,12 @@ type InfoListDesc struct {
 	Errors  string      `json:"errors"`
 }
 
+type AlterResultDesc struct {
+	Success bool             `json:"success"`
+	Message tdnf.AlterResult `json:"message"`
+	Errors  string           `json:"errors"`
+}
+
 type NilDesc struct {
 	Success bool   `json:"success"`
 	Errors  string `json:"errors"`
@@ -98,6 +104,28 @@ func tdnfCreateFlags() []cli.Flag {
 		}
 	}
 	return flags
+}
+
+func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequired bool, token map[string]string) *cli.Command {
+	return &cli.Command{
+		Name:        cmd,
+		Aliases:     aliases,
+		Description: desc,
+
+		Action: func(c *cli.Context) error {
+			options := tdnfParseFlags(c)
+			if c.NArg() >= 1 {
+				tdnfAlterCmd(&options, cmd, c.Args().First(), c.String("url"), token)
+			} else {
+				if pkgRequired {
+					fmt.Printf("Needs a package name\n")
+					return nil
+				}
+				tdnfAlterCmd(&options, cmd, "", c.String("url"), token)
+			}
+			return nil
+		},
+	}
 }
 
 func tdnfOptionsQuery(options *tdnf.Options) string {
@@ -171,6 +199,33 @@ func displayTdnfInfoList(l *InfoListDesc) {
 		fmt.Printf("%v %v\n", color.HiBlueString(" Description:"), i.Description)
 		fmt.Printf("\n")
 	}
+}
+
+func displayAlterList(l []tdnf.ListItem, header string) {
+	if len(l) > 0 {
+		fmt.Printf("%s:\n\n", header)
+		for _, i := range l {
+			fmt.Printf("%v %v\n", color.HiBlueString("Name:"), i.Name)
+			fmt.Printf("%v %v\n", color.HiBlueString("Arch:"), i.Arch)
+			fmt.Printf("%v %v\n", color.HiBlueString(" Evr:"), i.Evr)
+			fmt.Printf("%v %v\n", color.HiBlueString("Repo:"), i.Repo)
+			fmt.Printf("%v %v\n", color.HiBlueString("Size:"), i.Size)
+			fmt.Printf("\n")
+		}
+	}
+}
+
+func displayTdnfAlterResult(rDesc *AlterResultDesc) {
+	r := rDesc.Message
+	displayAlterList(r.Exist, "Existing Packages")
+	displayAlterList(r.Unavailable, "Unavailable Packages")
+	displayAlterList(r.Install, "Packages to Install")
+	displayAlterList(r.Upgrade, "Packages to Upgrade")
+	displayAlterList(r.Downgrade, "Packages to Downgrade")
+	displayAlterList(r.Remove, "Packages to Remove")
+	displayAlterList(r.UnNeeded, "Unneeded Packages")
+	displayAlterList(r.Reinstall, "Packages to Reinstall")
+	displayAlterList(r.Obsolete, "Packages to be Obsoleted")
 }
 
 func acquireTdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
@@ -266,6 +321,27 @@ func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, to
 	return nil, errors.New(m.Errors)
 }
 
+func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) (*AlterResultDesc, error) {
+	var msg []byte
+
+	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd+"/"+pkg+tdnfOptionsQuery(options), token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := AlterResultDesc{}
+	if err := json.Unmarshal(msg, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
 func tdnfClean(options *tdnf.Options, host string, token map[string]string) {
 	_, err := acquireTdnfSimpleCommand(options, "clean", host, token)
 	if err != nil {
@@ -309,4 +385,13 @@ func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[stri
 		return
 	}
 	displayTdnfInfoList(l)
+}
+
+func tdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfAlterCmd(options, cmd, pkg, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf %s: %v\n", cmd, err)
+		return
+	}
+	displayTdnfAlterResult(l)
 }

@@ -56,7 +56,7 @@ func routerParseOptions(values map[string][]string) Options {
 	return options
 }
 
-func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
+func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if err = r.ParseForm(); err != nil {
@@ -64,17 +64,23 @@ func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
 	}
 	options := routerParseOptions(r.Form)
 
-	switch mux.Vars(r)["command"] {
+	switch cmd := mux.Vars(r)["command"]; cmd {
 	case "clean":
-		err = AcquireClean(w, options)
+		err = acquireClean(w, options)
+	case "distro-sync":
+		err = acquireAlterCmd(w, cmd, "", options)
+	case "downgrade":
+		err = acquireAlterCmd(w, cmd, "", options)
 	case "info":
-		err = AcquireInfoList(w, "", options)
+		err = acquireInfoList(w, "", options)
 	case "list":
-		err = AcquireList(w, "", options)
+		err = acquireList(w, "", options)
 	case "makecache":
-		err = AcquireMakeCache(w, options)
+		err = acquireMakeCache(w, options)
 	case "repolist":
-		err = AcquireRepoList(w, options)
+		err = acquireRepoList(w, options)
+	case "update":
+		err = acquireAlterCmd(w, cmd, "", options)
 	default:
 		err = errors.New("unsupported")
 	}
@@ -84,7 +90,7 @@ func routerAcquireCommand(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerAcquireCommandPkg(w http.ResponseWriter, r *http.Request) {
+func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	pkg := mux.Vars(r)["pkg"]
@@ -94,11 +100,23 @@ func routerAcquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	}
 	options := routerParseOptions(r.Form)
 
-	switch mux.Vars(r)["command"] {
+	switch cmd := mux.Vars(r)["command"]; cmd {
+	case "autoremove":
+		err = acquireAlterCmd(w, cmd, pkg, options)
+	case "downgrade":
+		err = acquireAlterCmd(w, cmd, pkg, options)
+	case "erase":
+		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "info":
-		err = AcquireInfoList(w, pkg, options)
+		err = acquireInfoList(w, pkg, options)
+	case "install":
+		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "list":
-		err = AcquireList(w, pkg, options)
+		err = acquireList(w, pkg, options)
+	case "reinstall":
+		err = acquireAlterCmd(w, cmd, pkg, options)
+	case "update":
+		err = acquireAlterCmd(w, cmd, pkg, options)
 	default:
 		err = errors.New("unsupported")
 	}
@@ -111,6 +129,6 @@ func routerAcquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterTdnf(router *mux.Router) {
 	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/{command}/{pkg}", routerAcquireCommandPkg).Methods("GET")
-	n.HandleFunc("/{command}", routerAcquireCommand).Methods("GET")
+	n.HandleFunc("/{command}/{pkg}", routeracquireCommandPkg).Methods("GET")
+	n.HandleFunc("/{command}", routeracquireCommand).Methods("GET")
 }
