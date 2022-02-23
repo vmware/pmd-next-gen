@@ -132,23 +132,23 @@ func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 }
 
 func netDevKindToNetworkKind(s string) string {
-		var kind string
-		switch s {
-		case "vlan":
-			kind = "VLAN"
-		case "bond":
-			kind = "bond"
-		case "bridge":
-			kind = "bridge"
-		case "macvlan":
-			kind = "macvlan"
-		case "ipvlan":
-			kind = "ipvlan"
-		case "wireguard":
-			kind = "wireguard"
-		default:
-			kind = "n/a"
-		}
+	var kind string
+	switch s {
+	case "vlan":
+		kind = "VLAN"
+	case "bond":
+		kind = "bond"
+	case "bridge":
+		kind = "bridge"
+	case "macvlan":
+		kind = "macvlan"
+	case "ipvlan":
+		kind = "ipvlan"
+	case "wireguard":
+		kind = "wireguard"
+	default:
+		kind = "n/a"
+	}
 
 	return kind
 }

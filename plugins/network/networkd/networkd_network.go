@@ -767,6 +767,130 @@ func (n *Network) removeRouteSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) removeRoutingPolicyRuleSection(m *configfile.Meta) error {
+	fmt.Println("remove trigger")
+	for _, rtpr := range n.RoutingPolicyRuleSections {
+		if !validator.IsEmpty(rtpr.TypeOfService) {
+			if err := m.RemoveSection("RoutingPolicyRule", "TypeOfService", rtpr.TypeOfService); err != nil {
+				log.Errorf("Failed to remove TypeOfService='%s': %v", rtpr.TypeOfService, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.From) {
+			if err := m.RemoveSection("RoutingPolicyRule", "From", rtpr.From); err != nil {
+				log.Errorf("Failed to remove From='%s': %v", rtpr.From, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.To) {
+			if err := m.RemoveSection("RoutingPolicyRule", "To", rtpr.To); err != nil {
+				log.Errorf("Failed to remove To='%s': %v", rtpr.To, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.FirewallMark) {
+			if err := m.RemoveSection("RoutingPolicyRule", "FirewallMark", rtpr.FirewallMark); err != nil {
+				log.Errorf("Failed to remove FirewallMark='%s': %v", rtpr.FirewallMark, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.Table) {
+			if err := m.RemoveSection("RoutingPolicyRule", "Table", rtpr.Table); err != nil {
+				log.Errorf("Failed to remove Table='%s': %v", rtpr.Table, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.Priority) {
+			if err := m.RemoveSection("RoutingPolicyRule", "Priority", rtpr.Priority); err != nil {
+				log.Errorf("Failed to remove Priority='%s': %v", rtpr.Priority, err)
+				return err
+			}
+		}
+		if !validator.IsEmpty(rtpr.IncomingInterface) {
+			if err := m.RemoveSection("RoutingPolicyRule", "IncomingInterface", rtpr.IncomingInterface); err != nil {
+				log.Errorf("Failed to remove IncomingInterface='%s': %v", rtpr.IncomingInterface, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.OutgoingInterface) {
+			if err := m.RemoveSection("RoutingPolicyRule", "OutgoingInterface", rtpr.OutgoingInterface); err != nil {
+				log.Errorf("Failed to remove OutgoingInterface='%s': %v", rtpr.OutgoingInterface, err)
+				return err
+			}
+		}
+		if !validator.IsEmpty(rtpr.SourcePort) {
+			if err := m.RemoveSection("RoutingPolicyRule", "SourcePort", rtpr.SourcePort); err != nil {
+				log.Errorf("Failed to remove SourcePort='%s': %v", rtpr.SourcePort, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.DestinationPort) {
+			if err := m.RemoveSection("RoutingPolicyRule", "DestinationPort", rtpr.DestinationPort); err != nil {
+				log.Errorf("Failed to remove DestinationPort='%s': %v", rtpr.DestinationPort, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.IPProtocol) {
+			if err := m.RemoveSection("RoutingPolicyRule", "IPProtocol", rtpr.IPProtocol); err != nil {
+				log.Errorf("Failed to remove IPProtocol='%s': %v", rtpr.IPProtocol, err)
+				return err
+			}
+		}
+		if !validator.IsEmpty(rtpr.InvertRule) {
+			if err := m.RemoveSection("RoutingPolicyRule", "InvertRule", rtpr.InvertRule); err != nil {
+				log.Errorf("Failed to remove InvertRule='%s': %v", rtpr.InvertRule, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.Family) {
+			if err := m.RemoveSection("RoutingPolicyRule", "Family", rtpr.Family); err != nil {
+				log.Errorf("Failed to remove Family='%s': %v", rtpr.Family, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.User) {
+			if err := m.RemoveSection("RoutingPolicyRule", "User", rtpr.User); err != nil {
+				log.Errorf("Failed to remove User='%s': %v", rtpr.User, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.SuppressPrefixLength) {
+			if err := m.RemoveSection("RoutingPolicyRule", "SuppressPrefixLength", rtpr.SuppressPrefixLength); err != nil {
+				log.Errorf("Failed to remove SuppressPrefixLength='%s': %v", rtpr.SuppressPrefixLength, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.SuppressInterfaceGroup) {
+			if err := m.RemoveSection("RoutingPolicyRule", "SuppressInterfaceGroup", rtpr.SuppressInterfaceGroup); err != nil {
+				log.Errorf("Failed to remove SuppressInterfaceGroup='%s': %v", rtpr.SuppressInterfaceGroup, err)
+				return err
+			}
+		}
+
+		if !validator.IsEmpty(rtpr.Type) {
+			if err := m.RemoveSection("RoutingPolicyRule", "Type", rtpr.Type); err != nil {
+				log.Errorf("Failed to remove Type='%s': %v", rtpr.Type, err)
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	m, err := CreateOrParseNetworkFile(n.Link)
 	if err != nil {
@@ -831,6 +955,11 @@ func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) erro
 
 	if err := n.removeRouteSection(m); err != nil {
 		log.Errorf("Failed to remove route section: %v", err)
+		return err
+	}
+
+	if err := n.removeRoutingPolicyRuleSection(m); err != nil {
+		log.Errorf("Failed to remove routing Policy rule section: %v", err)
 		return err
 	}
 
