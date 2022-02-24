@@ -69,6 +69,14 @@ func TestNetDevCreateVLan(t *testing.T) {
 	}
 	defer os.Remove(m.Path)
 
+	if err := networkd.RemoveNetDevNetworkFile(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+
+	if err := networkd.RemoveNetDevNetworkFile("test99", ""); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+
 	if m.GetKeySectionUint("VLAN", "Id") != 10 {
 		t.Fatalf("Invalid Vlan Id in .netdev file of vlan='vlan99'")
 	}
@@ -106,6 +114,18 @@ func TestNetDevCreateBond(t *testing.T) {
 		t.Fatalf("Failed to parse .netdev file of bond='bond99'")
 	}
 	defer os.Remove(m.Path)
+
+	if err := networkd.RemoveNetDevNetworkFile(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+
+	if err := networkd.RemoveNetDevNetworkFile("test98", ""); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+
+	if err := networkd.RemoveNetDevNetworkFile("test99", ""); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
 
 	if m.GetKeySectionString("Bond", "Mode") != "balance-rr" {
 		t.Fatalf("Invalid bond mode in .netdev file of bond='bond99'")

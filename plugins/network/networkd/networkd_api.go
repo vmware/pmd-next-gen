@@ -255,7 +255,11 @@ func RemoveNetDev(link string, kind string) error {
 }
 
 func buildNetDevNetworkFilePath(link string, kind string) string {
-	return path.Join("/etc/systemd/network", "10-"+link+"-"+kind+".network")
+	if kind == "" {
+		return path.Join("/etc/systemd/network", "10-"+link+".network")
+	} else {
+		return path.Join("/etc/systemd/network", "10-"+link+"-"+kind+".network")
+	}
 }
 
 func CreateNetDevNetworkFile(link string, kind string) error {
