@@ -160,8 +160,10 @@ func ParseNetworkRouteDomains() ([]string, error) {
 }
 
 func CreateMatchSection(m *configfile.Meta, link string) error {
-	m.NewSection("Match")
-	m.SetKeyToNewSectionString("Name", link)
+	if _, err := m.Cfg.GetSection("Match"); err != nil {
+		m.NewSection("Match")
+		m.SetKeyToNewSectionString("Name", link)
+	}
 
 	return nil
 }

@@ -673,7 +673,7 @@ func networkConfigureAddress(link string, args cli.Args, host string, token map[
 	networkConfigure(&n, host, token)
 }
 
-func networkAddRoutingPolicyRule(args cli.Args, host string, token map[string]string) {
+func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 	argStrings := args.Slice()
 	link := ""
 
@@ -684,104 +684,87 @@ func networkAddRoutingPolicyRule(args cli.Args, host string, token map[string]st
 			link = argStrings[i+1]
 		case "tos":
 			if !validator.IsRoutingTypeOfService(argStrings[i+1]) {
-				fmt.Printf("Invalid tos=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid tos=%s\n", argStrings[i+1])
 			}
 			r.TypeOfService = argStrings[i+1]
 		case "from":
 			if !validator.IsIP(argStrings[i+1]) {
-				fmt.Printf("Invalid from=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid from=%s\n", argStrings[i+1])
 			}
 			r.From = argStrings[i+1]
 		case "to":
 			if !validator.IsIP(argStrings[i+1]) {
-				fmt.Printf("Invalid to=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid to=%s\n", argStrings[i+1])
 			}
 			r.To = argStrings[i+1]
 		case "fwmark":
 			if !validator.IsRoutingFirewallMark(argStrings[i+1]) {
-				fmt.Printf("Invalid fwmark=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid fwmark=%s\n", argStrings[i+1])
 			}
 			r.FirewallMark = argStrings[i+1]
 		case "table":
 			if !validator.IsRoutingTable(argStrings[i+1]) {
-				fmt.Printf("Invalid table=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid table=%s\n", argStrings[i+1])
 			}
 			r.Table = argStrings[i+1]
 		case "prio":
 			if !validator.IsRoutingPriority(argStrings[i+1]) {
-				fmt.Printf("Invalid prio=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid prio=%s\n", argStrings[i+1])
 			}
 			r.Priority = argStrings[i+1]
 		case "iif":
 			if validator.IsEmpty(argStrings[i+1]) {
-				fmt.Printf("Invalid iif=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid iif=%s\n", argStrings[i+1])
 			}
 			r.IncomingInterface = argStrings[i+1]
 		case "oif":
 			if validator.IsEmpty(argStrings[i+1]) {
-				fmt.Printf("Invalid oif=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid oif=%s\n", argStrings[i+1])
 			}
 			r.OutgoingInterface = argStrings[i+1]
 		case "srcport":
 			if !validator.IsRoutingPort(argStrings[i+1]) {
-				fmt.Printf("Invalid srcport=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid srcport=%s\n", argStrings[i+1])
 			}
 			r.SourcePort = argStrings[i+1]
 		case "destport":
 			if !validator.IsRoutingPort(argStrings[i+1]) {
-				fmt.Printf("Invalid destport=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid destport=%s\n", argStrings[i+1])
 			}
 			r.DestinationPort = argStrings[i+1]
 		case "ipproto":
 			if !validator.IsRoutingIPProtocol(argStrings[i+1]) {
-				fmt.Printf("Invalid ipproto=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid ipproto=%s\n", argStrings[i+1])
 			}
 			r.IPProtocol = argStrings[i+1]
 		case "invertrule":
 			if !validator.IsBool(argStrings[i+1]) {
-				fmt.Printf("Invalid invertrule=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid invertrule=%s\n", argStrings[i+1])
 			}
 			r.InvertRule = validator.BoolToString(argStrings[i+1])
 		case "family":
 			if !validator.IsAddressFamily(argStrings[i+1]) {
-				fmt.Printf("Invalid family=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid family=%s\n", argStrings[i+1])
 			}
 			r.Family = argStrings[i+1]
 		case "usr":
 			if !validator.IsRoutingUser(argStrings[i+1]) {
-				fmt.Printf("Invalid usr=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid usr=%s\n", argStrings[i+1])
 			}
 			r.User = argStrings[i+1]
 		case "suppressprefixlen":
 			if !validator.IsRoutingSuppressPrefixLength(argStrings[i+1]) {
-				fmt.Printf("Invalid suppressprefixlen=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid suppressprefixlen=%s\n", argStrings[i+1])
 			}
 			r.SuppressPrefixLength = argStrings[i+1]
 		case "suppressifgrp":
 			if !validator.IsRoutingSuppressInterfaceGroup(argStrings[i+1]) {
-				fmt.Printf("Invalid suppressifgrp=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid suppressifgrp=%s\n", argStrings[i+1])
 			}
 			r.SuppressInterfaceGroup = argStrings[i+1]
 		case "type":
 			if !validator.IsRoutingType(argStrings[i+1]) {
-				fmt.Printf("Invalid type=%s\n", argStrings[i+1])
-				return
+				return nil, fmt.Errorf("Invalid type=%s\n", argStrings[i+1])
 			}
 			r.Type = argStrings[i+1]
 		}
@@ -795,7 +778,46 @@ func networkAddRoutingPolicyRule(args cli.Args, host string, token map[string]st
 			r,
 		},
 	}
-	networkConfigure(&n, host, token)
+
+	return &n, nil
+
+}
+
+func networkAddRoutingPolicyRule(args cli.Args, host string, token map[string]string) {
+	n, err := parseRoutingPolicyRule(args)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
+	networkConfigure(n, host, token)
+}
+
+func networkRemoveRoutingPolicyRule(args cli.Args, host string, token map[string]string) {
+	n, err := parseRoutingPolicyRule(args)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
+	var resp []byte
+
+	resp, err = web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/network/remove", token, n)
+	if err != nil {
+		fmt.Printf("Failed to remove network routing policy rule: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove network routing policy rule: %v\n", m.Errors)
+	}
+
 }
 
 func networkAddDns(args cli.Args, host string, token map[string]string) {
