@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -24,6 +25,12 @@ type ItemListDesc struct {
 	Success bool            `json:"success"`
 	Message []tdnf.ListItem `json:"message"`
 	Errors  string          `json:"errors"`
+}
+
+type ItemSearchDesc struct {
+	Success bool              `json:"success"`
+	Message []tdnf.SearchItem `json:"message"`
+	Errors  string            `json:"errors"`
 }
 
 type RepoListDesc struct {
@@ -128,6 +135,35 @@ func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequir
 	}
 }
 
+func tdnfOptionsMap(options *tdnf.Options) url.Values {
+	//	var m map[string][]string
+	m := url.Values{}
+
+	v := reflect.ValueOf(options).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		name := strings.ToLower(field.Name)
+		value := v.Field(i).Interface()
+		switch value.(type) {
+		case bool:
+			if value.(bool) {
+				m.Add(name, "true")
+			}
+		case string:
+			str := value.(string)
+			if str != "" {
+				m.Add(name, str)
+			}
+		case []string:
+			list := value.([]string)
+			if len(list) != 0 {
+				m[name] = list
+			}
+		}
+	}
+	return m
+}
+
 func tdnfOptionsQuery(options *tdnf.Options) string {
 	var qlist []string
 
@@ -173,6 +209,14 @@ func displayTdnfList(l *ItemListDesc) {
 		fmt.Printf("%v %v\n", color.HiBlueString("Arch:"), i.Arch)
 		fmt.Printf("%v %v\n", color.HiBlueString(" Evr:"), i.Evr)
 		fmt.Printf("%v %v\n", color.HiBlueString("Repo:"), i.Repo)
+		fmt.Printf("\n")
+	}
+}
+
+func displayTdnfSearch(l *ItemSearchDesc) {
+	for _, i := range l.Message {
+		fmt.Printf("%v %v\n", color.HiBlueString("   Name:"), i.Name)
+		fmt.Printf("%v %v\n", color.HiBlueString("Summary:"), i.Summary)
 		fmt.Printf("\n")
 	}
 }
@@ -327,6 +371,33 @@ func acquireTdnfCheckUpdate(options *tdnf.Options, pkg string, host string, toke
 	return nil, errors.New(m.Errors)
 }
 
+func acquireTdnfSearch(options *tdnf.Options, q string, host string, token map[string]string) (*ItemSearchDesc, error) {
+	var path string
+
+	v := tdnfOptionsMap(options)
+	v.Add("q", q)
+	path = "/api/v1/tdnf/search?" + v.Encode()
+
+	fmt.Printf("path = %s\n", path)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := ItemSearchDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
 func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, token map[string]string) (*NilDesc, error) {
 	var msg []byte
 
@@ -412,6 +483,15 @@ func tdnfRepoList(options *tdnf.Options, host string, token map[string]string) {
 		return
 	}
 	displayTdnfRepoList(l)
+}
+
+func tdnfSearch(options *tdnf.Options, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfSearch(options, pkg, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf search: %v\n", err)
+		return
+	}
+	displayTdnfSearch(l)
 }
 
 func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) {

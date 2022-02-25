@@ -1082,6 +1082,21 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "search",
+					Aliases:     []string{"s"},
+					Description: "Package Search",
+
+					Action: func(c *cli.Context) error {
+						options := tdnfParseFlags(c)
+						if c.NArg() >= 1 {
+							tdnfSearch(&options, c.Args().First(), c.String("url"), token)
+						} else {
+							fmt.Printf("Needs a search string\n")
+						}
+						return nil
+					},
+				},
 			},
 		},
 		{
