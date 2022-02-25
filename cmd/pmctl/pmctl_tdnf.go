@@ -300,6 +300,33 @@ func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token m
 	return nil, errors.New(m.Errors)
 }
 
+func acquireTdnfCheckUpdate(options *tdnf.Options, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
+	var path string
+	if pkg != "" {
+		path = "/api/v1/tdnf/check-update/" + pkg
+	} else {
+		path = "/api/v1/tdnf/check-update"
+	}
+	path = path + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := ItemListDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
 func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, token map[string]string) (*NilDesc, error) {
 	var msg []byte
 
@@ -349,6 +376,15 @@ func tdnfClean(options *tdnf.Options, host string, token map[string]string) {
 		return
 	}
 	fmt.Printf("package cache cleaned\n")
+}
+
+func tdnfCheckUpdate(options *tdnf.Options, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfCheckUpdate(options, pkg, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire check-update: %v\n", err)
+		return
+	}
+	displayTdnfList(l)
 }
 
 func tdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) {
