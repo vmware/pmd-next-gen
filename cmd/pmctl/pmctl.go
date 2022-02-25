@@ -427,41 +427,50 @@ func main() {
 					},
 				},
 				{
-					Name:        "set-dhcp4-client-identifier",
-					UsageText:   "set-dhcp4-client-identifier [LINK] [IDENTIFIER {mac|duid|duid-only}]",
-					Description: "Configures Link DHCPv4 identifier.",
+					Name:        "set-dhcpv4-id",
+					UsageText:   "set-dhcpv4-id dev [LINK] clientid [STRING] vendorclassid [STRING] iaid [STRING]",
+					Description: "Configures Link DHCPv4 identifiers.",
 
 					Action: func(c *cli.Context) error {
-						if c.NArg() < 2 {
+						if c.NArg() < 4 {
 							fmt.Printf("Too few arguments.\n")
 							return nil
 						}
 
-						networkConfigureDHCP4ClientIdentifier(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						networkConfigureDHCPv4Id(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
-					Name:        "set-dhcp-iaid",
-					UsageText:   "set-dhcp-iaid [LINK] [IAID]",
-					Description: "Configures the DHCP Identity Association Identifier (IAID) for the interface, a 32-bit unsigned integer.",
+					Name:        "set-dhcpv4-duid",
+					UsageText:   "set-dhcpv4-duid dev [LINK] duidtype [STRING] duidrawdata [STRING] ",
+					Description: "Configures Link DHCPv4 DUID.",
 
 					Action: func(c *cli.Context) error {
-						if c.NArg() < 2 {
+						if c.NArg() < 4 {
 							fmt.Printf("Too few arguments.\n")
 							return nil
 						}
 
-						if !validator.IsIaId(c.Args().Get(1)) {
-							fmt.Printf("Invalid IAID.\n")
-							return nil
-						}
-
-						networkConfigureDHCPIAID(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						networkConfigureDHCPv4DUID(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
+				{
+					Name:        "set-dhcpv4-use",
+					UsageText:   "set-dhcpv4-use dev [LINK] usedns [BOOLEAN] usentp [BOOLEAN] usesip [BOOLEAN] usemtu [BOOLEAN] usehostname [BOOLEAN] usedomains [BOOLEAN] useroutes [BOOLEAN] usegateway [BOOLEAN] usetimezone [BOOLEAN]",
+					Description: "Configures Link DHCPv4 enable the use of recevied DNS, MTU, DOMAINS etc",
 
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCPv4UseOption(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 				{
 					Name:        "set-mtu",
 					UsageText:   "set-mtu [LINK] [MTU NUMBER]",

@@ -97,8 +97,17 @@ func IsIPs(s []string) bool {
 	return true
 }
 
-func IsClientIdentifier(identifier string) bool {
+func IsDHCPv4ClientIdentifier(identifier string) bool {
 	return identifier == "mac" || identifier == "duid" || identifier == "duid-only"
+}
+
+func IsDHCPv4IAID(iaid string) bool {
+	_, err := strconv.ParseUint(iaid, 10, 32)
+	return err == nil
+}
+
+func IsDHCPv4DUIDType(id string) bool {
+	return id == "vendor" || id == "uuid" || id == "link-layer-time" || id == "link-layer"
 }
 
 func IsNotMAC(mac string) bool {
@@ -107,11 +116,6 @@ func IsNotMAC(mac string) bool {
 
 func IsMtu(mtu string) bool {
 	_, err := strconv.ParseUint(mtu, 10, 32)
-	return err == nil
-}
-
-func IsIaId(iaid string) bool {
-	_, err := strconv.ParseUint(iaid, 10, 32)
 	return err == nil
 }
 
