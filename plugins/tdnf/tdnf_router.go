@@ -65,6 +65,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	options := routerParseOptions(r.Form)
 
 	switch cmd := mux.Vars(r)["command"]; cmd {
+	case "check-update":
+		err = acquireCheckUpdate(w, "", options)
 	case "clean":
 		err = acquireClean(w, options)
 	case "distro-sync":
@@ -105,6 +107,8 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "downgrade":
 		err = acquireAlterCmd(w, cmd, pkg, options)
+	case "check-update":
+		err = acquireCheckUpdate(w, pkg, options)
 	case "erase":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "info":

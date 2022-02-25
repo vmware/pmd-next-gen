@@ -143,6 +143,24 @@ func TdnfExec(options *Options, args ...string) (string, error) {
 	return result.Stdout.String(), nil
 }
 
+func acquireCheckUpdate(w http.ResponseWriter, pkg string, options Options) error {
+	job := jobs.CreateJob(func() (interface{}, error) {
+		var s string
+		var err error
+		if !validator.IsEmpty(pkg) {
+			s, err = TdnfExec(&options, "check-update", pkg)
+		} else {
+			s, err = TdnfExec(&options, "check-update")
+		}
+		var list interface{}
+		if err := json.Unmarshal([]byte(s), &list); err != nil {
+			return nil, err
+		}
+		return list, err
+	})
+	return jobs.AcceptedResponse(w, job)
+}
+
 func acquireList(w http.ResponseWriter, pkg string, options Options) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
