@@ -60,7 +60,35 @@ func configureNetwork(t *testing.T, n networkd.Network) (*configfile.Meta, error
 	link, err := netlink.LinkByName("test99")
 	network, err := networkd.ParseLinkNetworkFile(link.Attrs().Index)
 	if err != nil {
-		t.Fatalf("Failed to configure network: %v\n", err)
+		t.Fatalf("Failed to parse link network file: %v\n", err)
+	}
+
+	m, err := configfile.Load(network)
+
+	return m, err
+}
+
+func removeNetwork(t *testing.T, n networkd.Network) (*configfile.Meta, error) {
+	var resp []byte
+	var err error
+	resp, err = web.DispatchSocket(http.MethodDelete, "", "/api/v1/network/networkd/network/remove", nil, n)
+	if err != nil {
+		t.Fatalf("Failed to remove network: %v\n", err)
+	}
+
+	j := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &j); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+	if !j.Success {
+		t.Fatalf("Failed to remove network: %v\n", j.Errors)
+	}
+
+	time.Sleep(time.Second * 3)
+	link, err := netlink.LinkByName("test99")
+	network, err := networkd.ParseLinkNetworkFile(link.Attrs().Index)
+	if err != nil {
+		t.Fatalf("Failed to parse link network file: %v\n", err)
 	}
 
 	m, err := configfile.Load(network)
@@ -230,6 +258,7 @@ func TestNetworkAddLinkDomain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure link domain: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	domains := m.GetKeySectionString("Network", "Domains")
 	for _, d := range s {
@@ -254,19 +283,9 @@ func TestNetworkRemoveLinkDomain(t *testing.T) {
 		},
 	}
 
-	var resp []byte
-	var err error
-	resp, err = web.DispatchSocket(http.MethodPost, "", "/api/v1/network/networkd/network/configure", nil, n)
+	_, err := configureNetwork(t, n)
 	if err != nil {
 		t.Fatalf("Failed to add link domain: %v\n", err)
-	}
-
-	j := web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to configure link: %v\n", j.Errors)
 	}
 
 	s = []string{"test3.com", "test4.com"}
@@ -277,31 +296,10 @@ func TestNetworkRemoveLinkDomain(t *testing.T) {
 		},
 	}
 
-	resp, err = web.DispatchSocket(http.MethodDelete, "", "/api/v1/network/networkd/network/remove", nil, n)
+	m, err := removeNetwork(t, n)
 	if err != nil {
 		t.Fatalf("Failed to remove link domain: %v\n", err)
 	}
-
-	j = web.JSONResponseMessage{}
-	if err := json.Unmarshal(resp, &j); err != nil {
-		t.Fatalf("Failed to decode json message: %v\n", err)
-	}
-	if !j.Success {
-		t.Fatalf("Failed to remove domain: %v\n", j.Errors)
-	}
-
-	time.Sleep(time.Second * 3)
-	link, err := netlink.LinkByName("test99")
-	network, err := networkd.ParseLinkNetworkFile(link.Attrs().Index)
-	if err != nil {
-		t.Fatalf("Failed to configure link domain: %v\n", err)
-	}
-
-	m, err := configfile.Load(network)
-	if err != nil {
-		t.Fatalf("Failed to configure link domain: %v\n", err)
-	}
-	defer os.Remove(m.Path)
 
 	domains := m.GetKeySectionString("Network", "Domains")
 	for _, d := range s {
@@ -329,6 +327,7 @@ func TestNetworkDHCP(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure DHCP: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "DHCP") != "ipv4" {
 		t.Fatalf("Failed to set DHCP")
@@ -353,6 +352,7 @@ func TestNetworkLinkLocalAddressing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure LinkLocalAddressing: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "LinkLocalAddressing") != "ipv4" {
 		t.Fatalf("Failed to set LinkLocalAddressing")
@@ -377,6 +377,7 @@ func TestNetworkMulticastDNS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure MulticastDNS: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "MulticastDNS") != "resolve" {
 		t.Fatalf("Failed to set MulticastDNS")
@@ -401,6 +402,7 @@ func TestNetworkIPv6AcceptRA(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure IPv6AcceptRA: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "IPv6AcceptRA") != "no" {
 		t.Fatalf("Failed to set IPv6AcceptRA")
@@ -425,6 +427,7 @@ func TestNetworkDHCP4ClientIdentifier(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure DHCP4ClientIdentifier: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("DHCPv4", "ClientIdentifier") != "duid" {
 		t.Fatalf("Failed to set ClientIdentifier")
@@ -449,6 +452,7 @@ func TestNetworkDHCPIAID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure DHCPIAID: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("DHCPv4", "IAID") != "8765434" {
 		t.Fatalf("Failed to set IAID")
@@ -481,6 +485,7 @@ func TestNetworkRoute(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Route: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Route", "Gateway") != "192.168.0.1" {
 		t.Fatalf("Failed to set Gateway")
@@ -528,6 +533,7 @@ func TestNetworkAddress(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Route: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Address", "Address") != "192.168.1.15/24" {
 		t.Fatalf("Failed to set Address")
@@ -565,6 +571,7 @@ func TestNetworkLinkMode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Link Mode: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "ARP") != "yes" {
 		t.Fatalf("Failed to set ARP")
@@ -601,6 +608,7 @@ func TestNetworkLinkMTU(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Link MTU: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "MTUBytes") != "2048" {
 		t.Fatalf("Failed to set MTUBytes")
@@ -625,6 +633,7 @@ func TestNetworkLinkMAC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Link MAC: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "MACAddress") != "00:a0:de:63:7a:e6" {
 		t.Fatalf("Failed to set MACAddress")
@@ -649,6 +658,7 @@ func TestNetworkLinkGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Link Group: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "Group") != "2147483647" {
 		t.Fatalf("Failed to set Group")
@@ -673,6 +683,7 @@ func TestNetworkLinkOnlineFamily(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Link OnlineFamily: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "RequiredFamilyForOnline") != "ipv4" {
 		t.Fatalf("Failed to set RequiredFamilyForOnline")
@@ -697,8 +708,152 @@ func TestNetworkLinkActPolicy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to configure Link ActPolicy: %v\n", err)
 	}
+	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Link", "ActivationPolicy") != "always-up" {
 		t.Fatalf("Failed to set ActivationPolicy")
+	}
+}
+
+func TestNetworkAddRoutingPolicyRule(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		RoutingPolicyRuleSections: []networkd.RoutingPolicyRuleSection{
+			{
+				TypeOfService:          "12",
+				From:                   "192.168.1.10/24",
+				To:                     "192.168.2.20/24",
+				FirewallMark:           "7/255",
+				Table:                  "8",
+				Priority:               "2",
+				IncomingInterface:      "test99",
+				OutgoingInterface:      "test99",
+				SourcePort:             "8000-8080",
+				DestinationPort:        "9876",
+				IPProtocol:             "tcp",
+				InvertRule:             "yes",
+				Family:                 "both",
+				User:                   "1010-1020",
+				SuppressPrefixLength:   "128",
+				SuppressInterfaceGroup: "204",
+				Type:                   "prohibit",
+			},
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("RoutingPolicyRule", "TypeOfService") != "12" {
+		t.Fatalf("Failed to set TypeOfService")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "From") != "192.168.1.10/24" {
+		t.Fatalf("Failed to set From")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "To") != "192.168.2.20/24" {
+		t.Fatalf("Failed to set To")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "FirewallMark") != "7/255" {
+		t.Fatalf("Failed to set FirewallMark")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "Table") != "8" {
+		t.Fatalf("Failed to set Table")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "Priority") != "2" {
+		t.Fatalf("Failed to set Priority")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "IncomingInterface") != "test99" {
+		t.Fatalf("Failed to set IncomingInterface")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "OutgoingInterface") != "test99" {
+		t.Fatalf("Failed to set OutgoingInterface")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "SourcePort") != "8000-8080" {
+		t.Fatalf("Failed to set SourcePort")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "DestinationPort") != "9876" {
+		t.Fatalf("Failed to set DestinationPort")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "IPProtocol") != "tcp" {
+		t.Fatalf("Failed to set IPProtocol")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "InvertRule") != "yes" {
+		t.Fatalf("Failed to set InvertRule")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "Family") != "both" {
+		t.Fatalf("Failed to set Family")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "User") != "1010-1020" {
+		t.Fatalf("Failed to set User")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "SuppressPrefixLength") != "128" {
+		t.Fatalf("Failed to set SuppressPrefixLength")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "SuppressInterfaceGroup") != "204" {
+		t.Fatalf("Failed to set SuppressInterfaceGroup")
+	}
+	if m.GetKeySectionString("RoutingPolicyRule", "Type") != "prohibit" {
+		t.Fatalf("Failed to set Type")
+	}
+}
+
+func TestNetworkRemoveRoutingPolicyRule(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		RoutingPolicyRuleSections: []networkd.RoutingPolicyRuleSection{
+			{
+				TypeOfService:     "12",
+				From:              "192.168.1.10/24",
+				To:                "192.168.2.20/24",
+				Table:             "8",
+				Priority:          "2",
+				IncomingInterface: "test99",
+				OutgoingInterface: "test99",
+			},
+		},
+	}
+
+	_, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+	}
+
+	n = networkd.Network{
+		Link: "test99",
+		RoutingPolicyRuleSections: []networkd.RoutingPolicyRuleSection{
+			{
+				TypeOfService: "12",
+			},
+		},
+	}
+
+	m, err := removeNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to remove RoutingPolicyRule: %v\n", err)
+	}
+
+	if m.GetKeySectionString("RoutingPolicyRule", "TypeOfService") == "12" ||
+		m.GetKeySectionString("RoutingPolicyRule", "From") == "192.168.1.10/24" ||
+		m.GetKeySectionString("RoutingPolicyRule", "To") == "192.168.2.20/24" ||
+		m.GetKeySectionString("RoutingPolicyRule", "Table") == "8" ||
+		m.GetKeySectionString("RoutingPolicyRule", "Priority") == "2" ||
+		m.GetKeySectionString("RoutingPolicyRule", "IncomingInterface") == "test99" ||
+		m.GetKeySectionString("RoutingPolicyRule", "OutgoingInterface") == "test99" {
+		t.Fatalf("Failed to remove RoutingPolicyRule")
 	}
 }
