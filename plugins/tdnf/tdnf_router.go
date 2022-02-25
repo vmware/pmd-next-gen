@@ -81,6 +81,13 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 		err = acquireMakeCache(w, options)
 	case "repolist":
 		err = acquireRepoList(w, options)
+	case "search":
+		q := r.FormValue("q")
+		if q != "" {
+			err = acquireSearch(w, q, options)
+		} else {
+			err = errors.New("search needs 'q=str' query")
+		}
 	case "update":
 		err = acquireAlterCmd(w, cmd, "", options)
 	default:
