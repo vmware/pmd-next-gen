@@ -485,30 +485,138 @@ func networkConfigureRoute(args cli.Args, host string, token map[string]string) 
 	networkConfigure(&n, host, token)
 }
 
-func networkConfigureDHCP4ClientIdentifier(link string, identifier string, host string, token map[string]string) {
-	if !validator.IsClientIdentifier(identifier) {
-		fmt.Printf("Invalid DHCP4 Client Identifier: %s\n", identifier)
-		return
+func networkConfigureDHCPv4Id(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "clientid":
+			if !validator.IsDHCPv4ClientIdentifier(argStrings[i+1]) {
+				fmt.Printf("Invalid clientid=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.ClientIdentifier = argStrings[i+1]
+		case "vendorclassid":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invalid vendorclassid=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.VendorClassIdentifier = argStrings[i+1]
+		case "iaid":
+			if !validator.IsDHCPv4IAID(argStrings[i+1]) {
+				fmt.Printf("Invalid iaid=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.IAID = argStrings[i+1]
+		}
+
+		i++
 	}
 
-	n := networkd.Network{
-		Link: link,
-		DHCPv4Section: networkd.DHCPv4Section{
-			ClientIdentifier: identifier,
-		},
-	}
-
+	//Dispatch Request.
 	networkConfigure(&n, host, token)
 }
 
-func networkConfigureDHCPIAID(link string, iaid string, host string, token map[string]string) {
-	n := networkd.Network{
-		Link: link,
-		DHCPv4Section: networkd.DHCPv4Section{
-			IAID: iaid,
-		},
+func networkConfigureDHCPv4DUID(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "duidtype":
+			if !validator.IsDHCPv4DUIDType(argStrings[i+1]) {
+				fmt.Printf("Invalid duidtype=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.DUIDType = argStrings[i+1]
+		case "duidrawdata":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invduidrawdata=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.DUIDRawData = argStrings[i+1]
+		}
+
+		i++
 	}
 
+	//Dispatch Request.
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureDHCPv4UseOption(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "usedns":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usedns=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseDNS = validator.BoolToString(argStrings[i+1])
+		case "usentp":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usentp=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseNTP = validator.BoolToString(argStrings[i+1])
+		case "usesip":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usesip=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseSIP = validator.BoolToString(argStrings[i+1])
+		case "usemtu":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usemtu=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseMTU = validator.BoolToString(argStrings[i+1])
+		case "usehostname":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usehostname=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseHostname = validator.BoolToString(argStrings[i+1])
+		case "usedomains":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usedomains=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseDomains = validator.BoolToString(argStrings[i+1])
+		case "useroutes":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid useroutes=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseRoutes = validator.BoolToString(argStrings[i+1])
+		case "usegateway":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usegateway=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseGateway = validator.BoolToString(argStrings[i+1])
+		case "usetimezone":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usetimezone=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4Section.UseTimezone = validator.BoolToString(argStrings[i+1])
+		}
+
+		i++
+	}
+
+	//Dispatch Request.
 	networkConfigure(&n, host, token)
 }
 

@@ -73,17 +73,20 @@ type RouteSection struct {
 type DHCPv4Section struct {
 	ClientIdentifier      string `json:"ClientIdentifier"`
 	VendorClassIdentifier string `json:"VendorClassIdentifier"`
+	DUIDType              string `json:"DUIDType"`
+	DUIDRawData           string `json:"DUIDRawData"`
+	IAID                  string `json:"IAID"`
 	RequestOptions        string `json:"RequestOptions"`
 	SendOption            string `json:"SendOption"`
 	UseDNS                string `json:"UseDNS"`
 	UseNTP                string `json:"UseNTP"`
+	UseSIP                string `json:"UseSIP"`
+	UseMTU                string `json:"UseMTU"`
 	UseHostname           string `json:"UseHostname"`
 	UseDomains            string `json:"UseDomains"`
 	UseRoutes             string `json:"UseRoutes"`
-	UseMTU                string `json:"UseMTU"`
 	UseGateway            string `json:"UseGateway"`
 	UseTimezone           string `json:"UseTimezone"`
-	IAID                  string `json:"IAID"`
 }
 
 type RoutingPolicyRuleSection struct {
@@ -450,12 +453,25 @@ func (n *Network) buildLinkSection(m *configfile.Meta) error {
 }
 
 func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
-	if !validator.IsEmpty(n.DHCPv4Section.ClientIdentifier) {
+	if !validator.IsEmpty(n.DHCPv4Section.ClientIdentifier) &&
+		validator.IsDHCPv4ClientIdentifier(n.DHCPv4Section.ClientIdentifier) {
 		m.SetKeySectionString("DHCPv4", "ClientIdentifier", n.DHCPv4Section.ClientIdentifier)
 	}
 
 	if !validator.IsEmpty(n.DHCPv4Section.VendorClassIdentifier) {
 		m.SetKeySectionString("DHCPv4", "VendorClassIdentifier", n.DHCPv4Section.VendorClassIdentifier)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsDHCPv4IAID(n.DHCPv4Section.IAID) {
+		m.SetKeySectionString("DHCPv4", "IAID", n.DHCPv4Section.IAID)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.DUIDType) && validator.IsDHCPv4DUIDType(n.DHCPv4Section.DUIDType) {
+		m.SetKeySectionString("DHCPv4", "DUIDType", n.DHCPv4Section.DUIDType)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.DUIDRawData) {
+		m.SetKeySectionString("DHCPv4", "DUIDRawData", n.DHCPv4Section.DUIDRawData)
 	}
 
 	if !validator.IsEmpty(n.DHCPv4Section.RequestOptions) {
@@ -470,16 +486,28 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 		m.SetKeySectionString("DHCPv4", "UseDNS", n.DHCPv4Section.UseDNS)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.UseDomains) && validator.IsBool(n.DHCPv4Section.UseDomains) {
-		m.SetKeySectionString("DHCPv4", "UseDomains", n.DHCPv4Section.UseDomains)
-	}
-
 	if !validator.IsEmpty(n.DHCPv4Section.UseNTP) && validator.IsBool(n.DHCPv4Section.UseNTP) {
 		m.SetKeySectionString("DHCPv4", "UseNTP", n.DHCPv4Section.UseNTP)
 	}
 
+	if !validator.IsEmpty(n.DHCPv4Section.UseSIP) && validator.IsBool(n.DHCPv4Section.UseSIP) {
+		m.SetKeySectionString("DHCPv4", "UseSIP", n.DHCPv4Section.UseSIP)
+	}
+
 	if !validator.IsEmpty(n.DHCPv4Section.UseMTU) && validator.IsBool(n.DHCPv4Section.UseMTU) {
 		m.SetKeySectionString("DHCPv4", "UseMTU", n.DHCPv4Section.UseMTU)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseHostname) && validator.IsBool(n.DHCPv4Section.UseHostname) {
+		m.SetKeySectionString("DHCPv4", "UseHostname", n.DHCPv4Section.UseHostname)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseDomains) && validator.IsBool(n.DHCPv4Section.UseDomains) {
+		m.SetKeySectionString("DHCPv4", "UseDomains", n.DHCPv4Section.UseDomains)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4Section.UseRoutes) && validator.IsBool(n.DHCPv4Section.UseRoutes) {
+		m.SetKeySectionString("DHCPv4", "UseRoutes", n.DHCPv4Section.UseRoutes)
 	}
 
 	if !validator.IsEmpty(n.DHCPv4Section.UseGateway) && validator.IsBool(n.DHCPv4Section.UseGateway) {
@@ -488,10 +516,6 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 
 	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) && validator.IsBool(n.DHCPv4Section.UseTimezone) {
 		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
-	}
-
-	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsIaId(n.DHCPv4Section.IAID) {
-		m.SetKeySectionString("DHCPv4", "IAID", n.DHCPv4Section.IAID)
 	}
 
 	return nil

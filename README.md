@@ -475,6 +475,18 @@ pmctl network add-rule dev <deviceName> tos <TypeOfService> from <Address> to <A
 pmctl network delete-rule dev <deviceName> tos <TypeOfService> from <Address> to <Address> fwmark <FirewallMark> table <Table> prio <Priority> iif <IncomingInterface> oif <OutgoingInterface> srcport <SourcePort> destport <DestinationPort> ipproto <IPProtocol> invertrule <InvertRule> family <Family> usr <User> suppressprefixlen <SuppressPrefixLength> suppressifgrp <SuppressInterfaceGroup> type <Type>
 >pmctl network delete-rule dev ens37 tos 12 from 192.168.1.10/24 to 192.168.2.20/24 fwmark 7/255 table 8 prio 3 iif ens37 oif ens37 srcport 8000-8080 destport 9876 ipproto 17 invertrule yes family ipv4 usr 1001 suppressprefixlen 128 suppressifgrp 2098 type prohibit
 
+# Configure network DHCPv4 id's
+pmctl network set-dhcpv4-id dev <deviceName> clientid <ClientIdentifier> vendorclassid <VendorClassIdentifier> iaid <IAID>
+>pmctl network set-dhcpv4-id dev ens37 clientid duid vendorclassid 101 iaid 201
+
+# Configure network DHCPv4 duid
+pmctl network set-dhcpv4-duid dev <deviceName> duidtype <DUIDType> duidrawdata <DUIDRawData>
+>pmctl network set-dhcpv4-duid dev ens37 duidtype vendor duidrawdata af:03:ff:87
+
+# Configure network DHCPv4 use options
+pmctl network set-dhcpv4-use dev <deviceName> usedns <UseDNS> usentp <UseNTP> usesip <UseSIP> usemtu <UseMTU> usehostname <UseHostname> usedomains <UseDomains> useroutes <UseRoutes> usegateway <UseGateway> usetimezone <UseTimezone>
+>pmctl network set-dhcpv4-use dev ens37 usedns false usentp false usesip false usemtu yes usehostname true usedomains yes useroutes no usegateway yes usetimezone no
+
 ```
 
 #### Configure network device using pmctl
