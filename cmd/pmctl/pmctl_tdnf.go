@@ -136,7 +136,6 @@ func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequir
 }
 
 func tdnfOptionsMap(options *tdnf.Options) url.Values {
-	//	var m map[string][]string
 	m := url.Values{}
 
 	v := reflect.ValueOf(options).Elem()
@@ -165,42 +164,10 @@ func tdnfOptionsMap(options *tdnf.Options) url.Values {
 }
 
 func tdnfOptionsQuery(options *tdnf.Options) string {
-	var qlist []string
-
-	v := reflect.ValueOf(options).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Type().Field(i)
-		name := strings.ToLower(field.Name)
-		value := v.Field(i).Interface()
-		switch value.(type) {
-		case bool:
-			if value.(bool) {
-				qlist = append(qlist, name+"=true")
-			}
-		case string:
-			str := value.(string)
-			if str != "" {
-				qlist = append(qlist, name+"="+str)
-			}
-		case []string:
-			list := value.([]string)
-			if len(list) != 0 {
-				for _, s := range list {
-					qlist = append(qlist, name+"="+s)
-				}
-			}
-		}
+	if m := tdnfOptionsMap(options); len(m) != 0 {
+		return "?" + m.Encode()
 	}
-
-	var qstr string
-	for i, s := range qlist {
-		sep := "&"
-		if i == 0 {
-			sep = "?"
-		}
-		qstr = qstr + sep + s
-	}
-	return qstr
+	return ""
 }
 
 func displayTdnfList(l *ItemListDesc) {
@@ -377,8 +344,6 @@ func acquireTdnfSearch(options *tdnf.Options, q string, host string, token map[s
 	v := tdnfOptionsMap(options)
 	v.Add("q", q)
 	path = "/api/v1/tdnf/search?" + v.Encode()
-
-	fmt.Printf("path = %s\n", path)
 
 	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
