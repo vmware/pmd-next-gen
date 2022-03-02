@@ -42,6 +42,7 @@ type LinkSection struct {
 
 type NetworkSection struct {
 	DHCP                string   `json:"DHCP"`
+	DHCPServer          string   `json:"DHCPServer"`
 	Address             string   `json:"Address"`
 	Gateway             string   `json:"Gateway"`
 	DNS                 []string `json:"DNS"`
@@ -89,6 +90,17 @@ type DHCPv4Section struct {
 	UseTimezone           string `json:"UseTimezone"`
 }
 
+type DHCPv4ServerSection struct {
+	PoolOffset          string   `json:"PoolOffset"`
+	PoolSize            string   `json:"PoolSize"`
+	DefaultLeaseTimeSec string   `json:"DefaultLeaseTimeSec"`
+	MaxLeaseTimeSec     string   `json:"MaxLeaseTimeSec"`
+	DNS                 []string `json:"DNS"`
+	EmitDNS             string   `json:"EmitDNS"`
+	EmitNTP             string   `json:"EmitNTP"`
+	EmitRouter          string   `json:"EmitRouter"`
+}
+
 type RoutingPolicyRuleSection struct {
 	TypeOfService          string `json:"TypeOfService"`
 	From                   string `json:"From"`
@@ -115,6 +127,7 @@ type Network struct {
 	MatchSection              MatchSection               `json:"MatchSection"`
 	NetworkSection            NetworkSection             `json:"NetworkSection"`
 	DHCPv4Section             DHCPv4Section              `json:"DHCPv4Section"`
+	DHCPv4ServerSection       DHCPv4ServerSection        `json:"DHCPv4ServerSection"`
 	AddressSections           []AddressSection           `json:"AddressSections"`
 	RouteSections             []RouteSection             `json:"RouteSections"`
 	RoutingPolicyRuleSections []RoutingPolicyRuleSection `json:"RoutingPolicyRuleSections"`
@@ -259,6 +272,14 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		}
 	}
 
+	if !validator.IsEmpty(n.NetworkSection.DHCPServer) {
+		if !validator.IsBool(n.NetworkSection.DHCPServer) {
+			log.Errorf("Failed to parse DHCPServer='%s'", n.NetworkSection.DHCPServer)
+			return fmt.Errorf("invalid DHCPServer='%s'", n.NetworkSection.DHCPServer)
+		}
+		m.SetKeySectionString("Network", "DHCPServer", n.NetworkSection.DHCPServer)
+	}
+
 	if !validator.IsEmpty(n.NetworkSection.LinkLocalAddressing) {
 		if validator.IsLinkLocalAddressing(n.NetworkSection.LinkLocalAddressing) {
 			m.SetKeySectionString("Network", "LinkLocalAddressing", n.NetworkSection.LinkLocalAddressing)
@@ -322,6 +343,12 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 }
 
 func (n *Network) removeNetworkSection(m *configfile.Meta) error {
+	if !validator.IsEmpty(n.NetworkSection.DHCPServer) {
+		if validator.IsBool(n.NetworkSection.DHCPServer) {
+			m.SetKeySectionString("Network", "DHCPServer", n.NetworkSection.DHCPServer)
+		}
+	}
+
 	if !validator.IsEmpty(n.NetworkSection.Address) {
 		if validator.IsIP(n.NetworkSection.Address) {
 			m.RemoveKeyFromSectionString("Network", "Address", n.NetworkSection.Address)
@@ -380,7 +407,7 @@ func (n *Network) removeNetworkSection(m *configfile.Meta) error {
 
 func (n *Network) buildLinkSection(m *configfile.Meta) error {
 	if !validator.IsEmpty(n.LinkSection.MTUBytes) {
-		if validator.IsMtu(n.LinkSection.MTUBytes) {
+		if validator.IsUint(n.LinkSection.MTUBytes) {
 			m.SetKeySectionString("Link", "MTUBytes", n.LinkSection.MTUBytes)
 		} else {
 			log.Errorf("Invalid MTU='%s'", n.LinkSection.MTUBytes)
@@ -462,7 +489,7 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 		m.SetKeySectionString("DHCPv4", "VendorClassIdentifier", n.DHCPv4Section.VendorClassIdentifier)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsDHCPv4IAID(n.DHCPv4Section.IAID) {
+	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsUint(n.DHCPv4Section.IAID) {
 		m.SetKeySectionString("DHCPv4", "IAID", n.DHCPv4Section.IAID)
 	}
 
@@ -516,6 +543,48 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 
 	if !validator.IsEmpty(n.DHCPv4Section.UseTimezone) && validator.IsBool(n.DHCPv4Section.UseTimezone) {
 		m.SetKeySectionString("DHCPv4", "UseTimezone", n.DHCPv4Section.UseTimezone)
+	}
+
+	return nil
+}
+
+func (n *Network) buildDHCPv4ServerSection(m *configfile.Meta) error {
+	if !validator.IsEmpty(n.DHCPv4ServerSection.PoolOffset) && validator.IsUint(n.DHCPv4ServerSection.PoolOffset) {
+		m.SetKeySectionString("DHCPServer", "PoolOffset", n.DHCPv4ServerSection.PoolOffset)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4ServerSection.PoolSize) && validator.IsUint(n.DHCPv4ServerSection.PoolSize) {
+		m.SetKeySectionString("DHCPServer", "PoolSize", n.DHCPv4ServerSection.PoolSize)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4ServerSection.DefaultLeaseTimeSec) && validator.IsUint(n.DHCPv4ServerSection.DefaultLeaseTimeSec) {
+		m.SetKeySectionString("DHCPServer", "DefaultLeaseTimeSec", n.DHCPv4ServerSection.DefaultLeaseTimeSec)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4ServerSection.MaxLeaseTimeSec) && validator.IsUint(n.DHCPv4ServerSection.MaxLeaseTimeSec) {
+		m.SetKeySectionString("DHCPServer", "MaxLeaseTimeSec", n.DHCPv4ServerSection.MaxLeaseTimeSec)
+	}
+
+	if !validator.IsArrayEmpty(n.DHCPv4ServerSection.DNS) {
+		for _, d := range n.DHCPv4ServerSection.DNS {
+			if !validator.IsIP(d) {
+				log.Errorf("Failed to create DHCPServer. Invalid DNS='%s'", d)
+				return fmt.Errorf("invalid dns='%s'", d)
+			}
+		}
+		m.SetKeySectionString("DHCPServer", "DNS", strings.Join(n.DHCPv4ServerSection.DNS, " "))
+	}
+
+	if !validator.IsEmpty(n.DHCPv4ServerSection.EmitDNS) && validator.IsBool(n.DHCPv4ServerSection.EmitDNS) {
+		m.SetKeySectionString("DHCPServer", "EmitDNS", n.DHCPv4ServerSection.EmitDNS)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4ServerSection.EmitNTP) && validator.IsBool(n.DHCPv4ServerSection.EmitNTP) {
+		m.SetKeySectionString("DHCPServer", "EmitNTP", n.DHCPv4ServerSection.EmitNTP)
+	}
+
+	if !validator.IsEmpty(n.DHCPv4ServerSection.EmitRouter) && validator.IsBool(n.DHCPv4ServerSection.EmitRouter) {
+		m.SetKeySectionString("DHCPServer", "EmitRouter", n.DHCPv4ServerSection.EmitRouter)
 	}
 
 	return nil
@@ -658,7 +727,7 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(rtpr.Table) {
-			if !validator.IsRoutingTable(rtpr.Table) {
+			if !validator.IsUint(rtpr.Table) {
 				log.Errorf("Failed to parse Table='%s'", rtpr.Table)
 				return fmt.Errorf("invalid Table='%s'", rtpr.Table)
 			}
@@ -666,7 +735,7 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(rtpr.Priority) {
-			if !validator.IsRoutingPriority(rtpr.Priority) {
+			if !validator.IsUint(rtpr.Priority) {
 				log.Errorf("Failed to parse Priority='%s'", rtpr.Priority)
 				return fmt.Errorf("invalid Priority='%s'", rtpr.Priority)
 			}
@@ -738,7 +807,7 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(rtpr.SuppressInterfaceGroup) {
-			if !validator.IsRoutingSuppressInterfaceGroup(rtpr.SuppressInterfaceGroup) {
+			if !validator.IsUint(rtpr.SuppressInterfaceGroup) {
 				log.Errorf("Failed to parse SuppressInterfaceGroup='%s'", rtpr.SuppressInterfaceGroup)
 				return fmt.Errorf("invalid SuppressInterfaceGroup='%s'", rtpr.SuppressInterfaceGroup)
 			}
@@ -915,6 +984,17 @@ func (n *Network) removeRoutingPolicyRuleSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) removeDHCPv4ServerSection(m *configfile.Meta) error {
+	if s := m.GetKeySectionString("Network", "DHCPServer"); s == "no" {
+		if err := m.RemoveSection("DHCPServer", "", ""); err != nil {
+			log.Errorf("Failed to remove DHCPServer: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	m, err := CreateOrParseNetworkFile(n.Link)
 	if err != nil {
@@ -929,6 +1009,9 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 	if err := n.buildDHCPv4Section(m); err != nil {
+		return err
+	}
+	if err := n.buildDHCPv4ServerSection(m); err != nil {
 		return err
 	}
 	if err := n.buildAddressSection(m); err != nil {
@@ -984,6 +1067,11 @@ func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) erro
 
 	if err := n.removeRoutingPolicyRuleSection(m); err != nil {
 		log.Errorf("Failed to remove routing Policy rule section: %v", err)
+		return err
+	}
+
+	if err := n.removeDHCPv4ServerSection(m); err != nil {
+		log.Errorf("Failed to remove dhcp server section: %v", err)
 		return err
 	}
 

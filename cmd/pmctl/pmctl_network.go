@@ -506,7 +506,7 @@ func networkConfigureDHCPv4Id(args cli.Args, host string, token map[string]strin
 			}
 			n.DHCPv4Section.VendorClassIdentifier = argStrings[i+1]
 		case "iaid":
-			if !validator.IsDHCPv4IAID(argStrings[i+1]) {
+			if !validator.IsUint(argStrings[i+1]) {
 				fmt.Printf("Invalid iaid=%s\n", argStrings[i+1])
 				return
 			}
@@ -618,6 +618,102 @@ func networkConfigureDHCPv4UseOption(args cli.Args, host string, token map[strin
 
 	//Dispatch Request.
 	networkConfigure(&n, host, token)
+}
+
+func networkConfigureAddDHCPv4Server(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "pool-offset":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid pool-offset=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.PoolOffset = argStrings[i+1]
+		case "pool-size":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid pool-size=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.PoolSize = argStrings[i+1]
+		case "default-lease-time-sec":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid default-lease-time-sec=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.DefaultLeaseTimeSec = argStrings[i+1]
+		case "max-lease-time-sec":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid max-lease-time-sec=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.MaxLeaseTimeSec = argStrings[i+1]
+		case "dns":
+			dnslist := strings.Split(argStrings[i+1], ",")
+			for _, dns := range dnslist {
+				if !validator.IsIP(dns) {
+					fmt.Printf("Invalid dns=%s\n", dns)
+					return
+				}
+			}
+			n.DHCPv4ServerSection.DNS = dnslist
+		case "emit-dns":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid emit-dns=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.EmitDNS = validator.BoolToString(argStrings[i+1])
+		case "emit-ntp":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid emit-ntp=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.EmitNTP = validator.BoolToString(argStrings[i+1])
+		case "emit-router":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid emit-router=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv4ServerSection.EmitRouter = validator.BoolToString(argStrings[i+1])
+		}
+
+		i++
+	}
+
+	n.NetworkSection.DHCPServer = "yes"
+	//Dispatch Request.
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureRemoveDHCPv4Server(link string, host string, token map[string]string) {
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			DHCPServer: "no",
+		},
+	}
+
+	var resp []byte
+
+	resp, err := web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/network/remove", token, n)
+	if err != nil {
+		fmt.Printf("Failed to remove network dhcp server: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove network dhcp server: %v\n", m.Errors)
+	}
 }
 
 func networkConfigureMTU(link string, mtu string, host string, token map[string]string) {
@@ -811,12 +907,12 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 			}
 			r.FirewallMark = argStrings[i+1]
 		case "table":
-			if !validator.IsRoutingTable(argStrings[i+1]) {
+			if !validator.IsUint(argStrings[i+1]) {
 				return nil, fmt.Errorf("Invalid table=%s\n", argStrings[i+1])
 			}
 			r.Table = argStrings[i+1]
 		case "prio":
-			if !validator.IsRoutingPriority(argStrings[i+1]) {
+			if !validator.IsUint(argStrings[i+1]) {
 				return nil, fmt.Errorf("Invalid prio=%s\n", argStrings[i+1])
 			}
 			r.Priority = argStrings[i+1]
@@ -866,7 +962,7 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 			}
 			r.SuppressPrefixLength = argStrings[i+1]
 		case "suppressifgrp":
-			if !validator.IsRoutingSuppressInterfaceGroup(argStrings[i+1]) {
+			if !validator.IsUint(argStrings[i+1]) {
 				return nil, fmt.Errorf("Invalid suppressifgrp=%s\n", argStrings[i+1])
 			}
 			r.SuppressInterfaceGroup = argStrings[i+1]

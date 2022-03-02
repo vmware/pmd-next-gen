@@ -472,6 +472,36 @@ func main() {
 					},
 				},
 				{
+					Name:        "add-dhcpv4-server",
+					UsageText:   "add-dhcpv4-server dev [LINK] pool-offset [NUMBER] pool-size [NUMBER] default-lease-time-sec [NUMBER] max-lease-time-sec [NUMBER] dns [STRING] emit-dns [BOOLEAN] emit-ntp [BOOLEAN] emit-router [BOOLEAN]",
+					Description: "Confifure the DHCPv4 Server",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureAddDHCPv4Server(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "remove-dhcpv4-server",
+					UsageText:   "remove-dhcpv4-server [LINK]",
+					Description: "Remove the DHCPv4 Server",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureRemoveDHCPv4Server(c.Args().First(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "set-mtu",
 					UsageText:   "set-mtu [LINK] [MTU NUMBER]",
 					Description: "Configures Link MTU.",
@@ -482,7 +512,7 @@ func main() {
 							return nil
 						}
 
-						if !validator.IsMtu(c.Args().Get(1)) {
+						if !validator.IsUint(c.Args().Get(1)) {
 							fmt.Printf("MTU must be a valid value.\n")
 							return nil
 						}

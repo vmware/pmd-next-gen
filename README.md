@@ -487,6 +487,14 @@ pmctl network set-dhcpv4-duid dev <deviceName> duidtype <DUIDType> duidrawdata <
 pmctl network set-dhcpv4-use dev <deviceName> usedns <UseDNS> usentp <UseNTP> usesip <UseSIP> usemtu <UseMTU> usehostname <UseHostname> usedomains <UseDomains> useroutes <UseRoutes> usegateway <UseGateway> usetimezone <UseTimezone>
 >pmctl network set-dhcpv4-use dev ens37 usedns false usentp false usesip false usemtu yes usehostname true usedomains yes useroutes no usegateway yes usetimezone no
 
+# Configure network DHCPServer
+pmctl network add-dhcpv4-server dev <Devicename> pool-offset <poolOffset> pool-size <PoolSize> default-lease-time-sec <DefaultLeaseTimeSec> max-lease-time-sec <MaxLeaseTimeSec> dns <DNS> emit-dns <EmitDNS> emit-ntp <EmitNTP> emit-router <EmitRouter>
+>pmctl network add-dhcpv4-server dev ens37 pool-offset 100 pool-size 200 default-lease-time-sec 10 max-lease-time-sec 30 dns 192.168.1.2,192.168.10.10,192.168.20.30 emit-dns yes emit-ntp no emit-router yes
+
+# Remove network DHCPServer
+pmctl network remove-dhcpv4-server <Devicename>
+>pmctl network remove-dhcpv4-server ens37
+
 ```
 
 #### Configure network device using pmctl

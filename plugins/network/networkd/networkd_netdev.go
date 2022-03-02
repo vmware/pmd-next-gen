@@ -183,7 +183,7 @@ func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	}
 
 	if !validator.IsEmpty(n.MTUBytes) {
-		if !validator.IsMtu(n.MTUBytes) {
+		if !validator.IsUint(n.MTUBytes) {
 			log.Errorf("Failed to create VLan='%s'. Invalid MTUBytes='%s': %v", n.Name, n.MTUBytes)
 			return fmt.Errorf("invalid MTUBytes='%s'", n.MTUBytes)
 		}
