@@ -1044,6 +1044,21 @@ func main() {
 				tdnfCreateAlterCommand("reinstall", []string{}, "Reinstall a Package", true, token),
 				tdnfCreateAlterCommand("update", []string{"upgrade", "up"}, "Update Package(s)", false, token),
 				{
+					Name:        "check-update",
+					Aliases:     []string{"l"},
+					Description: "List Packages",
+
+					Action: func(c *cli.Context) error {
+						options := tdnfParseFlags(c)
+						if c.NArg() >= 1 {
+							tdnfCheckUpdate(&options, c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfCheckUpdate(&options, "", c.String("url"), token)
+						}
+						return nil
+					},
+				},
+				{
 					Name:        "clean",
 					Aliases:     []string{"c"},
 					Description: "Clean Package Metadata",
@@ -1102,6 +1117,21 @@ func main() {
 							tdnfInfoList(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							tdnfInfoList(&options, "", c.String("url"), token)
+						}
+						return nil
+					},
+				},
+				{
+					Name:        "search",
+					Aliases:     []string{"s"},
+					Description: "Package Search",
+
+					Action: func(c *cli.Context) error {
+						options := tdnfParseFlags(c)
+						if c.NArg() >= 1 {
+							tdnfSearch(&options, c.Args().First(), c.String("url"), token)
+						} else {
+							fmt.Printf("Needs a search string\n")
 						}
 						return nil
 					},

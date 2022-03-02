@@ -27,6 +27,11 @@ type ListItem struct {
 	Size int    `json:"Size"`
 }
 
+type SearchItem struct {
+	Name    string `json:"Name"`
+	Summary string `json:"Summary"`
+}
+
 type Repo struct {
 	Repo     string `json:"Repo"`
 	RepoName string `json:"RepoName"`
@@ -143,22 +148,34 @@ func TdnfExec(options *Options, args ...string) (string, error) {
 	return result.Stdout.String(), nil
 }
 
-func acquireList(w http.ResponseWriter, pkg string, options Options) error {
+func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkg string, options Options) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
 		if !validator.IsEmpty(pkg) {
-			s, err = TdnfExec(&options, "list", pkg)
+			s, err = TdnfExec(&options, cmd, pkg)
 		} else {
-			s, err = TdnfExec(&options, "list")
+			s, err = TdnfExec(&options, cmd)
 		}
-		var list interface{}
-		if err := json.Unmarshal([]byte(s), &list); err != nil {
+		var result interface{}
+		if err := json.Unmarshal([]byte(s), &result); err != nil {
 			return nil, err
 		}
-		return list, err
+		return result, err
 	})
 	return jobs.AcceptedResponse(w, job)
+}
+
+func acquireCheckUpdate(w http.ResponseWriter, pkg string, options Options) error {
+	return acquireCmdWithDelayedResponse(w, "check-update", pkg, options)
+}
+
+func acquireList(w http.ResponseWriter, pkg string, options Options) error {
+	return acquireCmdWithDelayedResponse(w, "list", pkg, options)
+}
+
+func acquireSearch(w http.ResponseWriter, pkg string, options Options) error {
+	return acquireCmdWithDelayedResponse(w, "search", pkg, options)
 }
 
 func acquireRepoList(w http.ResponseWriter, options Options) error {
@@ -176,26 +193,7 @@ func acquireRepoList(w http.ResponseWriter, options Options) error {
 }
 
 func acquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
-	job := jobs.CreateJob(func() (interface{}, error) {
-		var s string
-		var err error
-		if !validator.IsEmpty(pkg) {
-			s, err = TdnfExec(&options, "info", pkg)
-		} else {
-			s, err = TdnfExec(&options, "info")
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		var list interface{}
-		if err := json.Unmarshal([]byte(s), &list); err != nil {
-			return nil, err
-		}
-
-		return list, err
-	})
-	return jobs.AcceptedResponse(w, job)
+	return acquireCmdWithDelayedResponse(w, "info", pkg, options)
 }
 
 func acquireMakeCache(w http.ResponseWriter, options Options) error {
