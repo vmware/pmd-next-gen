@@ -861,7 +861,6 @@ func (n *Network) removeRouteSection(m *configfile.Meta) error {
 }
 
 func (n *Network) removeRoutingPolicyRuleSection(m *configfile.Meta) error {
-	fmt.Println("remove trigger")
 	for _, rtpr := range n.RoutingPolicyRuleSections {
 		if !validator.IsEmpty(rtpr.TypeOfService) {
 			if err := m.RemoveSection("RoutingPolicyRule", "TypeOfService", rtpr.TypeOfService); err != nil {
