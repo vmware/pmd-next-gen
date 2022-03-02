@@ -516,7 +516,7 @@ func networkConfigureDHCPv4Id(args cli.Args, host string, token map[string]strin
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	networkConfigure(&n, host, token)
 }
 
@@ -545,7 +545,7 @@ func networkConfigureDHCPv4DUID(args cli.Args, host string, token map[string]str
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	networkConfigure(&n, host, token)
 }
 
@@ -616,7 +616,7 @@ func networkConfigureDHCPv4UseOption(args cli.Args, host string, token map[strin
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	networkConfigure(&n, host, token)
 }
 
