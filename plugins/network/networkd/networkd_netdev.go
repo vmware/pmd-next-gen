@@ -137,17 +137,19 @@ func netDevKindToNetworkKind(s string) string {
 	case "vlan":
 		kind = "VLAN"
 	case "bond":
-		kind = "bond"
+		kind = "Bond"
 	case "bridge":
-		kind = "bridge"
+		kind = "Bridge"
 	case "macvlan":
-		kind = "macvlan"
+		kind = "MACVLAN"
+	case "macvtap":
+		kind = "MACVTAP"
 	case "ipvlan":
-		kind = "ipvlan"
-	case "wireguard":
-		kind = "wireguard"
-	default:
-		kind = "n/a"
+		kind = "IPVLAN"
+	case "ipvtap":
+		kind = "IPVTAP"
+	case "vxlan":
+		kind = "VXLAN"
 	}
 
 	return kind

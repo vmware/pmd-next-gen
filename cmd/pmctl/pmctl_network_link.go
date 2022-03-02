@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+//  SPDX-License-Identifier: Apache-2.0
+//  Copyright 2022 VMware, Inc.
 
 package main
 
@@ -64,7 +64,7 @@ func networkConfigureLinkMAC(args cli.Args, host string, token map[string]string
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -96,7 +96,7 @@ func networkConfigureLinkName(args cli.Args, host string, token map[string]strin
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -124,7 +124,7 @@ func networkConfigureLinkAltName(args cli.Args, host string, token map[string]st
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -162,7 +162,7 @@ func networkConfigureLinkQueue(args cli.Args, host string, token map[string]stri
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -191,7 +191,7 @@ func networkConfigureLinkChecksumOffload(args cli.Args, host string, token map[s
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -220,7 +220,7 @@ func networkConfigureLinkTCPOffload(args cli.Args, host string, token map[string
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -269,7 +269,7 @@ func networkConfigureLinkGenericOffload(args cli.Args, host string, token map[st
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -310,7 +310,7 @@ func networkConfigureLinkVLANTags(args cli.Args, host string, token map[string]s
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -351,7 +351,7 @@ func networkConfigureLinkChannel(args cli.Args, host string, token map[string]st
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -392,7 +392,7 @@ func networkConfigureLinkBuffer(args cli.Args, host string, token map[string]str
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -427,7 +427,7 @@ func networkConfigureLinkFlowControl(args cli.Args, host string, token map[strin
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -456,7 +456,7 @@ func networkConfigureLinkAdaptiveCoalesce(args cli.Args, host string, token map[
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -501,7 +501,7 @@ func networkConfigureLinkRxCoalesce(args cli.Args, host string, token map[string
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -546,7 +546,7 @@ func networkConfigureLinkTxCoalesce(args cli.Args, host string, token map[string
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -591,7 +591,7 @@ func networkConfigureLinkRxCoalescedFrames(args cli.Args, host string, token map
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -636,7 +636,7 @@ func networkConfigureLinkTxCoalescedFrames(args cli.Args, host string, token map
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -674,7 +674,7 @@ func networkConfigureLinkCoalescePacketRate(args cli.Args, host string, token ma
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }
 
@@ -768,6 +768,6 @@ func networkConfigureLink(args cli.Args, host string, token map[string]string) {
 		i++
 	}
 
-	//Dispatch Request.
+	// Dispatch Request.
 	dispatchNetworkLinkConfigReq(l, host, token)
 }

@@ -56,29 +56,48 @@ func TestNetDevCreateVLan(t *testing.T) {
 	}
 
 	time.Sleep(time.Second * 5)
-	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "vlan99")
-	fmt.Println(s)
+
 	if !validator.LinkExists("vlan99") {
 		t.Fatalf("Failed to create vlan='vlan99'")
 	}
-	defer removeLink(t, "vlan99")
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "vlan99")
+	fmt.Println(s)
 
 	m, _, err := networkd.CreateOrParseNetDevFile("vlan99", "vlan")
 	if err != nil {
 		t.Fatalf("Failed to parse .netdev file of vlan='vlan99'")
 	}
-	defer os.Remove(m.Path)
 
-	if err := networkd.RemoveNetDevNetworkFile(n.Name, n.Kind); err != nil {
-		t.Fatalf("Failed to remove .network file='%v'", err)
-	}
-
-	if err := networkd.RemoveNetDevNetworkFile("test99", ""); err != nil {
-		t.Fatalf("Failed to remove .network file='%v'", err)
+	if m.GetKeySectionString("NetDev", "Kind") != "vlan" {
+		t.Fatalf("Vlan kind is not 'vlan' in .netdev file of vlan='vlan99'")
 	}
 
 	if m.GetKeySectionUint("VLAN", "Id") != 10 {
 		t.Fatalf("Invalid Vlan Id in .netdev file of vlan='vlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("vlan99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of vlan='vlan99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "vlan99" {
+		t.Fatalf("Invalid netdev name in .network file of vlan='vlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "VLAN") != "vlan99" {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
 	}
 }
 
@@ -102,12 +121,13 @@ func TestNetDevCreateBond(t *testing.T) {
 	}
 
 	time.Sleep(time.Second * 5)
+
 	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "bond99")
 	fmt.Println(s)
+	
 	if !validator.LinkExists("bond99") {
 		t.Fatalf("Failed to create bond='bond99'")
 	}
-	defer removeLink(t, "bond99")
 
 	m, _, err := networkd.CreateOrParseNetDevFile("bond99", "bond")
 	if err != nil {
@@ -115,19 +135,35 @@ func TestNetDevCreateBond(t *testing.T) {
 	}
 	defer os.Remove(m.Path)
 
-	if err := networkd.RemoveNetDevNetworkFile(n.Name, n.Kind); err != nil {
-		t.Fatalf("Failed to remove .network file='%v'", err)
-	}
-
-	if err := networkd.RemoveNetDevNetworkFile("test98", ""); err != nil {
-		t.Fatalf("Failed to remove .network file='%v'", err)
-	}
-
-	if err := networkd.RemoveNetDevNetworkFile("test99", ""); err != nil {
-		t.Fatalf("Failed to remove .network file='%v'", err)
+	if m.GetKeySectionString("NetDev", "Kind") != "bond" {
+		t.Fatalf("Bond kind is not 'bond' in .netdev file of bond='bond99'")
 	}
 
 	if m.GetKeySectionString("Bond", "Mode") != "balance-rr" {
 		t.Fatalf("Invalid bond mode in .netdev file of bond='bond99'")
+	}
+
+	m1, err := networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m1.Path)
+
+	if m1.GetKeySectionString("Network", "Bond") != "bond99" {
+		t.Fatalf("Failed to parse Bond=bond99 in .network file")
+	}
+	
+	m2, err := networkd.CreateOrParseNetworkFile("test98")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m2.Path)
+
+	if m2.GetKeySectionString("Network", "Bond") != "bond99" {
+		t.Fatalf("Failed to parse Bond=bond99 in .network file")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
 	}
 }

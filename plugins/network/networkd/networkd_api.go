@@ -244,13 +244,17 @@ func CreateOrParseNetDevFile(link string, kind string) (*configfile.Meta, string
 }
 
 func RemoveNetDev(link string, kind string) error {
+	// Remove .netdev file
 	os.Remove(buildNetDevFilePath(link, kind))
+	// Remove .network file
+	os.Remove(buildNetDevNetworkFilePath(link, kind))
 
 	l, err := netlink.LinkByName(link)
 	if err != nil {
 		return err
 	}
 
+	// Finally remove the virtual netdev
 	return netlink.LinkDel(l)
 }
 
