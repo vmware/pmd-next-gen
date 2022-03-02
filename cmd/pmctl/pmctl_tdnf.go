@@ -77,7 +77,7 @@ func tdnfParseFlags(c *cli.Context) tdnf.Options {
 			v.Field(i).SetString(c.String(name))
 		case []string:
 			str := c.String(name)
-			if str != "" {
+			if !validator.IsEmpty(str) {
 				list := strings.Split(str, ",")
 				size := len(list)
 				if size > 0 {
@@ -150,7 +150,7 @@ func tdnfOptionsMap(options *tdnf.Options) url.Values {
 			}
 		case string:
 			str := value.(string)
-			if str != "" {
+			if !validator.IsEmpty(str) {
 				m.Add(name, str)
 			}
 		case []string:
@@ -286,7 +286,7 @@ func acquireTdnfRepoList(options *tdnf.Options, host string, token map[string]st
 
 func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) (*InfoListDesc, error) {
 	var path string
-	if pkg != "" {
+	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/info/" + pkg
 	} else {
 		path = "/api/v1/tdnf/info"
@@ -313,7 +313,7 @@ func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token m
 
 func acquireTdnfCheckUpdate(options *tdnf.Options, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
 	var path string
-	if pkg != "" {
+	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/check-update/" + pkg
 	} else {
 		path = "/api/v1/tdnf/check-update"
