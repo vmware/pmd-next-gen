@@ -207,7 +207,7 @@ func fillOneRoute(rt *netlink.Route) *RouteInfo {
 func buildRouteList(routes []netlink.Route) []RouteInfo {
 	var rts []RouteInfo
 	for _, rt := range routes {
-		if rt.ILinkIndex == 0 {
+		if rt.LinkIndex == 0 {
 			continue
 		}
 
