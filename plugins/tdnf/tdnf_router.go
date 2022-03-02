@@ -15,7 +15,7 @@ import (
 	"github.com/pmd-nextgen/pkg/web"
 )
 
-func routerParseOptions(values map[string][]string) Options {
+func routerParseOptionsInterface(values map[string][]string, optType reflect.Type) interface{} {
 
 	isTrue := func(key string) bool {
 		if v, ok := values[key]; ok {
@@ -31,9 +31,8 @@ func routerParseOptions(values map[string][]string) Options {
 		return ""
 	}
 
-	var options Options
-
-	v := reflect.ValueOf(&options).Elem()
+	options := reflect.New(optType)
+	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
@@ -53,7 +52,19 @@ func routerParseOptions(values map[string][]string) Options {
 			}
 		}
 	}
-	return options
+	return options.Interface()
+}
+
+func routerParseOptions(values map[string][]string) Options {
+	var o Options
+	o = *routerParseOptionsInterface(values, reflect.TypeOf(o)).(*Options)
+	return o
+}
+
+func routerParseScopeOptions(values map[string][]string) ScopeOptions {
+	var o ScopeOptions
+	o = *routerParseOptionsInterface(values, reflect.TypeOf(o)).(*ScopeOptions)
+	return o
 }
 
 func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +87,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	case "info":
 		err = acquireInfoList(w, "", options)
 	case "list":
-		err = acquireList(w, "", options)
+		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
+		err = acquireList(w, "", listOptions)
 	case "makecache":
 		err = acquireMakeCache(w, options)
 	case "repolist":
@@ -123,7 +135,8 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	case "install":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "list":
-		err = acquireList(w, pkg, options)
+		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
+		err = acquireList(w, pkg, listOptions)
 	case "reinstall":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "update":
