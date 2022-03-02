@@ -857,3 +857,122 @@ func TestNetworkRemoveRoutingPolicyRule(t *testing.T) {
 		t.Fatalf("Failed to remove RoutingPolicyRule")
 	}
 }
+
+func TestNetworkConfigureDHCPv4Id(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv4Section: networkd.DHCPv4Section{
+			ClientIdentifier:      "duid",
+			VendorClassIdentifier: "101",
+			IAID:                  "201",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv4", "ClientIdentifier") != "duid" {
+		t.Fatalf("Failed to set ClientIdentifier")
+	}
+	if m.GetKeySectionString("DHCPv4", "VendorClassIdentifier") != "101" {
+		t.Fatalf("Failed to set VendorClassIdentifier")
+	}
+	if m.GetKeySectionString("DHCPv4", "IAID") != "201" {
+		t.Fatalf("Failed to set IAID")
+	}
+}
+
+func TestNetworkConfigureDHCPv4DUID(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv4Section: networkd.DHCPv4Section{
+			DUIDType:    "vendor",
+			DUIDRawData: "af:03:ff:87",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv4", "DUIDType") != "vendor" {
+		t.Fatalf("Failed to set DUIDType")
+	}
+	if m.GetKeySectionString("DHCPv4", "DUIDRawData") != "af:03:ff:87" {
+		t.Fatalf("Failed to set DUIDrawData")
+	}
+}
+
+func TestNetworkConfigureDHCPv4UseOption(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv4Section: networkd.DHCPv4Section{
+			UseDNS:      "no",
+			UseNTP:      "no",
+			UseSIP:      "no",
+			UseMTU:      "yes",
+			UseHostname: "yes",
+			UseDomains:  "yes",
+			UseRoutes:   "no",
+			UseGateway:  "yes",
+			UseTimezone: "no",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv4", "UseDNS") != "no" {
+		t.Fatalf("Failed to set UseDNS")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseNTP") != "no" {
+		t.Fatalf("Failed to set UseNTP")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseSIP") != "no" {
+		t.Fatalf("Failed to set UseSIP")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseMTU") != "yes" {
+		t.Fatalf("Failed to set UseMTU")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseHostname") != "yes" {
+		t.Fatalf("Failed to set UseHostname")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseDomains") != "yes" {
+		t.Fatalf("Failed to set UseDomains")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseRoutes") != "no" {
+		t.Fatalf("Failed to set UseRoutes")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseGateway") != "yes" {
+		t.Fatalf("Failed to set UseGateway")
+	}
+	if m.GetKeySectionString("DHCPv4", "UseTimezone") != "no" {
+		t.Fatalf("Failed to set UseTimezone")
+	}
+}
