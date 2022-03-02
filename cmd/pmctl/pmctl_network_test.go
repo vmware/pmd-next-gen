@@ -976,3 +976,117 @@ func TestNetworkConfigureDHCPv4UseOption(t *testing.T) {
 		t.Fatalf("Failed to set UseTimezone")
 	}
 }
+
+func TestNetworkConfigureAddDHCPv4Server(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		NetworkSection: networkd.NetworkSection{
+			DHCPServer: "yes",
+		},
+		DHCPv4ServerSection: networkd.DHCPv4ServerSection{
+			PoolOffset:          "100",
+			PoolSize:            "200",
+			DefaultLeaseTimeSec: "10",
+			MaxLeaseTimeSec:     "30",
+			DNS:                 []string{"192.168.1.2", "192.168.10.10", "192.168.20.30"},
+			EmitDNS:             "yes",
+			EmitNTP:             "no",
+			EmitRouter:          "yes",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure DHCPServer: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "DHCPServer") != "yes" {
+		t.Fatalf("Failed to set DHCPServer")
+	}
+	if m.GetKeySectionString("DHCPServer", "PoolOffset") != "100" {
+		t.Fatalf("Failed to set PoolOffset")
+	}
+	if m.GetKeySectionString("DHCPServer", "PoolSize") != "200" {
+		t.Fatalf("Failed to set PoolSize")
+	}
+	if m.GetKeySectionString("DHCPServer", "DefaultLeaseTimeSec") != "10" {
+		t.Fatalf("Failed to set DefaultLeaseTimeSec")
+	}
+	if m.GetKeySectionString("DHCPServer", "MaxLeaseTimeSec") != "30" {
+		t.Fatalf("Failed to set MaxLeaseTimeSec")
+	}
+	if m.GetKeySectionString("DHCPServer", "DNS") != "192.168.1.2 192.168.10.10 192.168.20.30" {
+		t.Fatalf("Failed to set DNS")
+	}
+	if m.GetKeySectionString("DHCPServer", "EmitDNS") != "yes" {
+		t.Fatalf("Failed to set EmitDNS")
+	}
+	if m.GetKeySectionString("DHCPServer", "EmitNTP") != "no" {
+		t.Fatalf("Failed to set EmitNTP")
+	}
+	if m.GetKeySectionString("DHCPServer", "EmitRouter") != "yes" {
+		t.Fatalf("Failed to set EmitRouter")
+	}
+}
+
+func TestNetworkConfigureRemoveDHCPv4Server(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		NetworkSection: networkd.NetworkSection{
+			DHCPServer: "yes",
+		},
+		DHCPv4ServerSection: networkd.DHCPv4ServerSection{
+			PoolOffset:          "100",
+			PoolSize:            "200",
+			DefaultLeaseTimeSec: "10",
+			MaxLeaseTimeSec:     "30",
+			DNS:                 []string{"192.168.1.2", "192.168.10.10", "192.168.20.30"},
+			EmitDNS:             "yes",
+			EmitNTP:             "no",
+			EmitRouter:          "yes",
+		},
+	}
+
+	_, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure DHCPServer: %v\n", err)
+	}
+
+	n = networkd.Network{
+		Link: "test99",
+		NetworkSection: networkd.NetworkSection{
+			DHCPServer: "no",
+		},
+	}
+
+	m, err := removeNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to remove DHCPServer: %v\n", err)
+	}
+
+	if m.GetKeySectionString("Network", "DHCPServer") == "yes" ||
+		m.GetKeySectionString("DHCPServer", "PoolOffset") == "100" ||
+		m.GetKeySectionString("DHCPServer", "PoolSize") == "200" ||
+		m.GetKeySectionString("DHCPServer", "DefaultLeaseTimeSec") == "10" ||
+		m.GetKeySectionString("DHCPServer", "MaxLeaseTimeSec") == "30" ||
+		m.GetKeySectionString("DHCPServer", "DNS") == "192.168.1.2 192.168.10.10 192.168.20.30" ||
+		m.GetKeySectionString("DHCPServer", "EmitDNS") == "yes" ||
+		m.GetKeySectionString("DHCPServer", "EmitNTP") == "no" ||
+		m.GetKeySectionString("DHCPServer", "EmitRouter") == "yes" {
+		t.Fatalf("Failed to remove DHCPServer")
+	}
+
+}
