@@ -62,10 +62,9 @@ type StatusDesc struct {
 	Errors  string             `json:"errors"`
 }
 
-func tdnfParseFlags(c *cli.Context) tdnf.Options {
-	var options tdnf.Options
-
-	v := reflect.ValueOf(&options).Elem()
+func tdnfParseFlagsInterface(c *cli.Context, optType reflect.Type) interface{} {
+	options := reflect.New(optType)
+	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
@@ -89,14 +88,26 @@ func tdnfParseFlags(c *cli.Context) tdnf.Options {
 			}
 		}
 	}
-	return options
+	return options.Interface()
 }
 
-func tdnfCreateFlags() []cli.Flag {
-	var options tdnf.Options
+func tdnfParseFlags(c *cli.Context) tdnf.Options {
+	var o tdnf.Options
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.Options)
+	return o
+}
+
+func tdnfParseScopeFlags(c *cli.Context) tdnf.ScopeOptions {
+	var o tdnf.ScopeOptions
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.ScopeOptions)
+	return o
+}
+
+func tdnfCreateFlagsInterface(optType reflect.Type) []cli.Flag {
 	var flags []cli.Flag
 
-	v := reflect.ValueOf(&options).Elem()
+	options := reflect.New(optType)
+	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
@@ -111,6 +122,16 @@ func tdnfCreateFlags() []cli.Flag {
 		}
 	}
 	return flags
+}
+
+func tdnfCreateFlags() []cli.Flag {
+	var o tdnf.Options
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
+}
+
+func tdnfCreateScopeFlags() []cli.Flag {
+	var o tdnf.ScopeOptions
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
 }
 
 func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequired bool, token map[string]string) *cli.Command {
@@ -135,35 +156,44 @@ func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequir
 	}
 }
 
-func tdnfOptionsMap(options *tdnf.Options) url.Values {
+func tdnfOptionsMap(options interface{}) url.Values {
 	m := url.Values{}
 
 	v := reflect.ValueOf(options).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
-		value := v.Field(i).Interface()
-		switch value.(type) {
-		case bool:
-			if value.(bool) {
-				m.Add(name, "true")
+		switch v.Field(i).Kind() {
+		case reflect.Struct:
+			value := v.Field(i).Addr().Interface()
+			m1 := tdnfOptionsMap(value)
+			for k, v := range m1 {
+				m[k] = v
 			}
-		case string:
-			str := value.(string)
-			if !validator.IsEmpty(str) {
-				m.Add(name, str)
-			}
-		case []string:
-			list := value.([]string)
-			if len(list) != 0 {
-				m[name] = list
+		default:
+			value := v.Field(i).Interface()
+			switch value.(type) {
+			case bool:
+				if value.(bool) {
+					m.Add(name, "true")
+				}
+			case string:
+				str := value.(string)
+				if !validator.IsEmpty(str) {
+					m.Add(name, str)
+				}
+			case []string:
+				list := value.([]string)
+				if len(list) != 0 {
+					m[name] = list
+				}
 			}
 		}
 	}
 	return m
 }
 
-func tdnfOptionsQuery(options *tdnf.Options) string {
+func tdnfOptionsQuery(options interface{}) string {
 	if m := tdnfOptionsMap(options); len(m) != 0 {
 		return "?" + m.Encode()
 	}
@@ -239,7 +269,7 @@ func displayTdnfAlterResult(rDesc *AlterResultDesc) {
 	displayAlterList(r.Obsolete, "Packages to be Obsoleted")
 }
 
-func acquireTdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
+func acquireTdnfList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
 	var path string
 	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/list/" + pkg
@@ -423,8 +453,9 @@ func tdnfCheckUpdate(options *tdnf.Options, pkg string, host string, token map[s
 	displayTdnfList(l)
 }
 
-func tdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) {
-	l, err := acquireTdnfList(options, pkg, host, token)
+func tdnfList(options *tdnf.Options, scOptions *tdnf.ScopeOptions, pkg string, host string, token map[string]string) {
+	listOptions := tdnf.ListOptions{*options, *scOptions}
+	l, err := acquireTdnfList(&listOptions, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf list: %v\n", err)
 		return

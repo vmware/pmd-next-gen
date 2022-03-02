@@ -1103,13 +1103,15 @@ func main() {
 					Name:        "list",
 					Aliases:     []string{"l"},
 					Description: "List Packages",
+					Flags:       tdnfCreateScopeFlags(),
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseFlags(c)
+						scOptions := tdnfParseScopeFlags(c)
 						if c.NArg() >= 1 {
-							tdnfList(&options, c.Args().First(), c.String("url"), token)
+							tdnfList(&options, &scOptions, c.Args().First(), c.String("url"), token)
 						} else {
-							tdnfList(&options, "", c.String("url"), token)
+							tdnfList(&options, &scOptions, "", c.String("url"), token)
 						}
 						return nil
 					},
