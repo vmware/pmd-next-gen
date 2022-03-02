@@ -116,6 +116,9 @@ func (m *Meta) RemoveSection(section string, key string, value string) error {
 		if s.HasKey(key) && s.HasValue(value) {
 			m.Cfg.DeleteSectionWithIndex(section, i)
 			return nil
+		} else {
+			m.Cfg.DeleteSection(section)
+			return nil
 		}
 	}
 

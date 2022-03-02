@@ -50,6 +50,11 @@ func IsUintOrMax(s string) bool {
 	return err == nil
 }
 
+func IsUint(s string) bool {
+	_, err := strconv.ParseUint(s, 10, 32)
+	return err == nil
+}
+
 func IsPort(port string) bool {
 	_, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
@@ -101,27 +106,12 @@ func IsDHCPv4ClientIdentifier(identifier string) bool {
 	return identifier == "mac" || identifier == "duid" || identifier == "duid-only"
 }
 
-func IsDHCPv4IAID(iaid string) bool {
-	_, err := strconv.ParseUint(iaid, 10, 32)
-	return err == nil
-}
-
 func IsDHCPv4DUIDType(id string) bool {
 	return id == "vendor" || id == "uuid" || id == "link-layer-time" || id == "link-layer"
 }
 
 func IsNotMAC(mac string) bool {
 	return !govalidator.IsMAC(mac)
-}
-
-func IsMtu(mtu string) bool {
-	_, err := strconv.ParseUint(mtu, 10, 32)
-	return err == nil
-}
-
-func IsVLanId(id string) bool {
-	_, err := strconv.ParseUint(id, 10, 32)
-	return err == nil
 }
 
 func IsScope(s string) bool {
@@ -252,16 +242,14 @@ func IsLinkMtu(value string) bool {
 	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
 		return true
 	}
-	_, err := strconv.ParseUint(value, 10, 32)
-	return err == nil
+	return IsUint(value)
 }
 
 func IsLinkBitsPerSecond(value string) bool {
 	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
 		return true
 	}
-	_, err := strconv.ParseUint(value, 10, 32)
-	return err == nil
+	return IsUint(value)
 }
 
 func IsLinkDuplex(duplex string) bool {
@@ -337,33 +325,12 @@ func IsRoutingFirewallMark(mark string) bool {
 	}
 
 	for _, m := range mrk {
-		_, err := strconv.ParseUint(m, 10, 32)
-		if err != nil {
+		if !IsUint(m) {
 			return false
 		}
 	}
 
 	return true
-}
-
-func IsRoutingTable(tbl string) bool {
-	_, err := strconv.ParseUint(tbl, 10, 32)
-	if err != nil {
-		return false
-	}
-
-	return true
-
-}
-
-func IsRoutingPriority(value string) bool {
-	_, err := strconv.ParseUint(value, 10, 32)
-	if err != nil {
-		return false
-	}
-
-	return true
-
 }
 
 func IsRoutingPort(port string) bool {
@@ -398,8 +365,7 @@ func IsRoutingUser(usr string) bool {
 	}
 
 	for _, uu := range u {
-		_, err := strconv.ParseUint(uu, 10, 32)
-		if err != nil {
+		if !IsUint(uu) {
 			return false
 		}
 	}
@@ -420,11 +386,6 @@ func IsRoutingSuppressPrefixLength(value string) bool {
 	}
 
 	return true
-}
-
-func IsRoutingSuppressInterfaceGroup(value string) bool {
-	_, err := strconv.ParseUint(value, 10, 32)
-	return err == nil
 }
 
 func IsRoutingType(typ string) bool {

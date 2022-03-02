@@ -28,7 +28,7 @@ func networkCreateVLan(args cli.Args, host string, token map[string]string) {
 		case "dev":
 			n.Links = strings.Fields(argStrings[i+1])
 		case "id":
-			if validator.IsVLanId(argStrings[i+1]) {
+			if validator.IsUint(argStrings[i+1]) {
 				id, err := strconv.ParseUint(argStrings[i+1], 10, 32)
 				if err != nil {
 					fmt.Printf("Failed to parse VLan Id: %s\n", argStrings[i+1])
