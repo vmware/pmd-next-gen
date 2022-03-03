@@ -45,6 +45,18 @@ type InfoListDesc struct {
 	Errors  string      `json:"errors"`
 }
 
+type UpdateInfoDesc struct {
+	Success bool              `json:"success"`
+	Message []tdnf.UpdateInfo `json:"message"`
+	Errors  string            `json:"errors"`
+}
+
+type UpdateInfoSummaryDesc struct {
+	Success bool                   `json:"success"`
+	Message tdnf.UpdateInfoSummary `json:"message"`
+	Errors  string                 `json:"errors"`
+}
+
 type AlterResultDesc struct {
 	Success bool             `json:"success"`
 	Message tdnf.AlterResult `json:"message"`
@@ -242,6 +254,25 @@ func displayTdnfInfoList(l *InfoListDesc) {
 	}
 }
 
+func displayTdnfUpdateInfoSummary(s *UpdateInfoSummaryDesc) {
+	m := s.Message
+	fmt.Printf("%v %v\n", color.HiBlueString("   Security:"), m.Security)
+	fmt.Printf("%v %v\n", color.HiBlueString("     Bugfix:"), m.Bugfix)
+	fmt.Printf("%v %v\n", color.HiBlueString("Enhancement:"), m.Enhancement)
+	fmt.Printf("%v %v\n", color.HiBlueString("    Unknown:"), m.Unknown)
+}
+
+func displayTdnfUpdateInfo(l *UpdateInfoDesc) {
+	for _, i := range l.Message {
+		fmt.Printf("%v %v\n", color.HiBlueString("    UpdateID:"), i.UpdateId)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Type:"), i.Type)
+		fmt.Printf("%v %v\n", color.HiBlueString("     Updated:"), i.Updated)
+		fmt.Printf("%v %v\n", color.HiBlueString("Needs Reboot:"), i.NeedsReboot)
+		fmt.Printf("%v %v\n", color.HiBlueString(" Description:"), i.Description)
+		fmt.Printf("\n")
+	}
+}
+
 func displayAlterList(l []tdnf.ListItem, header string) {
 	if len(l) > 0 {
 		fmt.Printf("%s:\n\n", header)
@@ -329,6 +360,60 @@ func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token m
 	}
 
 	m := InfoListDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfUpdateInfo(options *tdnf.UpdateInfoOptions, pkg string, host string, token map[string]string) (*UpdateInfoDesc, error) {
+	var path string
+	if !validator.IsEmpty(pkg) {
+		path = "/api/v1/tdnf/updateinfo/" + pkg
+	} else {
+		path = "/api/v1/tdnf/updateinfo"
+	}
+	path = path + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := UpdateInfoDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfUpdateInfoSummary(options *tdnf.UpdateInfoOptions, pkg string, host string, token map[string]string) (*UpdateInfoSummaryDesc, error) {
+	var path string
+	if !validator.IsEmpty(pkg) {
+		path = "/api/v1/tdnf/updateinfo/" + pkg
+	} else {
+		path = "/api/v1/tdnf/updateinfo"
+	}
+	path = path + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := UpdateInfoSummaryDesc{}
 	if err := json.Unmarshal(resp, &m); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
 		os.Exit(1)
@@ -497,6 +582,16 @@ func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[stri
 		return
 	}
 	displayTdnfInfoList(l)
+}
+
+func tdnfUpdateInfo(options *tdnf.Options, scOptions *tdnf.ScopeOptions, pkg string, host string, token map[string]string) {
+	updateInfoOptions := tdnf.UpdateInfoOptions{*options, *scOptions}
+	s, err := acquireTdnfUpdateInfoSummary(&updateInfoOptions, pkg, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf updateinfo: %v\n", err)
+		return
+	}
+	displayTdnfUpdateInfoSummary(s)
 }
 
 func tdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) {
