@@ -685,7 +685,7 @@ func networkConfigureAddDHCPv4Server(args cli.Args, host string, token map[strin
 	}
 
 	n.NetworkSection.DHCPServer = "yes"
-	//Dispatch Request.
+	// Dispatch Request.
 	networkConfigure(&n, host, token)
 }
 
@@ -1362,4 +1362,137 @@ func networkConfigureIPv6AcceptRA(link string, ipv6ara string, host string, toke
 	}
 
 	networkConfigure(&n, host, token)
+}
+
+func networkConfigureIPv6SendRA(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	link := ""
+	s := networkd.IPv6SendRASection{}
+	p := networkd.IPv6PrefixSection{}
+	r := networkd.IPv6RoutePrefixSection{}
+	for i := 0; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			link = argStrings[i+1]
+		case "rt-pref":
+			if !validator.IsRouterPreference(argStrings[i+1]) {
+				fmt.Printf("Invalid rt-pref=%s\n", argStrings[i+1])
+				return
+			}
+			s.RouterPreference = argStrings[i+1]
+		case "emit-dns":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid emit-dns=%s\n", argStrings[i+1])
+				return
+			}
+			s.EmitDNS = validator.BoolToString(argStrings[i+1])
+		case "dns":
+			dnslist := strings.Split(argStrings[i+1], ",")
+			for _, d := range dnslist {
+				if !validator.IsIP(d) {
+					fmt.Printf("Invalid dns=%s\n", d)
+					return
+				}
+			}
+			s.DNS = dnslist
+		case "emit-domains":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid emit-domains=%s\n", argStrings[i+1])
+				return
+			}
+			s.EmitDomains = validator.BoolToString(argStrings[i+1])
+		case "domains":
+			domainslist := strings.Split(argStrings[i+1], ",")
+			s.Domains = domainslist
+		case "dns-lifetime-sec":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid dns-lifetime-sec=%s\n", argStrings[i+1])
+				return
+			}
+			s.DNSLifetimeSec = argStrings[i+1]
+		case "prefix":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid prefix=%s\n", argStrings[i+1])
+				return
+			}
+			p.Prefix = argStrings[i+1]
+		case "pref-lifetime-sec":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid pref-lifetime-sec=%s\n", argStrings[i+1])
+				return
+			}
+			p.PreferredLifetimeSec = argStrings[i+1]
+		case "valid-lifetime-sec":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid valid-lifetime-sec=%s\n", argStrings[i+1])
+				return
+			}
+			p.ValidLifetimeSec = argStrings[i+1]
+		case "assign":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid assign=%s\n", argStrings[i+1])
+				return
+			}
+			p.Assign = validator.BoolToString(argStrings[i+1])
+		case "route":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid route=%s\n", argStrings[i+1])
+				return
+			}
+			r.Route = argStrings[i+1]
+		case "lifetime-sec":
+			if !validator.IsUint(argStrings[i+1]) {
+				fmt.Printf("Invalid lifetime-sec=%s\n", argStrings[i+1])
+				return
+			}
+			r.LifetimeSec = argStrings[i+1]
+		}
+
+		i++
+	}
+
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			IPv6SendRA: "yes",
+		},
+		IPv6SendRASection: s,
+		IPv6PrefixSections: []networkd.IPv6PrefixSection{
+			p,
+		},
+		IPv6RoutePrefixSections: []networkd.IPv6RoutePrefixSection{
+			r,
+		},
+	}
+
+	// Dispatch Request.
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureRemoveIPv6SendRA(link string, host string, token map[string]string) {
+	n := networkd.Network{
+		Link: link,
+		NetworkSection: networkd.NetworkSection{
+			IPv6SendRA: "no",
+		},
+	}
+
+	var resp []byte
+
+	resp, err := web.DispatchSocket(http.MethodDelete, host, "/api/v1/network/networkd/network/remove", token, n)
+	if err != nil {
+		fmt.Printf("Failed to remove network IPv6SendRA: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to remove network IPv6SendRA: %v\n", m.Errors)
+	}
 }

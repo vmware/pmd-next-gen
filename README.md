@@ -495,6 +495,14 @@ pmctl network add-dhcpv4-server dev <Devicename> pool-offset <poolOffset> pool-s
 pmctl network remove-dhcpv4-server <Devicename>
 >pmctl network remove-dhcpv4-server ens37
 
+# Configure network IPv6SendRA
+pmctl network add-ipv6ra dev <deviceName> rt-pref <RouterPreference> emit-dns <EmitDNS> dns <DNS> emit-domains <EmitDomains> domains <Domains> dns-lifetime-sec <DNSLifetimeSec> prefix <Prefix> pref-lifetime-sec <PreferredLifetimeSec> valid-lifetime-sec <ValidLifetimeSec> assign <Assign> route <Route> lifetime-sec <LifetimeSec>
+>pmctl network add-ipv6ra dev ens37 rt-pref medium emit-dns yes dns 2002:da8:1::1,2002:da8:2::1 emit-domains yes domains test1.com,test2.com dns-lifetime-sec 100 prefix 2002:da8:1::/64 pref-lifetime-sec 100 valid-lifetime-sec 200 assign yes route 2001:db1:fff::/64 lifetime-sec 1000
+
+# Remove network IPv6SendRA
+pmctl network remove-ipv6ra <Devicename>
+>pmctl network remove-ipv6ra ens37
+
 ```
 
 #### Configure network device using pmctl
