@@ -1090,3 +1090,156 @@ func TestNetworkConfigureRemoveDHCPv4Server(t *testing.T) {
 	}
 
 }
+
+func TestNetworkConfigureIPv6SendRA(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		NetworkSection: networkd.NetworkSection{
+			IPv6SendRA: "yes",
+		},
+		IPv6SendRASection: networkd.IPv6SendRASection{
+			RouterPreference: "medium",
+			EmitDNS:          "yes",
+			DNS:              []string{"2002:da8:1::1", "2002:da8:2::1"},
+			EmitDomains:      "yes",
+			Domains:          []string{"test1.com", "test2.com"},
+			DNSLifetimeSec:   "100",
+		},
+		IPv6PrefixSections: []networkd.IPv6PrefixSection{
+			{
+				Prefix:               "2002:da8:1::/64",
+				PreferredLifetimeSec: "100",
+				ValidLifetimeSec:     "200",
+				Assign:               "yes",
+			},
+		},
+		IPv6RoutePrefixSections: []networkd.IPv6RoutePrefixSection{
+			{
+				Route:       "2001:db1:fff::/64",
+				LifetimeSec: "1000",
+			},
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure IPv6SendRA: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "IPv6SendRA") != "yes" {
+		t.Fatalf("Failed to set IPv6SendRA")
+	}
+	if m.GetKeySectionString("IPv6SendRA", "RouterPreference") != "medium" {
+		t.Fatalf("Failed to set RouterPreference")
+	}
+	if m.GetKeySectionString("IPv6SendRA", "EmitDNS") != "yes" {
+		t.Fatalf("Failed to set EmitDNS")
+	}
+	if m.GetKeySectionString("IPv6SendRA", "DNS") != "2002:da8:1::1 2002:da8:2::1" {
+		t.Fatalf("Failed to set DNS")
+	}
+	if m.GetKeySectionString("IPv6SendRA", "EmitDomains") != "yes" {
+		t.Fatalf("Failed to set EmitDomains")
+	}
+	if m.GetKeySectionString("IPv6SendRA", "Domains") != "test1.com test2.com" {
+		t.Fatalf("Failed to set Domains")
+	}
+	if m.GetKeySectionString("IPv6SendRA", "DNSLifetimeSec") != "100" {
+		t.Fatalf("Failed to set DNSLifetimeSec")
+	}
+	if m.GetKeySectionString("IPv6Prefix", "Prefix") != "2002:da8:1::/64" {
+		t.Fatalf("Failed to set Prefix")
+	}
+	if m.GetKeySectionString("IPv6Prefix", "PreferredLifetimeSec") != "100" {
+		t.Fatalf("Failed to set PreferredLifetimeSec")
+	}
+	if m.GetKeySectionString("IPv6Prefix", "ValidLifetimeSec") != "200" {
+		t.Fatalf("Failed to set ValidLifetimeSec")
+	}
+	if m.GetKeySectionString("IPv6Prefix", "Assign") != "yes" {
+		t.Fatalf("Failed to set Assign")
+	}
+	if m.GetKeySectionString("IPv6RoutePrefix", "Route") != "2001:db1:fff::/64" {
+		t.Fatalf("Failed to set Route")
+	}
+	if m.GetKeySectionString("IPv6RoutePrefix", "LifetimeSec") != "1000" {
+		t.Fatalf("Failed to set LifetimeSec")
+	}
+}
+
+func TestNetworkRemoveIPv6SendRA(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		NetworkSection: networkd.NetworkSection{
+			IPv6SendRA: "yes",
+		},
+		IPv6SendRASection: networkd.IPv6SendRASection{
+			RouterPreference: "medium",
+			EmitDNS:          "yes",
+			DNS:              []string{"2002:da8:1::1", "2002:da8:2::1"},
+			EmitDomains:      "yes",
+			Domains:          []string{"test1.com", "test2.com"},
+			DNSLifetimeSec:   "100",
+		},
+		IPv6PrefixSections: []networkd.IPv6PrefixSection{
+			{
+				Prefix:               "2002:da8:1::/64",
+				PreferredLifetimeSec: "100",
+				ValidLifetimeSec:     "200",
+				Assign:               "yes",
+			},
+		},
+		IPv6RoutePrefixSections: []networkd.IPv6RoutePrefixSection{
+			{
+				Route:       "2001:db1:fff::/64",
+				LifetimeSec: "1000",
+			},
+		},
+	}
+
+	_, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure IPv6SendRA: %v\n", err)
+	}
+
+	n = networkd.Network{
+		Link: "test99",
+		NetworkSection: networkd.NetworkSection{
+			IPv6SendRA: "no",
+		},
+	}
+
+	m, err := removeNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to remove IPv6SendRA: %v\n", err)
+	}
+
+	if m.GetKeySectionString("Network", "IPv6SendRA") == "yes" ||
+		m.GetKeySectionString("IPv6SendRA", "RouterPreference") == "medium" ||
+		m.GetKeySectionString("IPv6SendRA", "EmitDNS") == "yes" ||
+		m.GetKeySectionString("IPv6SendRA", "DNS") == "2002:da8:1::1 2002:da8:2::1" ||
+		m.GetKeySectionString("IPv6SendRA", "EmitDomains") == "yes" ||
+		m.GetKeySectionString("IPv6SendRA", "Domains") == "test1.com test2.com" ||
+		m.GetKeySectionString("IPv6SendRA", "DNSLifetimeSec") == "100" ||
+		m.GetKeySectionString("IPv6Prefix", "Prefix") == "2002:da8:1::/64" ||
+		m.GetKeySectionString("IPv6Prefix", "PreferredLifetimeSec") == "100" ||
+		m.GetKeySectionString("IPv6Prefix", "ValidLifetimeSec") == "200" ||
+		m.GetKeySectionString("IPv6Prefix", "Assign") == "yes" ||
+		m.GetKeySectionString("IPv6RoutePrefix", "Route") == "2001:db1:fff::/64" ||
+		m.GetKeySectionString("IPv6RoutePrefix", "LifetimeSec") == "1000" {
+		t.Fatalf("Failed to remove IPv6SendRA")
+	}
+}
