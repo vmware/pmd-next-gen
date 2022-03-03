@@ -502,6 +502,36 @@ func main() {
 					},
 				},
 				{
+					Name:        "add-ipv6ra",
+					UsageText:   "add-ipv6ra dev [LINK] rt-pref [STRING] emit-dns [STRING] dns [STRING] emit-domains [STRING] domains [STRING] dns-lifetime-sec [INTEGER] prefix [STRING] pref-lifetime-sec [INTEGER] valid-lifetime-sec [INTEGER] assign [STRING] route [STRING] lifetime-sec [INTEGER]",
+					Description: "Configure IPv6 Router Advertisement (RA) send ona link for the interface.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureIPv6SendRA(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "remove-ipv6ra",
+					UsageText:   "remove-ipv6ra [LINK]",
+					Description: "Remove IPV6SendRA, IPv6Prefix and IPv6RoutePrefix",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 1 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureRemoveIPv6SendRA(c.Args().First(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "set-mtu",
 					UsageText:   "set-mtu [LINK] [MTU NUMBER]",
 					Description: "Configures Link MTU.",

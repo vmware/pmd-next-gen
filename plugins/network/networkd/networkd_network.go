@@ -49,6 +49,7 @@ type NetworkSection struct {
 	Domains             []string `json:"Domains"`
 	NTP                 []string `json:"NTP"`
 	IPv6AcceptRA        string   `json:"IPv6AcceptRA"`
+	IPv6SendRA          string   `json:"IPv6SendRA"`
 	LinkLocalAddressing string   `json:"LinkLocalAddressing"`
 	MulticastDNS        string   `json:"MulticastDNS"`
 
@@ -121,6 +122,27 @@ type RoutingPolicyRuleSection struct {
 	Type                   string `json:"Type"`
 }
 
+type IPv6SendRASection struct {
+	RouterPreference string   `json:"RouterPreference"`
+	EmitDNS          string   `json:"EmitDNS"`
+	DNS              []string `json:"DNS"`
+	EmitDomains      string   `json:"EmitDomains"`
+	Domains          []string `json:"Domains"`
+	DNSLifetimeSec   string   `json:"DNSLifetimeSec"`
+}
+
+type IPv6PrefixSection struct {
+	Prefix               string `json:"Prefix"`
+	PreferredLifetimeSec string `json:"PreferredLifetimeSec"`
+	ValidLifetimeSec     string `json:"ValidLifetimeSec"`
+	Assign               string `json:"Assign"`
+}
+
+type IPv6RoutePrefixSection struct {
+	Route       string `json:"Route"`
+	LifetimeSec string `json:"LifetimeSec"`
+}
+
 type Network struct {
 	Link                      string                     `json:"Link"`
 	LinkSection               LinkSection                `json:"LinkSection"`
@@ -131,6 +153,9 @@ type Network struct {
 	AddressSections           []AddressSection           `json:"AddressSections"`
 	RouteSections             []RouteSection             `json:"RouteSections"`
 	RoutingPolicyRuleSections []RoutingPolicyRuleSection `json:"RoutingPolicyRuleSections"`
+	IPv6SendRASection         IPv6SendRASection          `json:"IPv6SendRASection"`
+	IPv6PrefixSections        []IPv6PrefixSection        `json:"IPv6PrefixSections"`
+	IPv6RoutePrefixSections   []IPv6RoutePrefixSection   `json:"IPv6RoutePrefixSections"`
 }
 
 type LinkDescribe struct {
@@ -339,14 +364,16 @@ func (n *Network) buildNetworkSection(m *configfile.Meta) error {
 		m.SetKeySectionString("Network", "IPv6AcceptRA", n.NetworkSection.IPv6AcceptRA)
 	}
 
+	if !validator.IsEmpty(n.NetworkSection.IPv6SendRA) && validator.IsBool(n.NetworkSection.IPv6SendRA) {
+		m.SetKeySectionString("Network", "IPv6SendRA", n.NetworkSection.IPv6SendRA)
+	}
+
 	return nil
 }
 
 func (n *Network) removeNetworkSection(m *configfile.Meta) error {
-	if !validator.IsEmpty(n.NetworkSection.DHCPServer) {
-		if validator.IsBool(n.NetworkSection.DHCPServer) {
-			m.SetKeySectionString("Network", "DHCPServer", n.NetworkSection.DHCPServer)
-		}
+	if !validator.IsEmpty(n.NetworkSection.DHCPServer) && validator.IsBool(n.NetworkSection.DHCPServer) {
+		m.SetKeySectionString("Network", "DHCPServer", n.NetworkSection.DHCPServer)
 	}
 
 	if !validator.IsEmpty(n.NetworkSection.Address) {
@@ -400,6 +427,10 @@ func (n *Network) removeNetworkSection(m *configfile.Meta) error {
 			return err
 		}
 		m.SetKeySectionString("Network", "NTP", strings.Join(t[:], " "))
+	}
+
+	if !validator.IsEmpty(n.NetworkSection.IPv6SendRA) && validator.IsBool(n.NetworkSection.IPv6SendRA) {
+		m.SetKeySectionString("Network", "IPv6SendRA", n.NetworkSection.IPv6SendRA)
 	}
 
 	return nil
@@ -827,6 +858,112 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) buildIPv6SendRASection(m *configfile.Meta) error {
+	if !validator.IsEmpty(n.IPv6SendRASection.RouterPreference) {
+		if !validator.IsRouterPreference(n.IPv6SendRASection.RouterPreference) {
+			log.Errorf("Failed to parse RouterPreference='%s'", n.IPv6SendRASection.RouterPreference)
+			return fmt.Errorf("invalid RouterPreference='%s'", n.IPv6SendRASection.RouterPreference)
+		}
+		m.SetKeySectionString("IPv6SendRA", "RouterPreference", n.IPv6SendRASection.RouterPreference)
+	}
+
+	if !validator.IsEmpty(n.IPv6SendRASection.EmitDNS) && validator.IsBool(n.IPv6SendRASection.EmitDNS) {
+		m.SetKeySectionString("IPv6SendRA", "EmitDNS", n.IPv6SendRASection.EmitDNS)
+	}
+
+	if !validator.IsArrayEmpty(n.IPv6SendRASection.DNS) {
+		for _, d := range n.IPv6SendRASection.DNS {
+			if !validator.IsIP(d) {
+				log.Errorf("Failed to configure IPv6SendRA. Invalid DNS='%s'", d)
+				return fmt.Errorf("invalid dns='%s'", d)
+			}
+		}
+		m.SetKeySectionString("IPv6SendRA", "DNS", strings.Join(n.IPv6SendRASection.DNS, " "))
+	}
+
+	if !validator.IsEmpty(n.IPv6SendRASection.EmitDomains) && validator.IsBool(n.IPv6SendRASection.EmitDomains) {
+		m.SetKeySectionString("IPv6SendRA", "EmitDomains", n.IPv6SendRASection.EmitDomains)
+	}
+
+	if !validator.IsArrayEmpty(n.IPv6SendRASection.Domains) {
+		m.SetKeySectionString("IPv6SendRA", "Domains", strings.Join(n.IPv6SendRASection.Domains, " "))
+	}
+
+	if !validator.IsEmpty(n.IPv6SendRASection.DNSLifetimeSec) {
+		if !validator.IsUint(n.IPv6SendRASection.DNSLifetimeSec) {
+			log.Errorf("Failed to parse DNSLifetimeSec='%s'", n.IPv6SendRASection.DNSLifetimeSec)
+			return fmt.Errorf("invalid DNSLifetimeSec='%s'", n.IPv6SendRASection.DNSLifetimeSec)
+		}
+		m.SetKeySectionString("IPv6SendRA", "DNSLifetimeSec", n.IPv6SendRASection.DNSLifetimeSec)
+	}
+
+	return nil
+}
+
+func (n *Network) buildIPv6PrefixSection(m *configfile.Meta) error {
+	for _, p := range n.IPv6PrefixSections {
+		if err := m.NewSection("IPv6Prefix"); err != nil {
+			return err
+		}
+
+		if !validator.IsEmpty(p.Prefix) {
+			if !validator.IsIP(p.Prefix) {
+				log.Errorf("Failed to parse Prefix='%s'", p.Prefix)
+				return fmt.Errorf("invalid Prefix='%s'", p.Prefix)
+			}
+			m.SetKeyToNewSectionString("Prefix", p.Prefix)
+		}
+
+		if !validator.IsEmpty(p.PreferredLifetimeSec) {
+			if !validator.IsUint(p.PreferredLifetimeSec) {
+				log.Errorf("Failed to parse PreferredLifetimeSec='%s'", p.PreferredLifetimeSec)
+				return fmt.Errorf("invalid PreferredLifetimeSec='%s'", p.PreferredLifetimeSec)
+			}
+			m.SetKeyToNewSectionString("PreferredLifetimeSec", p.PreferredLifetimeSec)
+		}
+
+		if !validator.IsEmpty(p.ValidLifetimeSec) {
+			if !validator.IsUint(p.ValidLifetimeSec) {
+				log.Errorf("Failed to parse ValidLifetimeSec='%s'", p.ValidLifetimeSec)
+				return fmt.Errorf("invalid ValidLifetimeSec='%s'", p.ValidLifetimeSec)
+			}
+			m.SetKeyToNewSectionString("ValidLifetimeSec", p.ValidLifetimeSec)
+		}
+
+		if !validator.IsEmpty(p.Assign) && validator.IsBool(p.Assign) {
+			m.SetKeyToNewSectionString("Assign", p.Assign)
+		}
+	}
+
+	return nil
+}
+
+func (n *Network) buildIPv6RoutePrefixSection(m *configfile.Meta) error {
+	for _, r := range n.IPv6RoutePrefixSections {
+		if err := m.NewSection("IPv6RoutePrefix"); err != nil {
+			return err
+		}
+
+		if !validator.IsEmpty(r.Route) {
+			if !validator.IsIP(r.Route) {
+				log.Errorf("Failed to parse Route='%s'", r.Route)
+				return fmt.Errorf("invalid Route='%s'", r.Route)
+			}
+			m.SetKeyToNewSectionString("Route", r.Route)
+		}
+
+		if !validator.IsEmpty(r.LifetimeSec) {
+			if !validator.IsUint(r.LifetimeSec) {
+				log.Errorf("Failed to parse LifetimeSec='%s'", r.LifetimeSec)
+				return fmt.Errorf("invalid LifetimeSec='%s'", r.LifetimeSec)
+			}
+			m.SetKeyToNewSectionString("LifetimeSec", r.LifetimeSec)
+		}
+	}
+
+	return nil
+}
+
 func (n *Network) removeAddressSection(m *configfile.Meta) error {
 	for _, a := range n.AddressSections {
 		if !validator.IsEmpty(a.Address) {
@@ -994,6 +1131,39 @@ func (n *Network) removeDHCPv4ServerSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) removeIPv6SendRASection(m *configfile.Meta) error {
+	if s := m.GetKeySectionString("Network", "IPv6SendRA"); s == "no" {
+		if err := m.RemoveSection("IPv6SendRA", "", ""); err != nil {
+			log.Errorf("Failed to remove IPv6SendRA: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (n *Network) removeIPv6PrefixSection(m *configfile.Meta) error {
+	if s := m.GetKeySectionString("Network", "IPv6SendRA"); s == "no" {
+		if err := m.RemoveSection("IPv6Prefix", "", ""); err != nil {
+			log.Errorf("Failed to remove IPv6Prefix: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (n *Network) removeIPv6RoutePrefixSection(m *configfile.Meta) error {
+	if s := m.GetKeySectionString("Network", "IPv6SendRA"); s == "no" {
+		if err := m.RemoveSection("IPv6RoutePrefix", "", ""); err != nil {
+			log.Errorf("Failed to remove IPv6RoutePrefix: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) error {
 	m, err := CreateOrParseNetworkFile(n.Link)
 	if err != nil {
@@ -1020,6 +1190,15 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 	if err := n.buildRoutingPolicyRuleSection(m); err != nil {
+		return err
+	}
+	if err := n.buildIPv6SendRASection(m); err != nil {
+		return err
+	}
+	if err := n.buildIPv6PrefixSection(m); err != nil {
+		return err
+	}
+	if err := n.buildIPv6RoutePrefixSection(m); err != nil {
 		return err
 	}
 
@@ -1071,6 +1250,21 @@ func (n *Network) RemoveNetwork(ctx context.Context, w http.ResponseWriter) erro
 
 	if err := n.removeDHCPv4ServerSection(m); err != nil {
 		log.Errorf("Failed to remove dhcp server section: %v", err)
+		return err
+	}
+
+	if err := n.removeIPv6SendRASection(m); err != nil {
+		log.Errorf("Failed to remove IPv6SendRA section: %v", err)
+		return err
+	}
+
+	if err := n.removeIPv6PrefixSection(m); err != nil {
+		log.Errorf("Failed to remove IPv6Prefix section: %v", err)
+		return err
+	}
+
+	if err := n.removeIPv6RoutePrefixSection(m); err != nil {
+		log.Errorf("Failed to remove IPv6RoutePrefix section: %v", err)
 		return err
 	}
 

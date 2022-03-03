@@ -391,3 +391,7 @@ func IsRoutingSuppressPrefixLength(value string) bool {
 func IsRoutingType(typ string) bool {
 	return typ == "blackhole" || typ == "unreachable" || typ == "prohibit"
 }
+
+func IsRouterPreference(p string) bool {
+	return p == "high" || p == "low" || p == "medium" || p == "normal" || p == "default"
+}
