@@ -102,6 +102,9 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 		}
 	case "update":
 		err = acquireAlterCmd(w, cmd, "", options)
+	case "updateinfo":
+		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form)}
+		err = acquireUpdateInfo(w, "", updateInfoOptions)
 	default:
 		err = errors.New("unsupported")
 	}
@@ -141,6 +144,9 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "update":
 		err = acquireAlterCmd(w, cmd, pkg, options)
+	case "updateinfo":
+		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form)}
+		err = acquireUpdateInfo(w, pkg, updateInfoOptions)
 	default:
 		err = errors.New("unsupported")
 	}

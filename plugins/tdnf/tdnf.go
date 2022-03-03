@@ -62,6 +62,22 @@ type AlterResult struct {
 	Obsolete    []ListItem
 }
 
+type UpdateInfo struct {
+	UpdateId    string
+	Type        string
+	Updated     string
+	NeedsReboot bool
+	Description string
+	Packages    []string
+}
+
+type UpdateInfoSummary struct {
+	Security    int
+	Bugfix      int
+	Enhancement int
+	Unknown     int
+}
+
 type Options struct {
 	AllowErasing    bool     `tdnf:"--allowerasing"`
 	Best            bool     `tdnf:"--best"`
@@ -102,6 +118,11 @@ type ScopeOptions struct {
 }
 
 type ListOptions struct {
+	Options
+	ScopeOptions
+}
+
+type UpdateInfoOptions struct {
 	Options
 	ScopeOptions
 }
@@ -247,7 +268,6 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 		if err != nil {
 			return nil, err
 		}
-
 		var alterResult interface{}
 		/* an empty response indicates that nothing was to do */
 		if s != "" {
@@ -258,4 +278,8 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 		return alterResult, err
 	})
 	return jobs.AcceptedResponse(w, job)
+}
+
+func acquireUpdateInfo(w http.ResponseWriter, pkg string, options UpdateInfoOptions) error {
+	return acquireCmdWithDelayedResponse(w, "updateinfo", pkg, &options)
 }
