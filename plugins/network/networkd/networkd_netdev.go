@@ -32,6 +32,15 @@ type IpVLan struct {
 	Flags string `json:"Flags"`
 }
 
+type VxLan struct {
+	VNI             string `json:"VNI"`
+	Remote          string `json:"Remote"`
+	Local           string `json:"Local"`
+	Group           string `json:"Group"`
+	DestinationPort string `json:"DestinationPort"`
+	Independent     string `json:"Independent"`
+}
+
 type Bond struct {
 	Mode                         string `json:"Mode"`
 	TransmitHashPolicy           string `json:"TransmitHashPolicy"`
@@ -112,6 +121,8 @@ type NetDev struct {
 	MacVLanSection MacVLan `json:"MacVLanSection"`
 	// [IPVLAN]
 	IpVLanSection IpVLan `json:"IpVLanSection"`
+	// [VXVLAN]
+	VxLanSection VxLan `json:"VxLanSection"`
 	// [BOND]
 	BondSection Bond `json:"BondSection"`
 	// [BRIDGE]
@@ -141,6 +152,8 @@ func netDevKindToNetworkKind(s string) string {
 		kind = "IPVTAP"
 	case "vxlan":
 		kind = "VXLAN"
+	case "wireguard":
+		kind = "WireGuard"
 	}
 
 	return kind
@@ -289,6 +302,56 @@ func (n *NetDev) buildIpVLanSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildVxLanSection(m *configfile.Meta) error {
+	m.NewSection("VXLAN")
+
+	// Mandatory Argument Check VNI
+	if validator.IsEmpty(n.VxLanSection.VNI) {
+		log.Errorf("Failed to create vxlan='%s'. Missing VNI", n.Name)
+		return errors.New("missing vxlan vni")
+
+	}
+	if !validator.IsVxLanVNI(n.VxLanSection.VNI) {
+		log.Errorf("Failed to create VxLan='%s'. Invalid VNI='%s'", n.Name, n.VxLanSection.VNI)
+		return fmt.Errorf("invalid vni='%s'", n.VxLanSection.VNI)
+	}
+	m.SetKeyToNewSectionString("VNI", n.VxLanSection.VNI)
+
+	if !validator.IsEmpty(n.VxLanSection.Remote) {
+		if !validator.IsIP(n.VxLanSection.Remote) {
+			log.Errorf("Failed to create VxLan='%s'. Invalid Remote='%s'", n.Name, n.VxLanSection.Remote)
+			return fmt.Errorf("invalid remote='%s'", n.VxLanSection.Remote)
+		}
+		m.SetKeyToNewSectionString("Remote", n.VxLanSection.Remote)
+	}
+
+	if !validator.IsEmpty(n.VxLanSection.Local) {
+		if !validator.IsIP(n.VxLanSection.Local) {
+			log.Errorf("Failed to create VxLan='%s'. Invalid Local='%s'", n.Name, n.VxLanSection.Local)
+			return fmt.Errorf("invalid local='%s'", n.VxLanSection.Local)
+		}
+		m.SetKeyToNewSectionString("Local", n.VxLanSection.Local)
+	}
+
+	if !validator.IsEmpty(n.VxLanSection.Group) {
+		if !validator.IsIP(n.VxLanSection.Group) {
+			log.Errorf("Failed to create VxLan='%s'. Invalid Group='%s'", n.Name, n.VxLanSection.Group)
+			return fmt.Errorf("invalid Group='%s'", n.VxLanSection.Group)
+		}
+		m.SetKeyToNewSectionString("Group", n.VxLanSection.Group)
+	}
+
+	if !validator.IsEmpty(n.VxLanSection.DestinationPort) && validator.IsPort(n.VxLanSection.DestinationPort) {
+		m.SetKeyToNewSectionString("DestinationPort", n.VxLanSection.DestinationPort)
+	}
+
+	if !validator.IsEmpty(n.VxLanSection.Independent) && validator.IsBool(n.VxLanSection.Independent) {
+		m.SetKeyToNewSectionString("Independent", n.VxLanSection.Independent)
+	}
+
+	return nil
+}
+
 func (n *NetDev) buildWireGuardSection(m *configfile.Meta) error {
 	m.NewSection("WireGuard")
 
@@ -409,6 +472,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "ipvlan":
 		if err := n.buildIpVLanSection(m); err != nil {
 			log.Errorf("Failed to create IpVLan ='%s': %v", n.Name, err)
+			return err
+		}
+	case "vxlan":
+		if err := n.buildVxLanSection(m); err != nil {
+			log.Errorf("Failed to create VxLan ='%s': %v", n.Name, err)
 			return err
 		}
 	case "wireguard":

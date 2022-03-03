@@ -124,7 +124,7 @@ func TestNetDevCreateBond(t *testing.T) {
 
 	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "bond99")
 	fmt.Println(s)
-	
+
 	if !validator.LinkExists("bond99") {
 		t.Fatalf("Failed to create bond='bond99'")
 	}
@@ -152,7 +152,7 @@ func TestNetDevCreateBond(t *testing.T) {
 	if m1.GetKeySectionString("Network", "Bond") != "bond99" {
 		t.Fatalf("Failed to parse Bond=bond99 in .network file")
 	}
-	
+
 	m2, err := networkd.CreateOrParseNetworkFile("test98")
 	if err != nil {
 		t.Fatalf("Failed to parse .network file of test99")
@@ -161,6 +161,83 @@ func TestNetDevCreateBond(t *testing.T) {
 
 	if m2.GetKeySectionString("Network", "Bond") != "bond99" {
 		t.Fatalf("Failed to parse Bond=bond99 in .network file")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateVxLan(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	n := networkd.NetDev{
+		Name:  "vxlan99",
+		Kind:  "vxlan",
+		Links: []string{"test99"},
+		VxLanSection: networkd.VxLan{
+			VNI:             "100",
+			Remote:          "192.168.1.3",
+			Local:           "192.168.1.2",
+			DestinationPort: "7777",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create VxLan: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("vxlan99") {
+		t.Fatalf("Failed to create vxlan='vxlan99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "vxlan99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("vxlan99", "vxlan")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of vxlan='vxlan99'")
+	}
+
+	if m.GetKeySectionString("NetDev", "Kind") != "vxlan" {
+		t.Fatalf("Vxlan kind is not 'vxlan' in .netdev file of vxlan='vxlan99'")
+	}
+
+	if m.GetKeySectionUint("VXLAN", "VNI") != 100 {
+		t.Fatalf("Invalid Vxlan VNI in .netdev file of vxlan='vxlan99'")
+	}
+
+	if m.GetKeySectionString("VXLAN", "Remote") != "192.168.1.3" {
+		t.Fatalf("Invalid Vxlan Remote in .netdev file of vxlan='vxlan99'")
+	}
+
+	if m.GetKeySectionString("VXLAN", "Local") != "192.168.1.2" {
+		t.Fatalf("Invalid Vxlan Local in .netdev file of vxlan='vxlan99'")
+	}
+	if m.GetKeySectionUint("VXLAN", "DestinationPort") != 7777 {
+		t.Fatalf("Invalid Vxlan DestinationPort in .netdev file of vxlan='vxlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("vxlan99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of vxlan='vxlan99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "vxlan99" {
+		t.Fatalf("Invalid netdev name in .network file of vxlan='vxlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "VXLAN") != "vxlan99" {
+		t.Fatalf("Failed to parse .network file of test99")
 	}
 
 	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {

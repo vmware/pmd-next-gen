@@ -259,6 +259,80 @@ func networkCreateIpVLan(args cli.Args, host string, token map[string]string) {
 	}
 }
 
+func networkCreateVxLan(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+	n := networkd.NetDev{
+		Name: argStrings[0],
+		Kind: "vxlan",
+	}
+
+	for i := 1; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Links = strings.Fields(argStrings[i+1])
+		case "vni":
+			if !validator.IsVxLanVNI(argStrings[i+1]) {
+				fmt.Printf("Invalid vni: %s\n", argStrings[i+1])
+				return
+			}
+			n.VxLanSection.VNI = argStrings[i+1]
+		case "remote":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid remote: %s\n", argStrings[i+1])
+				return
+			}
+			n.VxLanSection.Remote = argStrings[i+1]
+		case "local":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid local: %s\n", argStrings[i+1])
+				return
+			}
+			n.VxLanSection.Local = argStrings[i+1]
+		case "group":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid group: %s\n", argStrings[i+1])
+				return
+			}
+			n.VxLanSection.Group = argStrings[i+1]
+		case "destport":
+			if !validator.IsPort(argStrings[i+1]) {
+				fmt.Printf("Invalid destport: %s\n", argStrings[i+1])
+				return
+			}
+			n.VxLanSection.DestinationPort = argStrings[i+1]
+		case "independent":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid independent: %s\n", argStrings[i+1])
+				return
+			}
+			n.VxLanSection.Independent = validator.BoolToString(argStrings[i+1])
+		}
+
+		i++
+	}
+
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) || validator.IsEmpty(n.VxLanSection.VNI) {
+		fmt.Printf("Failed to create VxLan. Missing VXLAN name, dev or VNI\n")
+		return
+	}
+
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
+	if err != nil {
+		fmt.Printf("Failed to create VxLan: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to create VxLan: %v\n", m.Errors)
+	}
+}
+
 func networkCreateWireGuard(args cli.Args, host string, token map[string]string) {
 	argStrings := args.Slice()
 	n := networkd.NetDev{

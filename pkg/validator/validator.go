@@ -179,6 +179,15 @@ func IsIpVLanFlags(flags string) bool {
 	return flags == "bridge" || flags == "private" || flags == "vepa"
 }
 
+func IsVxLanVNI(id string) bool {
+	l, err := strconv.ParseUint(id, 10, 32)
+	if err != nil || l > 16777215 {
+		return false
+	}
+
+	return true
+}
+
 func IsWireGuardListenPort(port string) bool {
 	return port == "auto" || IsPort(port)
 }
