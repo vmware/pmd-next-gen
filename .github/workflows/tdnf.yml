@@ -69,11 +69,6 @@ jobs:
               run: |
                 docker exec pmd-nextgen pmctl pkg info tdnf
 
-            - name: test tdnf clean
-              working-directory: ${{ github.workspace }}
-              run: |
-                docker exec pmd-nextgen pmctl pkg clean
-
             - name: test tdnf search
               working-directory: ${{ github.workspace }}
               run: |
@@ -83,3 +78,18 @@ jobs:
               working-directory: ${{ github.workspace }}
               run: |
                 docker exec pmd-nextgen pmctl pkg check-update
+
+            - name: test tdnf updateinfo
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg updateinfo
+
+            - name: test tdnf updateinfo info
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg updateinfo --info
+
+            - name: test tdnf clean
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg clean
