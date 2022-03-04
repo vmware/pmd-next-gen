@@ -117,6 +117,12 @@ type ScopeOptions struct {
 	Downgrades bool `tdnf:"--downgrades"`
 }
 
+type ModeOptions struct {
+	Summary bool `tdnf:"--summary"`
+	List    bool `tdnf:"--list"`
+	Info    bool `tdnf:"--info"`
+}
+
 type ListOptions struct {
 	Options
 	ScopeOptions
@@ -125,6 +131,7 @@ type ListOptions struct {
 type UpdateInfoOptions struct {
 	Options
 	ScopeOptions
+	ModeOptions
 }
 
 func TdnfOptions(options interface{}) []string {

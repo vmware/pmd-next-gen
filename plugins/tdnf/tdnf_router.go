@@ -67,6 +67,12 @@ func routerParseScopeOptions(values map[string][]string) ScopeOptions {
 	return o
 }
 
+func routerParseModeOptions(values map[string][]string) ModeOptions {
+	var o ModeOptions
+	o = *routerParseOptionsInterface(values, reflect.TypeOf(o)).(*ModeOptions)
+	return o
+}
+
 func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -103,7 +109,7 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	case "update":
 		err = acquireAlterCmd(w, cmd, "", options)
 	case "updateinfo":
-		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form)}
+		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form), routerParseModeOptions(r.Form)}
 		err = acquireUpdateInfo(w, "", updateInfoOptions)
 	default:
 		err = errors.New("unsupported")
@@ -145,7 +151,7 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	case "update":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "updateinfo":
-		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form)}
+		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form), routerParseModeOptions(r.Form)}
 		err = acquireUpdateInfo(w, pkg, updateInfoOptions)
 	default:
 		err = errors.New("unsupported")
