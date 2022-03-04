@@ -121,6 +121,13 @@ func tdnfParseModeFlags(c *cli.Context) tdnf.ModeOptions {
 	return o
 }
 
+func tdnfParseListFlags(c *cli.Context) tdnf.ListOptions {
+	return tdnf.ListOptions{
+		tdnfParseFlags(c),
+		tdnfParseScopeFlags(c),
+	}
+}
+
 func tdnfParseUpdateInfoFlags(c *cli.Context) tdnf.UpdateInfoOptions {
 	return tdnf.UpdateInfoOptions{
 		tdnfParseFlags(c),
@@ -560,9 +567,8 @@ func tdnfCheckUpdate(options *tdnf.Options, pkg string, host string, token map[s
 	displayTdnfList(l)
 }
 
-func tdnfList(options *tdnf.Options, scOptions *tdnf.ScopeOptions, pkg string, host string, token map[string]string) {
-	listOptions := tdnf.ListOptions{*options, *scOptions}
-	l, err := acquireTdnfList(&listOptions, pkg, host, token)
+func tdnfList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfList(options, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf list: %v\n", err)
 		return

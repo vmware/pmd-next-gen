@@ -1106,12 +1106,11 @@ func main() {
 					Flags:       tdnfCreateScopeFlags(),
 
 					Action: func(c *cli.Context) error {
-						options := tdnfParseFlags(c)
-						scOptions := tdnfParseScopeFlags(c)
+						options := tdnfParseListFlags(c)
 						if c.NArg() >= 1 {
-							tdnfList(&options, &scOptions, c.Args().First(), c.String("url"), token)
+							tdnfList(&options, c.Args().First(), c.String("url"), token)
 						} else {
-							tdnfList(&options, &scOptions, "", c.String("url"), token)
+							tdnfList(&options, "", c.String("url"), token)
 						}
 						return nil
 					},
