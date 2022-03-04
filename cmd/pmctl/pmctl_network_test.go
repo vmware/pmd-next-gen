@@ -1088,5 +1088,4 @@ func TestNetworkConfigureRemoveDHCPv4Server(t *testing.T) {
 		m.GetKeySectionString("DHCPServer", "EmitRouter") == "yes" {
 		t.Fatalf("Failed to remove DHCPServer")
 	}
-
 }

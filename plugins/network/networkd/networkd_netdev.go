@@ -122,15 +122,6 @@ type NetDev struct {
 	WireGuardPeerSection WireGuardPeer `json:"WireGuardPeerSection"`
 }
 
-func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
-	n := NetDev{}
-	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
-		return nil, err
-	}
-
-	return &n, nil
-}
-
 func netDevKindToNetworkKind(s string) string {
 	var kind string
 	switch s {
@@ -154,6 +145,16 @@ func netDevKindToNetworkKind(s string) string {
 
 	return kind
 }
+
+func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
+	n := NetDev{}
+	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+		return nil, err
+	}
+
+	return &n, nil
+}
+
 
 func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	m.NewSection("NetDev")
@@ -465,32 +466,9 @@ func (n *NetDev) ConfigureNetDev(ctx context.Context, w http.ResponseWriter) err
 	return web.JSONResponse("configured", w)
 }
 
-func (n *NetDev) RemoveKindFromLinkNetworkFile() error {
-	for _, l := range n.Links {
-		m, err := CreateOrParseNetworkFile(l)
-		if err != nil {
-			log.Errorf("Failed to parse network file for link='%s': %v", l, err)
-			return fmt.Errorf("link='%s' %v", l, err.Error())
-		}
-
-		if err := m.RemoveSection("Network", netDevKindToNetworkKind(n.Kind), n.Name); err != nil {
-			log.Errorf("Failed to update .network file of link='%s': %v", l, err)
-			return err
-		}
-
-		if err := m.Save(); err != nil {
-			log.Errorf("Failed to update config file='%s': %v", m.Path, err)
-			return err
-		}
-	}
-
-	return nil
-}
 
 func (n *NetDev) RemoveNetDev(ctx context.Context, w http.ResponseWriter) error {
 	RemoveNetDev(n.Name, n.Kind)
-	RemoveNetDevNetworkFile(n.Name, n.Kind)
-	n.RemoveKindFromLinkNetworkFile()
 
 	c, err := NewSDConnection()
 	if err != nil {

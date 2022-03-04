@@ -244,10 +244,17 @@ func CreateOrParseNetDevFile(link string, kind string) (*configfile.Meta, string
 }
 
 func RemoveNetDev(link string, kind string) error {
-	// Remove .netdev file
-	os.Remove(buildNetDevFilePath(link, kind))
-	// Remove .network file
-	os.Remove(buildNetDevNetworkFilePath(link, kind))
+	// remove .netdev file
+	configfile.RemoveFilesGlob("/etc/systemd/network", "*.netdev", "NetDev", "Name", link)
+	configfile.RemoveFilesGlob("/lib/systemd/network", "*.netdev", "NetDev", "Name", link)
+
+	// remove .network
+	configfile.RemoveFilesGlob("/etc/systemd/network", "*.network", "Match", "Name", link)
+	configfile.RemoveFilesGlob("/lib/systemd/network", "*.network", "Match", "Name", link)
+
+	// Remove [Network] section
+	configfile.RemoveFilesSectionGlob("/etc/systemd/network", "*.network", "Network", netDevKindToNetworkKind(kind), link)
+	configfile.RemoveFilesSectionGlob("/lib/systemd/network", "*.network", "Network", netDevKindToNetworkKind(kind), link)
 
 	l, err := netlink.LinkByName(link)
 	if err != nil {
