@@ -1170,17 +1170,16 @@ func main() {
 				},
 				{
 					Name:        "updateinfo",
-					Aliases:     []string{"i"},
+					Aliases:     []string{"ui"},
 					Description: "Update Info",
-					Flags:       tdnfCreateScopeFlags(),
+					Flags:       append(tdnfCreateScopeFlags(), tdnfCreateModeFlags()...),
 
 					Action: func(c *cli.Context) error {
-						options := tdnfParseFlags(c)
-						scOptions := tdnfParseScopeFlags(c)
+						options := tdnfParseUpdateInfoFlags(c)
 						if c.NArg() >= 1 {
-							tdnfUpdateInfo(&options, &scOptions, c.Args().First(), c.String("url"), token)
+							tdnfUpdateInfo(&options, c.Args().First(), c.String("url"), token)
 						} else {
-							tdnfUpdateInfo(&options, &scOptions, "", c.String("url"), token)
+							tdnfUpdateInfo(&options, "", c.String("url"), token)
 						}
 						return nil
 					},
