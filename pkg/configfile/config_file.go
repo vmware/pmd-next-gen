@@ -5,6 +5,9 @@ package configfile
 
 import (
 	"errors"
+	"os"
+	"path"
+	"path/filepath"
 	"strconv"
 
 	"github.com/go-ini/ini"
@@ -102,7 +105,6 @@ func (m *Meta) NewSection(section string) error {
 	}
 
 	m.Section = s
-
 	return nil
 }
 
@@ -122,6 +124,10 @@ func (m *Meta) RemoveSection(section string, key string, value string) error {
 		}
 	}
 
+	if err := m.Save(); err != nil {
+		return err
+	}
+
 	return errors.New("not found")
 }
 
@@ -136,6 +142,10 @@ func (m *Meta) RemoveKeyFromSectionString(section string, key string, value stri
 			s.DeleteKey(key)
 			return nil
 		}
+	}
+
+	if err := m.Save(); err != nil {
+		return err
 	}
 
 	return errors.New("not found")
@@ -153,6 +163,56 @@ func (m *Meta) SetKeyToNewSectionUint(key string, value uint) {
 func MapTo(cfg *ini.File, section string, v interface{}) error {
 	if err := cfg.Section(section).MapTo(v); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func RemoveFilesGlob(p string, pattern string, section string, key string, value string) error {
+	matches, err := filepath.Glob(path.Join(p, pattern))
+	if err != nil {
+		return err
+	}
+
+	for _, f := range matches {
+		m, err := Load(f)
+		if err != nil {
+			return err
+		}
+
+		sections, err := m.Cfg.SectionsByName(section)
+		if err != nil {
+			return err
+		}
+
+		for _, s := range sections {
+			if s.HasKey(key) && s.HasValue(value) {
+				os.Remove(m.Path)
+				break
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func RemoveFilesSectionGlob(p string, pattern string, section string, key string, value string) error {
+	matches, err := filepath.Glob(path.Join(p, pattern))
+	if err != nil {
+		return err
+	}
+
+	for _, f := range matches {
+		m, err := Load(f)
+		if err != nil {
+			return err
+		}
+
+		m.RemoveKeyFromSectionString(section, key, value)
+		if err := m.Save(); err != nil {
+			return err
+		}
 	}
 
 	return nil

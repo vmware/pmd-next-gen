@@ -768,11 +768,11 @@ func main() {
 				},
 				{
 					Name:        "remove-netdev",
-					UsageText:   "remove-netdev [NETDEV name] dev [LINK MASTER] kind [KIND {vlan|bridge|bond|vxlan|macvlan|macvtap|ipvlan|ipvtap|vrf|veth|ipip|sit|vti|gre|wg]",
+					UsageText:   "remove-netdev [NETDEV name] kind [KIND {vlan|bridge|bond|vxlan|macvlan|macvtap|ipvlan|ipvtap|vrf|veth|ipip|sit|vti|gre|wg]",
 					Description: "Removes .netdev and .network files.",
 
 					Action: func(c *cli.Context) error {
-						if c.NArg() < 5 {
+						if c.NArg() < 2 {
 							fmt.Printf("Too few arguments.\n")
 							return nil
 						}
