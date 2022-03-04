@@ -624,6 +624,67 @@ pmctl link set-link dev ens37 alias <Alias> desc <Description> mtub <MTUBytes> b
 
 ```
 
+#### Package Management
+```bash
+# List all packages
+pmctl pkg list
+> pmctl pkg list
+
+# List specific packages
+> pmctl pkg list <pkg>
+pmctl pkg list lsof
+
+# Info
+> pmctl pkg info <pkg>
+pmctl pkg info lsof
+
+# Download metada
+> pmctl pkg makecache
+pmctl pkg makecache
+
+# Clean cache
+> pmctl pkg clean
+pmctl pkg clean
+
+# List repositories
+> pmctl pkg repolist
+pmctl pkg repolist
+
+# Search packages
+> pmctl pkg search <pattern>
+pmctl pkg search lsof
+
+# Get update info
+> pmctl pkg updateinfo
+> pmctl pkg updateinfo --list
+> pmctl pkg updateinfo --info
+
+# Install a package
+> pmctl pkg install <pkg>
+pmctl install lsof
+
+# Update a package
+> pmctl pkg update <pkg>
+pmctl pkg update lsof
+
+# Remove a package
+> pmctl pkg remove <pkg>
+pmctl pkg remove lsof
+
+# Update all
+> pmctl pkg update
+pmctl pkg update
+
+# Use common options
+> pmctl pkg [--allowerasing][--best][--cacheonly][--config=<file>][--disablerepo=<pattern>[,..]]
+	[--disableexcludes][--downloaddir=<dir>][--downloadonly][--enablerepo=<pattern>[,..]]
+	[--exclude=<pkg>][--installroot=<dir>][--noautoremove][--nogpgcheck][--noplugins]
+	[--rebootrequired][--refresh][--releaserver=<release>][--repoid=<repo>]
+	[--repofrompath=<repo>,<dir>][--security][--secseverity=<sev>][--setopt=<key=value>[,..]]
+	[--skipconflicts][--skipdigest][--skipobsletes][--skipsignature]
+pmctl pkg --repoid=photon-debuginfo list lsof*
+```
+
 ### How to configure users ?
 
 ##### Unix domain socket
