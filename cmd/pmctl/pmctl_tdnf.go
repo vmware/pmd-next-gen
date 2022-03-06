@@ -45,6 +45,18 @@ type InfoListDesc struct {
 	Errors  string      `json:"errors"`
 }
 
+type UpdateInfoDesc struct {
+	Success bool              `json:"success"`
+	Message []tdnf.UpdateInfo `json:"message"`
+	Errors  string            `json:"errors"`
+}
+
+type UpdateInfoSummaryDesc struct {
+	Success bool                   `json:"success"`
+	Message tdnf.UpdateInfoSummary `json:"message"`
+	Errors  string                 `json:"errors"`
+}
+
 type AlterResultDesc struct {
 	Success bool             `json:"success"`
 	Message tdnf.AlterResult `json:"message"`
@@ -62,10 +74,9 @@ type StatusDesc struct {
 	Errors  string             `json:"errors"`
 }
 
-func tdnfParseFlags(c *cli.Context) tdnf.Options {
-	var options tdnf.Options
-
-	v := reflect.ValueOf(&options).Elem()
+func tdnfParseFlagsInterface(c *cli.Context, optType reflect.Type) interface{} {
+	options := reflect.New(optType)
+	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
@@ -89,14 +100,47 @@ func tdnfParseFlags(c *cli.Context) tdnf.Options {
 			}
 		}
 	}
-	return options
+	return options.Interface()
 }
 
-func tdnfCreateFlags() []cli.Flag {
-	var options tdnf.Options
+func tdnfParseFlags(c *cli.Context) tdnf.Options {
+	var o tdnf.Options
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.Options)
+	return o
+}
+
+func tdnfParseScopeFlags(c *cli.Context) tdnf.ScopeOptions {
+	var o tdnf.ScopeOptions
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.ScopeOptions)
+	return o
+}
+
+func tdnfParseModeFlags(c *cli.Context) tdnf.ModeOptions {
+	var o tdnf.ModeOptions
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.ModeOptions)
+	return o
+}
+
+func tdnfParseListFlags(c *cli.Context) tdnf.ListOptions {
+	return tdnf.ListOptions{
+		tdnfParseFlags(c),
+		tdnfParseScopeFlags(c),
+	}
+}
+
+func tdnfParseUpdateInfoFlags(c *cli.Context) tdnf.UpdateInfoOptions {
+	return tdnf.UpdateInfoOptions{
+		tdnfParseFlags(c),
+		tdnfParseScopeFlags(c),
+		tdnfParseModeFlags(c),
+	}
+}
+
+func tdnfCreateFlagsInterface(optType reflect.Type) []cli.Flag {
 	var flags []cli.Flag
 
-	v := reflect.ValueOf(&options).Elem()
+	options := reflect.New(optType)
+	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
@@ -111,6 +155,21 @@ func tdnfCreateFlags() []cli.Flag {
 		}
 	}
 	return flags
+}
+
+func tdnfCreateFlags() []cli.Flag {
+	var o tdnf.Options
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
+}
+
+func tdnfCreateScopeFlags() []cli.Flag {
+	var o tdnf.ScopeOptions
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
+}
+
+func tdnfCreateModeFlags() []cli.Flag {
+	var o tdnf.ModeOptions
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
 }
 
 func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequired bool, token map[string]string) *cli.Command {
@@ -135,35 +194,44 @@ func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequir
 	}
 }
 
-func tdnfOptionsMap(options *tdnf.Options) url.Values {
+func tdnfOptionsMap(options interface{}) url.Values {
 	m := url.Values{}
 
 	v := reflect.ValueOf(options).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		name := strings.ToLower(field.Name)
-		value := v.Field(i).Interface()
-		switch value.(type) {
-		case bool:
-			if value.(bool) {
-				m.Add(name, "true")
+		switch v.Field(i).Kind() {
+		case reflect.Struct:
+			value := v.Field(i).Addr().Interface()
+			m1 := tdnfOptionsMap(value)
+			for k, v := range m1 {
+				m[k] = v
 			}
-		case string:
-			str := value.(string)
-			if !validator.IsEmpty(str) {
-				m.Add(name, str)
-			}
-		case []string:
-			list := value.([]string)
-			if len(list) != 0 {
-				m[name] = list
+		default:
+			value := v.Field(i).Interface()
+			switch value.(type) {
+			case bool:
+				if value.(bool) {
+					m.Add(name, "true")
+				}
+			case string:
+				str := value.(string)
+				if !validator.IsEmpty(str) {
+					m.Add(name, str)
+				}
+			case []string:
+				list := value.([]string)
+				if len(list) != 0 {
+					m[name] = list
+				}
 			}
 		}
 	}
 	return m
 }
 
-func tdnfOptionsQuery(options *tdnf.Options) string {
+func tdnfOptionsQuery(options interface{}) string {
 	if m := tdnfOptionsMap(options); len(m) != 0 {
 		return "?" + m.Encode()
 	}
@@ -212,6 +280,28 @@ func displayTdnfInfoList(l *InfoListDesc) {
 	}
 }
 
+func displayTdnfUpdateInfoSummary(s *UpdateInfoSummaryDesc) {
+	m := s.Message
+	fmt.Printf("%v %v\n", color.HiBlueString("   Security:"), m.Security)
+	fmt.Printf("%v %v\n", color.HiBlueString("     Bugfix:"), m.Bugfix)
+	fmt.Printf("%v %v\n", color.HiBlueString("Enhancement:"), m.Enhancement)
+	fmt.Printf("%v %v\n", color.HiBlueString("    Unknown:"), m.Unknown)
+}
+
+func displayTdnfUpdateInfo(l *UpdateInfoDesc, options tdnf.ModeOptions) {
+	for _, i := range l.Message {
+		fmt.Printf("%v %v\n", color.HiBlueString("    UpdateID:"), i.UpdateId)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Type:"), i.Type)
+		if options.Info {
+			fmt.Printf("%v %v\n", color.HiBlueString("     Updated:"), i.Updated)
+			fmt.Printf("%v %v\n", color.HiBlueString("Needs Reboot:"), i.NeedsReboot)
+			fmt.Printf("%v %v\n", color.HiBlueString(" Description:"), i.Description)
+		}
+		fmt.Printf("%v %v\n", color.HiBlueString("    Packages:"), strings.Join(i.Packages, ", "))
+		fmt.Printf("\n")
+	}
+}
+
 func displayAlterList(l []tdnf.ListItem, header string) {
 	if len(l) > 0 {
 		fmt.Printf("%s:\n\n", header)
@@ -239,7 +329,7 @@ func displayTdnfAlterResult(rDesc *AlterResultDesc) {
 	displayAlterList(r.Obsolete, "Packages to be Obsoleted")
 }
 
-func acquireTdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
+func acquireTdnfList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
 	var path string
 	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/list/" + pkg
@@ -299,6 +389,60 @@ func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token m
 	}
 
 	m := InfoListDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfUpdateInfo(options *tdnf.UpdateInfoOptions, pkg string, host string, token map[string]string) (*UpdateInfoDesc, error) {
+	var path string
+	if !validator.IsEmpty(pkg) {
+		path = "/api/v1/tdnf/updateinfo/" + pkg
+	} else {
+		path = "/api/v1/tdnf/updateinfo"
+	}
+	path = path + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := UpdateInfoDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfUpdateInfoSummary(options *tdnf.UpdateInfoOptions, pkg string, host string, token map[string]string) (*UpdateInfoSummaryDesc, error) {
+	var path string
+	if !validator.IsEmpty(pkg) {
+		path = "/api/v1/tdnf/updateinfo/" + pkg
+	} else {
+		path = "/api/v1/tdnf/updateinfo"
+	}
+	path = path + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := UpdateInfoSummaryDesc{}
 	if err := json.Unmarshal(resp, &m); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
 		os.Exit(1)
@@ -423,7 +567,7 @@ func tdnfCheckUpdate(options *tdnf.Options, pkg string, host string, token map[s
 	displayTdnfList(l)
 }
 
-func tdnfList(options *tdnf.Options, pkg string, host string, token map[string]string) {
+func tdnfList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) {
 	l, err := acquireTdnfList(options, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf list: %v\n", err)
@@ -466,6 +610,24 @@ func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[stri
 		return
 	}
 	displayTdnfInfoList(l)
+}
+
+func tdnfUpdateInfo(options *tdnf.UpdateInfoOptions, pkg string, host string, token map[string]string) {
+	if options.List || options.Info {
+		s, err := acquireTdnfUpdateInfo(options, pkg, host, token)
+		if err != nil {
+			fmt.Printf("Failed to acquire tdnf updateinfo: %v\n", err)
+			return
+		}
+		displayTdnfUpdateInfo(s, options.ModeOptions)
+	} else {
+		s, err := acquireTdnfUpdateInfoSummary(options, pkg, host, token)
+		if err != nil {
+			fmt.Printf("Failed to acquire tdnf updateinfo: %v\n", err)
+			return
+		}
+		displayTdnfUpdateInfoSummary(s)
+	}
 }
 
 func tdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) {

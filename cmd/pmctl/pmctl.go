@@ -1103,9 +1103,10 @@ func main() {
 					Name:        "list",
 					Aliases:     []string{"l"},
 					Description: "List Packages",
+					Flags:       tdnfCreateScopeFlags(),
 
 					Action: func(c *cli.Context) error {
-						options := tdnfParseFlags(c)
+						options := tdnfParseListFlags(c)
 						if c.NArg() >= 1 {
 							tdnfList(&options, c.Args().First(), c.String("url"), token)
 						} else {
@@ -1162,6 +1163,22 @@ func main() {
 							tdnfSearch(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							fmt.Printf("Needs a search string\n")
+						}
+						return nil
+					},
+				},
+				{
+					Name:        "updateinfo",
+					Aliases:     []string{"ui"},
+					Description: "Update Info",
+					Flags:       append(tdnfCreateScopeFlags(), tdnfCreateModeFlags()...),
+
+					Action: func(c *cli.Context) error {
+						options := tdnfParseUpdateInfoFlags(c)
+						if c.NArg() >= 1 {
+							tdnfUpdateInfo(&options, c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfUpdateInfo(&options, "", c.String("url"), token)
 						}
 						return nil
 					},

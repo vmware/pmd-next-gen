@@ -62,6 +62,22 @@ type AlterResult struct {
 	Obsolete    []ListItem
 }
 
+type UpdateInfo struct {
+	UpdateId    string
+	Type        string
+	Updated     string
+	NeedsReboot bool
+	Description string
+	Packages    []string
+}
+
+type UpdateInfoSummary struct {
+	Security    int
+	Bugfix      int
+	Enhancement int
+	Unknown     int
+}
+
 type Options struct {
 	AllowErasing    bool     `tdnf:"--allowerasing"`
 	Best            bool     `tdnf:"--best"`
@@ -91,26 +107,60 @@ type Options struct {
 	SkipSignature   bool     `tdnf:"--skipsignature"`
 }
 
-func TdnfOptions(options *Options) []string {
+type ScopeOptions struct {
+	Installed  bool `tdnf:"--installed"`
+	Available  bool `tdnf:"--available"`
+	Extras     bool `tdnf:"--extras"`
+	Obsoletes  bool `tdnf:"--obsoletes"`
+	Recent     bool `tdnf:"--recent"`
+	Upgrades   bool `tdnf:"--upgrades"`
+	Downgrades bool `tdnf:"--downgrades"`
+}
+
+type ModeOptions struct {
+	Summary bool `tdnf:"--summary"`
+	List    bool `tdnf:"--list"`
+	Info    bool `tdnf:"--info"`
+}
+
+type ListOptions struct {
+	Options
+	ScopeOptions
+}
+
+type UpdateInfoOptions struct {
+	Options
+	ScopeOptions
+	ModeOptions
+}
+
+func TdnfOptions(options interface{}) []string {
 	var strOptions []string
 
 	v := reflect.ValueOf(options).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
-		if opt := field.Tag.Get("tdnf"); opt != "" {
-			value := v.Field(i).Interface()
-			switch value.(type) {
-			case bool:
-				if value.(bool) {
-					strOptions = append(strOptions, opt)
-				}
-			case string:
-				if strVal := value.(string); strVal != "" {
-					strOptions = append(strOptions, opt+"="+strVal)
-				}
-			case []string:
-				for _, s := range value.([]string) {
-					strOptions = append(strOptions, opt+"="+s)
+		f := v.Field(i)
+		switch f.Kind() {
+		case reflect.Struct:
+			value := f.Addr().Interface()
+			strOptions = append(strOptions, TdnfOptions(value)...)
+		default:
+			if opt := field.Tag.Get("tdnf"); opt != "" {
+				value := f.Interface()
+				switch value.(type) {
+				case bool:
+					if value.(bool) {
+						strOptions = append(strOptions, opt)
+					}
+				case string:
+					if strVal := value.(string); strVal != "" {
+						strOptions = append(strOptions, opt+"="+strVal)
+					}
+				case []string:
+					for _, s := range value.([]string) {
+						strOptions = append(strOptions, opt+"="+s)
+					}
 				}
 			}
 		}
@@ -134,7 +184,7 @@ func execWithResult(cmd string, args ...string) *ExecResult {
 	return &result
 }
 
-func TdnfExec(options *Options, args ...string) (string, error) {
+func TdnfExec(options interface{}, args ...string) (string, error) {
 	args = append([]string{"-j"}, args...)
 
 	if options != nil {
@@ -148,14 +198,14 @@ func TdnfExec(options *Options, args ...string) (string, error) {
 	return result.Stdout.String(), nil
 }
 
-func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkg string, options Options) error {
+func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkg string, options interface{}) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
 		if !validator.IsEmpty(pkg) {
-			s, err = TdnfExec(&options, cmd, pkg)
+			s, err = TdnfExec(options, cmd, pkg)
 		} else {
-			s, err = TdnfExec(&options, cmd)
+			s, err = TdnfExec(options, cmd)
 		}
 		var result interface{}
 		if err := json.Unmarshal([]byte(s), &result); err != nil {
@@ -167,15 +217,15 @@ func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkg string
 }
 
 func acquireCheckUpdate(w http.ResponseWriter, pkg string, options Options) error {
-	return acquireCmdWithDelayedResponse(w, "check-update", pkg, options)
+	return acquireCmdWithDelayedResponse(w, "check-update", pkg, &options)
 }
 
-func acquireList(w http.ResponseWriter, pkg string, options Options) error {
-	return acquireCmdWithDelayedResponse(w, "list", pkg, options)
+func acquireList(w http.ResponseWriter, pkg string, options ListOptions) error {
+	return acquireCmdWithDelayedResponse(w, "list", pkg, &options)
 }
 
 func acquireSearch(w http.ResponseWriter, pkg string, options Options) error {
-	return acquireCmdWithDelayedResponse(w, "search", pkg, options)
+	return acquireCmdWithDelayedResponse(w, "search", pkg, &options)
 }
 
 func acquireRepoList(w http.ResponseWriter, options Options) error {
@@ -193,7 +243,7 @@ func acquireRepoList(w http.ResponseWriter, options Options) error {
 }
 
 func acquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
-	return acquireCmdWithDelayedResponse(w, "info", pkg, options)
+	return acquireCmdWithDelayedResponse(w, "info", pkg, &options)
 }
 
 func acquireMakeCache(w http.ResponseWriter, options Options) error {
@@ -225,7 +275,6 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 		if err != nil {
 			return nil, err
 		}
-
 		var alterResult interface{}
 		/* an empty response indicates that nothing was to do */
 		if s != "" {
@@ -236,4 +285,8 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 		return alterResult, err
 	})
 	return jobs.AcceptedResponse(w, job)
+}
+
+func acquireUpdateInfo(w http.ResponseWriter, pkg string, options UpdateInfoOptions) error {
+	return acquireCmdWithDelayedResponse(w, "updateinfo", pkg, &options)
 }
