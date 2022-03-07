@@ -73,6 +73,12 @@ func routerParseModeOptions(values map[string][]string) ModeOptions {
 	return o
 }
 
+func routerParseQueryOptions(values map[string][]string) QueryOptions {
+	var o QueryOptions
+	o = *routerParseOptionsInterface(values, reflect.TypeOf(o)).(*QueryOptions)
+	return o
+}
+
 func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -99,6 +105,9 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 		err = acquireMakeCache(w, options)
 	case "repolist":
 		err = acquireRepoList(w, options)
+	case "repoquery":
+		repoQueryOptions := RepoQueryOptions{options, routerParseQueryOptions(r.Form)}
+		err = acquireRepoQuery(w, "", repoQueryOptions)
 	case "search":
 		q := r.FormValue("q")
 		if q != "" {
@@ -148,6 +157,9 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 		err = acquireList(w, pkg, listOptions)
 	case "reinstall":
 		err = acquireAlterCmd(w, cmd, pkg, options)
+	case "repoquery":
+		repoQueryOptions := RepoQueryOptions{options, routerParseQueryOptions(r.Form)}
+		err = acquireRepoQuery(w, pkg, repoQueryOptions)
 	case "update":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "updateinfo":
