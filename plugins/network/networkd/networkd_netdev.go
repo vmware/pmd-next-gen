@@ -79,7 +79,7 @@ type Bridge struct {
 	MulticastSnooping    bool   `json:"MulticastSnooping"`
 	VLANFiltering        bool   `json:"VLANFiltering"`
 	VLANProtocol         string `json:"VLANProtocol"`
-	STP                  bool   `json:"STP"`
+	STP                  string `json:"STP"`
 	MulticastIGMPVersion int    `json:"MulticastIGMPVersion"`
 }
 
@@ -167,7 +167,6 @@ func decodeNetDevJSONRequest(r *http.Request) (*NetDev, error) {
 
 	return &n, nil
 }
-
 
 func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	m.NewSection("NetDev")
@@ -258,6 +257,11 @@ func (n *NetDev) buildBondSection(m *configfile.Meta) error {
 }
 
 func (n *NetDev) buildBridgeSection(m *configfile.Meta) error {
+	m.NewSection("Bridge")
+
+	if !validator.IsEmpty(n.BridgeSection.STP) {
+		m.SetKeyToNewSectionString("STP", validator.BoolToString(n.BridgeSection.STP))
+	}
 
 	return nil
 }
@@ -533,7 +537,6 @@ func (n *NetDev) ConfigureNetDev(ctx context.Context, w http.ResponseWriter) err
 
 	return web.JSONResponse("configured", w)
 }
-
 
 func (n *NetDev) RemoveNetDev(ctx context.Context, w http.ResponseWriter) error {
 	RemoveNetDev(n.Name, n.Kind)
