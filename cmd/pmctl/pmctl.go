@@ -752,6 +752,21 @@ func main() {
 					},
 				},
 				{
+					Name:        "create-vxlan",
+					UsageText:   "create-vxlan [VXLAN name] dev [LINK MASTER] vni [INTEGER] remote [STRING] local [STRING] group [STRING] destport [INTEGER] independent [BOOLEAN]",
+					Description: "Create vxlan.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 5 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateVxLan(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "create-wg",
 					UsageText:   "create-wg [WIREGUARD name] dev [LINK MASTER] skey [STRING] pkey [STRING] port [string] ips [string] endpoint [STRING]",
 					Description: "Create wg(wireguard).",

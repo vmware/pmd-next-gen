@@ -533,6 +533,10 @@ pmctl network create-ipvlan <ipvlanName> dev <device> mode <modeName> flags <fla
 # Configure IpVLan with default
 >pmctl network create-ipvlan ipvlan1 dev ens38
 
+# Configure VxLan
+pmctl network create-vxlan <vxlanName> dev <device> remote <RemoteAddress> local <LocalAddress> group <GroupAddress> destport <DestinationPort> independent <IndependentFlag>
+>pmctl network create-vxlan vxlan1 dev ens37 vni 16777215 remote 192.168.1.3 local 192.168.1.2 group 192.168.0.0 destport 4789 independent no
+
 # Configure WireGuard
 pmctl network create-wg <wireguardName> dev <device> skey <privateKey> pkey<publicKey> endpoint <address:Port> port <listenport> ips <allowedIPs>
 >pmctl network create-wg wg1 dev ens37 skey wCmc/74PQpRoxTgqGircVFtdArZFUFIiOoyQY8kVgmI= pkey dSanSzExlryduCwNnAFt+rzpI5fKeHuJx1xx2zxEG2Q= endpoint 10.217.69.88:51820 port 51822 ips fd31:bf08:57cb::/48,192.168.26.0/24
