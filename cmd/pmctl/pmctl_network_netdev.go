@@ -134,7 +134,7 @@ func networkCreateBridge(args cli.Args, host string, token map[string]string) {
 	for i := 1; i < len(argStrings); {
 		switch argStrings[i] {
 		case "dev":
-			n.Links = strings.Fields(argStrings[i+1])
+			n.Links = strings.Split(argStrings[i+1], ",")
 		}
 
 		i++
