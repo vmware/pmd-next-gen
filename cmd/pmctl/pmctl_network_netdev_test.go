@@ -168,8 +168,7 @@ func TestNetDevCreateBond(t *testing.T) {
 	}
 }
 
-
-func TestNetDevCreateVxLan(t *testing.T) {
+func TestNetDevCreateMacVLan(t *testing.T) {
 	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
 	defer removeLink(t, "test99")
 
@@ -307,6 +306,69 @@ func TestNetDevCreateBridge(t *testing.T) {
 
 	if m2.GetKeySectionString("Network", "Bridge") != "bridge99" {
 		t.Fatalf("Failed to parse Bridge=bridge99 in .network file")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateMACVLan(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	n := networkd.NetDev{
+		Name:  "macvlan99",
+		Kind:  "macvlan",
+		Links: []string{"test99"},
+		MacVLanSection: networkd.MacVLan{
+			Mode:             "bridge",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create VxLan: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("macvlan99") {
+		t.Fatalf("Failed to create macvlan='macvlan99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "macvlan99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("macvlan99", "macvlan")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of macvlan='macvlan99'")
+	}
+
+	if m.GetKeySectionString("NetDev", "Kind") != "macvlan" {
+		t.Fatalf("Vxlan kind is not 'macvlan' in .netdev file of macvlan='macvlan99'")
+	}
+
+	if m.GetKeySectionString("MACVLAN", "Mode") != "bridge"{
+		t.Fatalf("Invalid MacVLan mode .netdev file of macvlan='macvlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("macvlan99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of macvlan='macvlan99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "macvlan99" {
+		t.Fatalf("Invalid netdev name in .network file of macvlan='macvlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "MACVLAN") != "macvlan99" {
+		t.Fatalf("Failed to parse .network file of test99")
 	}
 
 	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
