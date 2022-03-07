@@ -122,12 +122,12 @@ func TestNetDevCreateBond(t *testing.T) {
 
 	time.Sleep(time.Second * 5)
 
-	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "bond99")
-	fmt.Println(s)
-
 	if !validator.LinkExists("bond99") {
 		t.Fatalf("Failed to create bond='bond99'")
 	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "bond99")
+	fmt.Println(s)
 
 	m, _, err := networkd.CreateOrParseNetDevFile("bond99", "bond")
 	if err != nil {
@@ -167,6 +167,7 @@ func TestNetDevCreateBond(t *testing.T) {
 		t.Fatalf("Failed to remove .network file='%v'", err)
 	}
 }
+
 
 func TestNetDevCreateVxLan(t *testing.T) {
 	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
@@ -238,6 +239,74 @@ func TestNetDevCreateVxLan(t *testing.T) {
 
 	if m.GetKeySectionString("Network", "VXLAN") != "vxlan99" {
 		t.Fatalf("Failed to parse .network file of test99")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateBridge(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test98"}})
+	defer removeLink(t, "test99")
+	defer removeLink(t, "test98")
+
+	n := networkd.NetDev{
+		Name:  "bridge99",
+		Kind:  "bridge",
+		Links: []string{"test99", "test98"},
+		BridgeSection: networkd.Bridge{
+			STP: "yes",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		fmt.Println(err)
+		t.Fatalf("Failed to create Bridge: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("bridge99") {
+		t.Fatalf("Failed to create bridge='bridge99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "bridge99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("bridge99", "bridge")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of bridge='bridge99'")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("NetDev", "Kind") != "bridge" {
+		t.Fatalf("Bridge kind is not 'bridge' in .netdev file of bridge='bridge99'")
+	}
+
+	if m.GetKeySectionString("Bridge", "STP") != "yes" {
+		t.Fatalf("Invalid bridge STP in .netdev file of bridge='bridge99'")
+	}
+
+	m1, err := networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m1.Path)
+
+	if m1.GetKeySectionString("Network", "Bridge") != "bridge99" {
+		t.Fatalf("Failed to parse Bridge=bridge99 in .network file")
+	}
+
+	m2, err := networkd.CreateOrParseNetworkFile("test98")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m2.Path)
+
+	if m2.GetKeySectionString("Network", "Bridge") != "bridge99" {
+		t.Fatalf("Failed to parse Bridge=bridge99 in .network file")
 	}
 
 	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
