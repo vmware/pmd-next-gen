@@ -276,7 +276,7 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 			return nil, err
 		}
 		var alterResult interface{}
-		/* an empty response indicates that nothing was to do */
+		// An empty response indicates that nothing was to do
 		if s != "" {
 			if err := json.Unmarshal([]byte(s), &alterResult); err != nil {
 				return nil, err
