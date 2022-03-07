@@ -345,7 +345,7 @@ func TestNetDevCreateMACVLan(t *testing.T) {
 	}
 
 	if m.GetKeySectionString("NetDev", "Kind") != "macvlan" {
-		t.Fatalf("Vxlan kind is not 'macvlan' in .netdev file of macvlan='macvlan99'")
+		t.Fatalf("MacVLan kind is not 'macvlan' in .netdev file of macvlan='macvlan99'")
 	}
 
 	if m.GetKeySectionString("MACVLAN", "Mode") != "bridge"{
@@ -408,11 +408,11 @@ func TestNetDevCreateMACVTap(t *testing.T) {
 	}
 
 	if m.GetKeySectionString("NetDev", "Kind") != "macvtap" {
-		t.Fatalf("Vxlan kind is not 'macvtap' in .netdev file of macvtap='macvtap99'")
+		t.Fatalf("MacVTap kind is not 'macvtap' in .netdev file of macvtap='macvtap99'")
 	}
 
-	if m.GetKeySectionString("MACVLAN", "Mode") != "bridge"{
-		t.Fatalf("Invalid MacVLan mode .netdev file of macvtap='macvtap99'")
+	if m.GetKeySectionString("MACVTAP", "Mode") != "bridge"{
+		t.Fatalf("Invalid MacVTap mode .netdev file of macvtap='macvtap99'")
 	}
 
 	m, err = networkd.CreateOrParseNetworkFile("macvtap99")
@@ -430,7 +430,7 @@ func TestNetDevCreateMACVTap(t *testing.T) {
 	}
 	defer os.Remove(m.Path)
 
-	if m.GetKeySectionString("Network", "MACVLAN") != "macvtap99" {
+	if m.GetKeySectionString("Network", "MACVTAP") != "macvtap99" {
 		t.Fatalf("Failed to parse .network file of test99")
 	}
 

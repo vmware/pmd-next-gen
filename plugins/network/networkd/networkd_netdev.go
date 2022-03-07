@@ -283,6 +283,24 @@ func (n *NetDev) buildMacVLanSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildMacVTapSection(m *configfile.Meta) error {
+	m.NewSection("MACVTAP")
+
+	// Mode Validate
+	if validator.IsEmpty(n.MacVLanSection.Mode) {
+		log.Errorf("Failed to create MacVTap='%s'. Missing Mode,", n.Name)
+		return errors.New("missing macvlan mode")
+	}
+	if !validator.IsMacVLanMode(n.MacVLanSection.Mode) {
+		log.Errorf("Failed to create MacVtap='%s'. Invalid Mode='%s'", n.Name, n.MacVLanSection.Mode)
+		return fmt.Errorf("invalid mode='%s'", n.MacVLanSection.Mode)
+	}
+	m.SetKeyToNewSectionString("Mode", n.MacVLanSection.Mode)
+
+	return nil
+}
+
+
 func (n *NetDev) buildIpVLanSection(m *configfile.Meta) error {
 	m.NewSection("IPVLAN")
 
@@ -471,6 +489,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 	case "macvlan":
 		if err := n.buildMacVLanSection(m); err != nil {
 			log.Errorf("Failed to create MacVLan ='%s': %v", n.Name, err)
+			return err
+		}
+	case "macvtap":
+		if err := n.buildMacVTapSection(m); err != nil {
+			log.Errorf("Failed to create MacVTap ='%s': %v", n.Name, err)
 			return err
 		}
 	case "ipvlan":
