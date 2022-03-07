@@ -327,7 +327,7 @@ func TestNetDevCreateMACVLan(t *testing.T) {
 	}
 
 	if err := configureNetDev(t, n); err != nil {
-		t.Fatalf("Failed to create VxLan: %v\n", err)
+		t.Fatalf("Failed to create MacVLan: %v\n", err)
 	}
 
 	time.Sleep(time.Second * 5)
@@ -390,7 +390,7 @@ func TestNetDevCreateMACVTap(t *testing.T) {
 	}
 
 	if err := configureNetDev(t, n); err != nil {
-		t.Fatalf("Failed to create VxLan: %v\n", err)
+		t.Fatalf("Failed to create MacVTap: %v\n", err)
 	}
 
 	time.Sleep(time.Second * 5)
@@ -431,6 +431,69 @@ func TestNetDevCreateMACVTap(t *testing.T) {
 	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "MACVTAP") != "macvtap99" {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateIPVLan(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	n := networkd.NetDev{
+		Name:  "ipvlan99",
+		Kind:  "ipvlan",
+		Links: []string{"test99"},
+		IpVLanSection: networkd.IpVLan{
+			Mode:             "l2",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create IPVLan: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("ipvlan99") {
+		t.Fatalf("Failed to create ipvlan='ipvlan99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "ipvlan99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("ipvlan99", "ipvlan")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of ipvlan='ipvlan99'")
+	}
+
+	if m.GetKeySectionString("NetDev", "Kind") != "ipvlan" {
+		t.Fatalf("IPVLap kind is not 'ipvlan' in .netdev file of ipvlan='ipvlan99'")
+	}
+
+	if m.GetKeySectionString("IPVLAN", "Mode") != "l2"{
+		t.Fatalf("Invalid IPVLan mode .netdev file of ipvlan='ipvlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("ipvlan99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of ipvlan='ipvlan99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "ipvlan99" {
+		t.Fatalf("Invalid netdev name in .network file of ipvlan='ipvlan99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "IPVLAN") != "ipvlan99" {
 		t.Fatalf("Failed to parse .network file of test99")
 	}
 
