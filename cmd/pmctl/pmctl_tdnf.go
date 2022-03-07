@@ -45,6 +45,12 @@ type InfoListDesc struct {
 	Errors  string      `json:"errors"`
 }
 
+type RepoQueryResultDesc struct {
+	Success bool                   `json:"success"`
+	Message []tdnf.RepoQueryResult `json:"message"`
+	Errors  string                 `json:"errors"`
+}
+
 type UpdateInfoDesc struct {
 	Success bool              `json:"success"`
 	Message []tdnf.UpdateInfo `json:"message"`
@@ -121,10 +127,23 @@ func tdnfParseModeFlags(c *cli.Context) tdnf.ModeOptions {
 	return o
 }
 
+func tdnfParseQueryFlags(c *cli.Context) tdnf.QueryOptions {
+	var o tdnf.QueryOptions
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.QueryOptions)
+	return o
+}
+
 func tdnfParseListFlags(c *cli.Context) tdnf.ListOptions {
 	return tdnf.ListOptions{
 		tdnfParseFlags(c),
 		tdnfParseScopeFlags(c),
+	}
+}
+
+func tdnfParseRepoQueryFlags(c *cli.Context) tdnf.RepoQueryOptions {
+	return tdnf.RepoQueryOptions{
+		tdnfParseFlags(c),
+		tdnfParseQueryFlags(c),
 	}
 }
 
@@ -164,6 +183,11 @@ func tdnfCreateFlags() []cli.Flag {
 
 func tdnfCreateScopeFlags() []cli.Flag {
 	var o tdnf.ScopeOptions
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
+}
+
+func tdnfCreateQueryFlags() []cli.Flag {
+	var o tdnf.QueryOptions
 	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
 }
 
@@ -280,6 +304,44 @@ func displayTdnfInfoList(l *InfoListDesc) {
 	}
 }
 
+func displayTdnfRepoQueryResult(l *RepoQueryResultDesc) {
+	displayList := func(label string, l []string) {
+		if len(l) > 0 {
+			fmt.Printf("%v %v\n", color.HiBlueString(label), strings.Join(l, ", "))
+		}
+	}
+
+	for _, i := range l.Message {
+		fmt.Printf("%v %v\n", color.HiBlueString("       Name:"), i.Name)
+		fmt.Printf("%v %v\n", color.HiBlueString("       Arch:"), i.Arch)
+		fmt.Printf("%v %v\n", color.HiBlueString("        Evr:"), i.Evr)
+		fmt.Printf("%v %v\n", color.HiBlueString("       Repo:"), i.Repo)
+
+		displayList("       Files:", i.Files)
+		displayList("    Provides:", i.Provides)
+		displayList("   Obsoletes:", i.Obsoletes)
+		displayList("   Conflicts:", i.Conflicts)
+		displayList("    Requires:", i.Requires)
+		displayList("  Recommends:", i.Recommends)
+		displayList("    Suggests:", i.Suggests)
+		displayList(" Supplements:", i.Supplements)
+		displayList("    Enhances:", i.Enhances)
+		displayList("     Depends:", i.Depends)
+		displayList("Requires-pre:", i.RequiresPre)
+
+		if len(i.ChangeLogs) > 0 {
+			fmt.Printf(color.HiBlueString(" ChangeLogs:\n"))
+			for _, cl := range i.ChangeLogs {
+				fmt.Printf("%v %v\n%v\n", cl.Time, cl.Author, cl.Text)
+			}
+		}
+		if len(i.Source) > 0 {
+			fmt.Printf("%v %v\n", color.HiBlueString("     Source:"), i.Source)
+		}
+		fmt.Printf("\n")
+	}
+}
+
 func displayTdnfUpdateInfoSummary(s *UpdateInfoSummaryDesc) {
 	m := s.Message
 	fmt.Printf("%v %v\n", color.HiBlueString("   Security:"), m.Security)
@@ -391,6 +453,32 @@ func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token m
 	m := InfoListDesc{}
 	if err := json.Unmarshal(resp, &m); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfRepoQuery(options *tdnf.RepoQueryOptions, pkg string, host string, token map[string]string) (*RepoQueryResultDesc, error) {
+	var path string
+	if !validator.IsEmpty(pkg) {
+		path = "/api/v1/tdnf/repoquery/" + pkg
+	} else {
+		path = "/api/v1/tdnf/repoquery"
+	}
+	path = path + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := RepoQueryResultDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
 		os.Exit(1)
 	}
 
@@ -610,6 +698,15 @@ func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[stri
 		return
 	}
 	displayTdnfInfoList(l)
+}
+
+func tdnfRepoQuery(options *tdnf.RepoQueryOptions, pkg string, host string, token map[string]string) {
+	l, err := acquireTdnfRepoQuery(options, pkg, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf repoquery: %v\n", err)
+		return
+	}
+	displayTdnfRepoQueryResult(l)
 }
 
 func tdnfUpdateInfo(options *tdnf.UpdateInfoOptions, pkg string, host string, token map[string]string) {
