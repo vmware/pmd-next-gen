@@ -218,7 +218,7 @@ or
 pmctl status sysctl key <InputKey>
 
 >pmctl status sysctl k fs.file-max
-fs.file-max: 9223372036854775807 
+fs.file-max: 9223372036854775807
 
 # Get all variable configuration from sysctl configuration based on input pattern.
 pmctl status sysctl p <InputPatern>
@@ -234,7 +234,7 @@ or
 pmctl sysctl update key <InputKey> value <InputValue> filename <InputFile>
 
 >pmctl sysctl u -k fs.file-max -v 65566 -f 99-sysctl.conf
->pmctl sysctl u -k fs.file-max -v 65566 
+>pmctl sysctl u -k fs.file-max -v 65566
 
 # Remove a variable configuration from sysctl configuration.
 pmctl sysctl r -k <InputKey> -f <InputFile>
@@ -242,7 +242,7 @@ or
 pmctl sysctl remove key <InputKey> filename <InputFile>
 
 >pmctl sysctl r -k fs.file-max -f 99-sysctl.conf
->pmctl sysctl r -k fs.file-max 
+>pmctl sysctl r -k fs.file-max
 
 # Load sysctl configuration files.
 pmctl sysctl l -f <InputfileList>
@@ -516,11 +516,11 @@ pmctl network create-bond <bondName> dev <device> mode <modeType> thp <TransmitH
 >pmctl network create-bond bond1 dev ens37,ens38 mode 802.3ad thp layer2+3 ltr slow mms 1s
 
 # Configure Bond with default
->pmctl network create-bond bond1 dev ens37,ens38 
+>pmctl network create-bond bond1 dev ens37,ens38
 
 # Configure Bridge with default
 pmctl network create-bridge <bridgeName> dev <device list>
->pmctl network create-bridge br0 dev ens37,ens38 
+>pmctl network create-bridge br0 dev ens37,ens38
 
 # Configure MacVLan
 pmctl network create-macvlan <macvlanName> dev <device> mode <modeName>
@@ -547,7 +547,7 @@ pmctl network create-wg <wireguardName> dev <device> skey <privateKey> pkey<publ
 
 #### Remove network device using pmctl
 ```bash
-pmctl network remove-netdev <kindDeviceName> dev <device> kind <kindType>
+pmctl network remove-netdev <kindDeviceName> kind <kindType>
 >pmctl network remove-netdev ipvlan1 dev ens37 kind ipvlan
 ```
 
@@ -775,4 +775,3 @@ License
 ----
 
 Apache 2.0
-
