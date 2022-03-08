@@ -24,6 +24,7 @@ import (
 	"github.com/pmd-nextgen/plugins/systemd"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/urfave/cli/v2"
 )
 
 type SystemDescribe struct {
@@ -174,13 +175,22 @@ func acquireSystemStatus(host string, token map[string]string) {
 	displayVMStat(s.VirtualMemoryStat)
 }
 
-func SetHostname(hostName string, host string, token map[string]string) {
-	h := hostname.Hostname{
-		Method: "SetStaticHostname",
-		Value:  hostName,
+func SetHostname(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	h := hostname.Hostname{}
+	for i, args := range argStrings {
+		switch args {
+		case "transient":
+			h.TransientHostname = argStrings[i+1]
+		case "static":
+			h.StaticHostname = argStrings[i+1]
+		case "pretty":
+			h.PrettyHostname = argStrings[i+1]
+		}
 	}
 
-	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/hostname/method", token, h)
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/system/hostname/update", token, h)
 	if err != nil {
 		fmt.Printf("Failed to set hostname: %v\n", err)
 		return
@@ -195,6 +205,4 @@ func SetHostname(hostName string, host string, token map[string]string) {
 	if !m.Success {
 		fmt.Printf("Failed to set hostname: %v\n", m.Errors)
 	}
-
-	fmt.Println(m.Message)
 }

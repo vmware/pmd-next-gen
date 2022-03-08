@@ -242,15 +242,16 @@ func main() {
 			Subcommands: []*cli.Command{
 				{
 					Name:        "set-hostname",
-					Description: "Set system hostname",
+					UsageText:   "set-hostname [static {HOSTNAME}] [transient {HOSTNAME}] [pretty {HOSTNAME}]",
+					Description: "Set transient/pretty/static hostname",
 
 					Action: func(c *cli.Context) error {
-						if c.NArg() < 1 {
+						if c.NArg() < 2 {
 							fmt.Printf("No hostname suppplied\n")
 							return nil
 						}
 
-						SetHostname(c.Args().First(), c.String("url"), token)
+						SetHostname(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
