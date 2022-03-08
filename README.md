@@ -628,6 +628,29 @@ pmctl link set-link dev ens37 alias <Alias> desc <Description> mtub <MTUBytes> b
 
 ```
 
+#### firewall nftable
+```bash
+
+# Add nft table.
+pmctl network add-nft-table family <Family> tablename <Name>
+>pmctl network add-nft-table family inet tablename test99
+
+# Delete nft table.
+pmctl network delete-nft-table family <Family> tablename <Name>
+>pmctl network delete-nft-table family inet tablename test99
+
+# Show nft table.
+pmctl network show-nft-table family <Family> tablename <Name>
+>pmctl network show-nft-table family inet tablename test99
+
+# Show all nft tables.
+>pmctl network show-nft-table
+
+# Save all nft tables.
+>pmctl network nft-save
+
+```
+
 #### Package Management
 ```bash
 # List all packages

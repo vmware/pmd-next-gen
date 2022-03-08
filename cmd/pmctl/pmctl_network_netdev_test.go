@@ -168,7 +168,7 @@ func TestNetDevCreateBond(t *testing.T) {
 	}
 }
 
-func TestNetDevCreateMacVLan(t *testing.T) {
+func TestNetDevCreateVXLan(t *testing.T) {
 	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
 	defer removeLink(t, "test99")
 
@@ -322,7 +322,7 @@ func TestNetDevCreateMACVLan(t *testing.T) {
 		Kind:  "macvlan",
 		Links: []string{"test99"},
 		MacVLanSection: networkd.MacVLan{
-			Mode:             "bridge",
+			Mode: "bridge",
 		},
 	}
 
@@ -348,7 +348,7 @@ func TestNetDevCreateMACVLan(t *testing.T) {
 		t.Fatalf("MacVLan kind is not 'macvlan' in .netdev file of macvlan='macvlan99'")
 	}
 
-	if m.GetKeySectionString("MACVLAN", "Mode") != "bridge"{
+	if m.GetKeySectionString("MACVLAN", "Mode") != "bridge" {
 		t.Fatalf("Invalid MacVLan mode .netdev file of macvlan='macvlan99'")
 	}
 
@@ -385,7 +385,7 @@ func TestNetDevCreateMACVTap(t *testing.T) {
 		Kind:  "macvtap",
 		Links: []string{"test99"},
 		MacVLanSection: networkd.MacVLan{
-			Mode:             "bridge",
+			Mode: "bridge",
 		},
 	}
 
@@ -411,7 +411,7 @@ func TestNetDevCreateMACVTap(t *testing.T) {
 		t.Fatalf("MacVTap kind is not 'macvtap' in .netdev file of macvtap='macvtap99'")
 	}
 
-	if m.GetKeySectionString("MACVTAP", "Mode") != "bridge"{
+	if m.GetKeySectionString("MACVTAP", "Mode") != "bridge" {
 		t.Fatalf("Invalid MacVTap mode .netdev file of macvtap='macvtap99'")
 	}
 
@@ -448,7 +448,7 @@ func TestNetDevCreateIPVLan(t *testing.T) {
 		Kind:  "ipvlan",
 		Links: []string{"test99"},
 		IpVLanSection: networkd.IpVLan{
-			Mode:             "l2",
+			Mode: "l2",
 		},
 	}
 
@@ -474,7 +474,7 @@ func TestNetDevCreateIPVLan(t *testing.T) {
 		t.Fatalf("IPVLap kind is not 'ipvlan' in .netdev file of ipvlan='ipvlan99'")
 	}
 
-	if m.GetKeySectionString("IPVLAN", "Mode") != "l2"{
+	if m.GetKeySectionString("IPVLAN", "Mode") != "l2" {
 		t.Fatalf("Invalid IPVLan mode .netdev file of ipvlan='ipvlan99'")
 	}
 
@@ -501,5 +501,3 @@ func TestNetDevCreateIPVLan(t *testing.T) {
 		t.Fatalf("Failed to remove .network file='%v'", err)
 	}
 }
-
-

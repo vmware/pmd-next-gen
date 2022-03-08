@@ -796,6 +796,56 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "add-nft-table",
+					UsageText:   "add-nft-table tablename [STRING] family [STRING]",
+					Description: "Add NFT tables.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkAddNftTable(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "show-nft-table",
+					UsageText:   "show-nft-table family [STRING] table-name [STRING]",
+					Description: "Show NFT tables.",
+
+					Action: func(c *cli.Context) error {
+						networkShowNftTable(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "delete-nft-table",
+					UsageText:   "delete-nft-table table-name [STRING] family [STRING]",
+					Description: "Delete NFT tables.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkDeleteNftTable(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "nft-save",
+					UsageText:   "nft-save",
+					Description: "Save NFT tables.",
+
+					Action: func(c *cli.Context) error {
+						networkSaveNftTable(c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{

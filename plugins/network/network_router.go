@@ -12,6 +12,7 @@ import (
 
 	"github.com/pmd-nextgen/pkg/web"
 	"github.com/pmd-nextgen/plugins/network/ethtool"
+	"github.com/pmd-nextgen/plugins/network/firewall"
 	"github.com/pmd-nextgen/plugins/network/netlink/address"
 	"github.com/pmd-nextgen/plugins/network/netlink/link"
 	"github.com/pmd-nextgen/plugins/network/netlink/route"
@@ -103,6 +104,8 @@ func RegisterRouterNetwork(router *mux.Router) {
 	resolved.RegisterRouterResolved(n)
 	// systemd-timesynd
 	timesyncd.RegisterRouterTimeSyncd(n)
+	// firewall
+	firewall.RegisterRouterNft(n)
 
 	n.HandleFunc("/describe", routerDescribeNetwork).Methods("GET")
 }
