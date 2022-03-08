@@ -62,6 +62,31 @@ type AlterResult struct {
 	Obsolete    []ListItem
 }
 
+type RepoQueryResult struct {
+	Nevra       string
+	Name        string
+	Arch        string
+	Evr         string
+	Repo        string
+	Files       []string
+	Provides    []string
+	Obsoletes   []string
+	Conflicts   []string
+	Requires    []string
+	Recommends  []string
+	Suggests    []string
+	Supplements []string
+	Enhances    []string
+	Depends     []string
+	RequiresPre []string
+	ChangeLogs  []struct {
+		Time   string
+		Author string
+		Text   string
+	}
+	Source string
+}
+
 type UpdateInfo struct {
 	UpdateId    string
 	Type        string
@@ -117,6 +142,38 @@ type ScopeOptions struct {
 	Downgrades bool `tdnf:"--downgrades"`
 }
 
+type QueryOptions struct {
+	Available       bool   `tdnf:"--available"`
+	Duplicates      bool   `tdnf:"--duplicates"`
+	Extras          bool   `tdnf:"--extras"`
+	Installed       bool   `tdnf:"--installed"`
+	Upgrades        bool   `tdnf:"--upgrades"`
+	File            string `tdnf:"--file"`
+	WhatProvides    string `tdnf:"--whatprovides"`
+	WhatObsoletes   string `tdnf:"--whatobsoletes"`
+	WhatConflicts   string `tdnf:"--whatconflicts"`
+	WhatRequires    string `tdnf:"--whatrequires"`
+	WhatRecommends  string `tdnf:"--whatrecommends"`
+	WhatSuggests    string `tdnf:"--whatsuggests"`
+	WhatSupplements string `tdnf:"--whatsupplements"`
+	WhatEnhances    string `tdnf:"--whatenhances"`
+	WhatDepends     string `tdnf:"--whatdepends"`
+
+	ChangeLogs  bool `tdnf:"--changelogs"`
+	List        bool `tdnf:"--list"`
+	Source      bool `tdnf:"--source"`
+	Provides    bool `tdnf:"--provides"`
+	Obsoletes   bool `tdnf:"--obsoletes"`
+	Conflicts   bool `tdnf:"--conflicts"`
+	Requires    bool `tdnf:"--requires"`
+	Recommends  bool `tdnf:"--recommends"`
+	Suggests    bool `tdnf:"--suggests"`
+	Supplements bool `tdnf:"--supplements"`
+	Enhances    bool `tdnf:"--enhances"`
+	Depends     bool `tdnf:"--depends"`
+	RequiresPre bool `tdnf:"--requires-pre"`
+}
+
 type ModeOptions struct {
 	Summary bool `tdnf:"--summary"`
 	List    bool `tdnf:"--list"`
@@ -126,6 +183,11 @@ type ModeOptions struct {
 type ListOptions struct {
 	Options
 	ScopeOptions
+}
+
+type RepoQueryOptions struct {
+	Options
+	QueryOptions
 }
 
 type UpdateInfoOptions struct {
@@ -244,6 +306,10 @@ func acquireRepoList(w http.ResponseWriter, options Options) error {
 
 func acquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
 	return acquireCmdWithDelayedResponse(w, "info", pkg, &options)
+}
+
+func acquireRepoQuery(w http.ResponseWriter, pkg string, options RepoQueryOptions) error {
+	return acquireCmdWithDelayedResponse(w, "repoquery", pkg, &options)
 }
 
 func acquireMakeCache(w http.ResponseWriter, options Options) error {

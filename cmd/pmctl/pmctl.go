@@ -1183,6 +1183,22 @@ func main() {
 					},
 				},
 				{
+					Name:        "repoquery",
+					Aliases:     []string{"rq"},
+					Description: "Query Packages",
+					Flags:       tdnfCreateQueryFlags(),
+
+					Action: func(c *cli.Context) error {
+						options := tdnfParseRepoQueryFlags(c)
+						if c.NArg() >= 1 {
+							tdnfRepoQuery(&options, c.Args().First(), c.String("url"), token)
+						} else {
+							tdnfRepoQuery(&options, "", c.String("url"), token)
+						}
+						return nil
+					},
+				},
+				{
 					Name:        "updateinfo",
 					Aliases:     []string{"ui"},
 					Description: "Update Info",
