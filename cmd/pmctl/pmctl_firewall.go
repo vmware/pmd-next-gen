@@ -29,12 +29,12 @@ func parseNftTable(args cli.Args) (*firewall.Nft, error) {
 		switch args {
 		case "family":
 			if !validator.IsNFTFamily(argStrings[i+1]) {
-				return nil, fmt.Errorf("Failed to parse family: '%s'", argStrings[i+1])
+				return nil, fmt.Errorf("invalid family: '%s'", argStrings[i+1])
 			}
 			n.Table.Family = argStrings[i+1]
 		case "tablename":
 			if validator.IsEmpty(argStrings[i+1]) {
-				return nil, fmt.Errorf("Failed to parse table-name: '%s'", argStrings[i+1])
+				return nil, fmt.Errorf("invalid table: '%s'", argStrings[i+1])
 			}
 			n.Table.Name = argStrings[i+1]
 		}
@@ -46,7 +46,7 @@ func parseNftTable(args cli.Args) (*firewall.Nft, error) {
 func networkAddNftTable(args cli.Args, host string, token map[string]string) {
 	n, err := parseNftTable(args)
 	if err != nil {
-		fmt.Printf("%v", err)
+		fmt.Printf("Failed to parse table: %v", err)
 		return
 	}
 
@@ -70,7 +70,7 @@ func networkAddNftTable(args cli.Args, host string, token map[string]string) {
 func networkShowNftTable(args cli.Args, host string, token map[string]string) {
 	n, err := parseNftTable(args)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Printf("Failed to parse table: %v\n", err)
 		return
 	}
 
@@ -87,21 +87,19 @@ func networkShowNftTable(args cli.Args, host string, token map[string]string) {
 	}
 
 	if !ts.Success {
-		fmt.Printf("Failed to show table %v\n", ts.Errors)
+		fmt.Printf("Failed to acquire table: %v\n", ts.Errors)
 	}
 
 	for _, v := range ts.Message {
 		fmt.Printf("              %v %v\n", color.HiBlueString("Name:"), v.Name)
 		fmt.Printf("            %v %v\n\n", color.HiBlueString("Family:"), v.Family)
 	}
-
-	return
 }
 
 func networkDeleteNftTable(args cli.Args, host string, token map[string]string) {
 	n, err := parseNftTable(args)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Printf("Failed to parse table: %v\n", err)
 		return
 	}
 
@@ -138,6 +136,4 @@ func networkSaveNftTable(host string, token map[string]string) {
 	if !m.Success {
 		fmt.Printf("Failed to save table: %v\n", m.Errors)
 	}
-
-	return
 }
