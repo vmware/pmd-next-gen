@@ -6,15 +6,19 @@ package hostname
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/pmd-nextgen/pkg/validator"
 	"github.com/pmd-nextgen/pkg/web"
 )
 
 type Hostname struct {
-	Method string `json:"Method"`
-	Value  string `json:"Value"`
+	Hostname          string `json:"Hostname"`
+	PrettyHostname    string `json:"PrettyHostname"`
+	StaticHostname    string `json:"StaticHostname"`
+	TransientHostname string `json:"TransientHostname"`
 }
 
 type Describe struct {
@@ -38,7 +42,7 @@ type Describe struct {
 	StaticHostname            string `json:"StaticHostname"`
 }
 
-func (h *Hostname) Set(ctx context.Context, w http.ResponseWriter) error {
+func (h *Hostname) Update(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := NewSDConnection()
 	if err != nil {
 		log.Errorf("Failed to establish connection to the system bus: %v", err)
@@ -46,11 +50,52 @@ func (h *Hostname) Set(ctx context.Context, w http.ResponseWriter) error {
 	}
 	defer conn.Close()
 
-	if err := conn.DBusExecuteMethod(ctx, h.Method, h.Value); err != nil {
-		return err
+	host := Hostname{}
+	var wg sync.WaitGroup
+
+	sz := 0
+	if !validator.IsEmpty(h.PrettyHostname) {
+		sz++
+	}
+	if !validator.IsEmpty(h.StaticHostname) {
+		sz++
+	}
+	if !validator.IsEmpty(h.TransientHostname) {
+		sz++
 	}
 
-	return web.JSONResponse("Hostname set to: "+h.Value, w)
+	wg.Add(sz)
+
+	if !validator.IsEmpty(h.PrettyHostname) {
+		go func() {
+			defer wg.Done()
+			if err := conn.DBusExecuteMethod(ctx, "SetPrettyHostname", h.PrettyHostname); err == nil {
+				host.PrettyHostname = h.PrettyHostname
+			}
+		}()
+	}
+
+	if !validator.IsEmpty(h.StaticHostname) {
+		go func() {
+			defer wg.Done()
+			if err := conn.DBusExecuteMethod(ctx, "SetStaticHostname", h.StaticHostname); err != nil {
+				host.StaticHostname = h.StaticHostname
+			}
+		}()
+	}
+
+	if !validator.IsEmpty(h.TransientHostname) {
+		go func() {
+			defer wg.Done()
+			if err := conn.DBusExecuteMethod(ctx, "SetHostname", h.TransientHostname); err != nil {
+				host.TransientHostname = h.TransientHostname
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	return web.JSONResponse(host, w)
 }
 
 func MethodDescribe(ctx context.Context) (*Describe, error) {

@@ -28,7 +28,7 @@ func routerSetHostname(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := hostname.Set(r.Context(), w); err != nil {
+	if err := hostname.Update(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -37,5 +37,5 @@ func RegisterRouterHostname(router *mux.Router) {
 	s := router.PathPrefix("/hostname").Subrouter().StrictSlash(false)
 
 	s.HandleFunc("/describe", routerHostnameDescribe).Methods("GET")
-	s.HandleFunc("/method", routerSetHostname).Methods("POST")
+	s.HandleFunc("/update", routerSetHostname).Methods("POST")
 }
