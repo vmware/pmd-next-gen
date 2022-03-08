@@ -69,11 +69,11 @@ func acquireSysctlStatus(urlSuffix string, pattern string, host string, token ma
 		return
 	}
 
-	jsonStr, err := json.Marshal(ss.Message)
+	jsonData, err := json.MarshalIndent(ss.Message, "", "    ")
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
 	} else {
-		fmt.Printf("%v\n", color.HiBlueString(string(jsonStr)))
+		fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
 	}
 }
 

@@ -404,3 +404,7 @@ func IsRoutingType(typ string) bool {
 func IsRouterPreference(p string) bool {
 	return p == "high" || p == "low" || p == "medium" || p == "normal" || p == "default"
 }
+
+func IsNFTFamily(f string) bool {
+	return f == "inet" || f == "ipv4" || f == "ipv6" || f == "netdev" || f == "bridge"
+}
