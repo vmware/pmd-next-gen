@@ -11,31 +11,7 @@ import (
 	"github.com/pmd-nextgen/pkg/web"
 )
 
-func routerShowTables(w http.ResponseWriter, r *http.Request) {
-	t, err := decodeNftJSONRequest(r)
-	if err != nil {
-		http.Error(w, "Error decoding request", http.StatusBadRequest)
-		return
-	}
-
-	if err := t.ShowTable(w); err != nil {
-		web.JSONResponseError(err, w)
-	}
-}
-
-func routerSaveTables(w http.ResponseWriter, r *http.Request) {
-	t, err := decodeNftJSONRequest(r)
-	if err != nil {
-		http.Error(w, "Error decoding request", http.StatusBadRequest)
-		return
-	}
-
-	if err := t.SaveTable(w); err != nil {
-		web.JSONResponseError(err, w)
-	}
-}
-
-func routerAddTables(w http.ResponseWriter, r *http.Request) {
+func routerAddTable(w http.ResponseWriter, r *http.Request) {
 	t, err := decodeNftJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
@@ -47,7 +23,7 @@ func routerAddTables(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerRemoveTables(w http.ResponseWriter, r *http.Request) {
+func routerRemoveTable(w http.ResponseWriter, r *http.Request) {
 	t, err := decodeNftJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
@@ -59,11 +35,74 @@ func routerRemoveTables(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routerShowTable(w http.ResponseWriter, r *http.Request) {
+	t, err := decodeNftJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := t.ShowTable(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerAddChain(w http.ResponseWriter, r *http.Request) {
+	c, err := decodeNftJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.AddChain(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerRemoveChain(w http.ResponseWriter, r *http.Request) {
+	c, err := decodeNftJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.RemoveChain(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerShowChain(w http.ResponseWriter, r *http.Request) {
+	c, err := decodeNftJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.ShowChain(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerSaveNft(w http.ResponseWriter, r *http.Request) {
+	t, err := decodeNftJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := t.SaveNFT(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func RegisterRouterNft(router *mux.Router) {
 	n := router.PathPrefix("/firewall/nft/").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/tables/add", routerAddTables).Methods("POST")
-	n.HandleFunc("/tables/show", routerShowTables).Methods("GET")
-	n.HandleFunc("/tables/save", routerSaveTables).Methods("PUT")
-	n.HandleFunc("/tables/remove", routerRemoveTables).Methods("DELETE")
+	n.HandleFunc("/table/add", routerAddTable).Methods("POST")
+	n.HandleFunc("/table/remove", routerRemoveTable).Methods("DELETE")
+	n.HandleFunc("/table/show", routerShowTable).Methods("GET")
+	n.HandleFunc("/chain/add", routerAddChain).Methods("POST")
+	n.HandleFunc("/chain/remove", routerRemoveChain).Methods("DELETE")
+	n.HandleFunc("/chain/show", routerShowChain).Methods("GET")
+	n.HandleFunc("/save", routerSaveNft).Methods("PUT")
 }
