@@ -69,6 +69,12 @@ type AlterResultDesc struct {
 	Errors  string           `json:"errors"`
 }
 
+type VersionDesc struct {
+	Success bool         `json:"success"`
+	Message tdnf.Version `json:"message"`
+	Errors  string       `json:"errors"`
+}
+
 type NilDesc struct {
 	Success bool   `json:"success"`
 	Errors  string `json:"errors"`
@@ -606,6 +612,25 @@ func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, to
 	m := NilDesc{}
 	if err := json.Unmarshal(msg, &m); err != nil {
 		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfVersion(options *tdnf.Options, host string, token map[string]string) (*VersionDesc, error) {
+	resp, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/version"+tdnfOptionsQuery(options), token, nil)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf version: %v\n", err)
+		return nil, err
+	}
+
+	m := VersionDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
 		os.Exit(1)
 	}
 

@@ -120,6 +120,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	case "updateinfo":
 		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form), routerParseModeOptions(r.Form)}
 		err = acquireUpdateInfo(w, "", updateInfoOptions)
+	case "version":
+		err = acquireVersion(w, options)
 	default:
 		err = errors.New("unsupported")
 	}
