@@ -1,6 +1,6 @@
 [System]
 LogLevel="info"
-UseAuthentication="false"
+#UseAuthentication="true"
 
 [Network]
 #Listen="127.0.0.1:5208"

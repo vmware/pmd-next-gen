@@ -5,10 +5,12 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
@@ -17,44 +19,69 @@ import (
 	"github.com/pmd-nextgen/pkg/web"
 )
 
-const (
-	authConfPath = "/etc/photon-mgmt/photon-mgmt-auth.conf"
-)
-
-type TokenDB struct {
-	tokenUsers map[string]string
-}
-
-func (db *TokenDB) AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		token := r.Header.Get("X-Session-Token")
-
-		if user, found := db.tokenUsers[token]; found {
-			log.Printf("Authenticated user %s\n", user)
-			next.ServeHTTP(w, r)
-		} else {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			log.Infof("Unauthorized user")
+func active(nbf, exp interface{}) bool {
+	if unix, ok := nbf.(float64); ok {
+		t := time.Unix(int64(unix), 0)
+		if time.Now().Before(t) {
+			return false
 		}
-	})
+	}
+	if unix, ok := exp.(float64); ok {
+		t := time.Unix(int64(unix), 0)
+		if time.Now().After(t) {
+			return false
+		}
+	}
+	return true
 }
 
-func InitAuthMiddleware() (TokenDB, error) {
-	db := TokenDB{make(map[string]string)}
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tk := r.Header.Get("X-Session-Token")
 
-	lines, r := system.ReadFullFile(authConfPath)
-	if r != nil {
-		log.Fatal("Failed to read auth config file")
-		return db, errors.New("Failed to read auth config file")
-	}
+		token, err := jwt.Parse(tk, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 
-	for _, line := range lines {
-		authLine := strings.Fields(line)
-		db.tokenUsers[authLine[1]] = authLine[0]
-	}
+			return []byte("test123"), nil
+		})
 
-	return db, nil
+		if err != nil {
+			if ve, ok := err.(*jwt.ValidationError); ok {
+				if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+					fmt.Printf("token malformed\n")
+					web.JSONResponseError(errors.New("failed"), w)
+					return
+				}
+			}
+		}
+
+		result := map[string]interface{}{}
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if ok {
+			cls := map[string]interface{}{}
+			for k, v := range claims {
+				cls[k] = v
+			}
+			result["active"] = active(cls["nbf"], cls["exp"])
+
+			for _, tc := range []string{"exp", "nbf", "iat"} { // https://tools.ietf.org/html/rfc7519#section-4.1
+				if unix, ok := cls[tc].(float64); ok {
+					t := time.Unix(int64(unix), 0)
+					cls[tc] = t.UTC().Format(time.RFC3339)
+				}
+			}
+			result["payload"] = cls
+		}
+		if token.Valid {
+			result["signature"] = true
+		} else {
+			result["signature"] = false
+		}
+		result["header"] = token.Header
+		next.ServeHTTP(w, r)
+	})
 }
 
 func authenticateLocalUser(credentials *unix.Ucred) error {

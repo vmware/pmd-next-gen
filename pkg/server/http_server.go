@@ -87,13 +87,7 @@ func runUnixDomainHttpServer(c *conf.Config, r *mux.Router) error {
 
 func runWebHttpServer(c *conf.Config, r *mux.Router) error {
 	if c.System.UseAuthentication {
-		amw, err := InitAuthMiddleware()
-		if err != nil {
-			log.Fatalf("Failed to init auth DB existing: %v", err)
-			return err
-		}
-
-		r.Use(amw.AuthMiddleware)
+		r.Use(AuthMiddleware)
 	}
 
 	ip, port, _ := parser.ParseIpPort(c.Network.Listen)
