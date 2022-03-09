@@ -442,7 +442,7 @@ func acquireTdnfRepoList(options *tdnf.Options, host string, token map[string]st
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) (*InfoListDesc, error) {
+func acquireTdnfInfoList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) (*InfoListDesc, error) {
 	var path string
 	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/info/" + pkg
@@ -716,7 +716,7 @@ func tdnfSearch(options *tdnf.Options, pkg string, host string, token map[string
 	displayTdnfSearch(l)
 }
 
-func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) {
+func tdnfInfoList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) {
 	l, err := acquireTdnfInfoList(options, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf info: %v\n", err)
