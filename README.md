@@ -632,19 +632,34 @@ pmctl link set-link dev ens37 alias <Alias> desc <Description> mtub <MTUBytes> b
 ```bash
 
 # Add nft table.
-pmctl network add-nft-table family <Family> tablename <Name>
->pmctl network add-nft-table family inet tablename test99
+pmctl network add-nft-table name <TABLE> family <FAMILY>
+>pmctl network add-nft-table name test99 family inet
 
 # Delete nft table.
-pmctl network delete-nft-table family <Family> tablename <Name>
->pmctl network delete-nft-table family inet tablename test99
+pmctl network delete-nft-table name <TABLE> family <FAMILY>
+>pmctl network delete-nft-table name test99 family inet
 
 # Show nft table.
-pmctl network show-nft-table family <Family> tablename <Name>
->pmctl network show-nft-table family inet tablename test99
+pmctl network show-nft-table name <TABLE> family <FAMILY>
+>pmctl network show-nft-table name test99 family inet
 
 # Show all nft tables.
 >pmctl network show-nft-table
+
+# Add nft chain.
+pmctl network add-nft-chain name <CHAIN> table <TABLE> family <FAMILY> hook <HOOK> priority <PRIORITY> type <TYPE> 
+>pmctl network add-nft-chain name chain1 table test99 family inet hook input priority 300 type filter 
+
+# Delete nft chain.
+pmctl network delete-nft-chain name <CHAIN> table <TABLE> family <FAMILY>
+>pmctl network delete-nft-chain name chain1 table test99 family inet
+
+# Show nft chain.
+pmctl network show-nft-chain name <CHAIN> table <TABLE> family <FAMILY>
+>pmctl network show-nft-chain name chain1 table test99 family inet
+
+# Show all nft chain.
+>pmctl network show-nft-chain
 
 # Save all nft tables.
 >pmctl network nft-save

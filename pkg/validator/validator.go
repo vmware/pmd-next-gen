@@ -55,6 +55,11 @@ func IsUint(s string) bool {
 	return err == nil
 }
 
+func IsInt(s string) (int, error) {
+	v, err := strconv.Atoi(s)
+	return v, err
+}
+
 func IsPort(port string) bool {
 	_, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
@@ -407,4 +412,12 @@ func IsRouterPreference(p string) bool {
 
 func IsNFTFamily(f string) bool {
 	return f == "inet" || f == "ipv4" || f == "ipv6" || f == "netdev" || f == "bridge"
+}
+
+func IsNFTChainHook(h string) bool {
+	return h == "prerouting" || h == "postrouting" || h == "ingress" || h == "input" || h == "forward" || h == "output"
+}
+
+func IsNFTChainType(c string) bool {
+	return c == "filter" || c == "route" || c == "nat"
 }

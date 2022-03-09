@@ -18,12 +18,22 @@ import (
 )
 
 type Table struct {
+	Name   string `json:"Name"`
 	Family string `json:"Family"`
-	Name   string `json:Name"`
+}
+
+type Chain struct {
+	Name     string `json:"Name"`
+	Family   string `json:"Family"`
+	Table    string `json:"Table"`
+	Hook     string `json:"Hook"`
+	Priority string `json:"Priority"`
+	Type     string `json:"Type"`
 }
 
 type Nft struct {
 	Table Table `json:"Table"`
+	Chain Chain `json:"Chain"`
 }
 
 const (
@@ -48,11 +58,20 @@ func acquireTables() ([]*nftables.Table, error) {
 	return c.ListTables()
 }
 
-func createMapKey(name, family string) string {
-	return name + "_" + family
+func createTableMapKey(name string, family nftables.TableFamily) string {
+	return name + "_" + convertToStringFamily(family)
 }
 
-func addressFamilyStringToByte(f string) nftables.TableFamily {
+func acquireChains() ([]*nftables.Chain, error) {
+	c := newConnection()
+	return c.ListChains()
+}
+
+func createChainMapKey(table, chain string, family nftables.TableFamily) string {
+	return table + "_" + chain + "_" + convertToStringFamily(family)
+}
+
+func convertToUnixFamily(f string) nftables.TableFamily {
 	var family nftables.TableFamily
 	switch f {
 	case "inet":
@@ -72,7 +91,7 @@ func addressFamilyStringToByte(f string) nftables.TableFamily {
 	return family
 }
 
-func addressFamilyByteToString(f nftables.TableFamily) string {
+func convertToStringFamily(f nftables.TableFamily) string {
 	var family string
 	switch f {
 	case unix.NFPROTO_INET:
@@ -92,11 +111,62 @@ func addressFamilyByteToString(f nftables.TableFamily) string {
 	return family
 }
 
-func (n *Nft) AddTable(w http.ResponseWriter) error {
+func convertToUnixHook(h string) nftables.ChainHook {
+	var hook nftables.ChainHook
+	switch h {
+	case "prerouting":
+		hook = unix.NF_INET_PRE_ROUTING
+	case "postrouting":
+		hook = unix.NF_INET_POST_ROUTING
+	case "input":
+		hook = unix.NF_INET_LOCAL_IN
+	case "output":
+		hook = unix.NF_INET_LOCAL_OUT
+	case "forward":
+		hook = unix.NF_INET_FORWARD
+	case "ingress":
+		hook = unix.NF_NETDEV_INGRESS
+	}
+
+	return hook
+}
+
+func getTablesAndCreateMap(tableMap map[string]*nftables.Table) error {
+	tables, err := acquireTables()
+	if err != nil {
+		log.Errorf("Failed to acquire nft tables: %v", err)
+		return err
+	}
+
+	for _, t := range tables {
+		key := createTableMapKey(t.Name, t.Family)
+		tableMap[key] = t
+	}
+
+	return nil
+}
+
+func getChainsAndCreateMap(chainMap map[string]*nftables.Chain) error {
+	chains, err := acquireChains()
+	if err != nil {
+		log.Errorf("Failed to acquire nft chains: %v", err)
+		return err
+	}
+
+	for _, c := range chains {
+		key := createChainMapKey(c.Table.Name, c.Name, c.Table.Family)
+		chainMap[key] = c
+	}
+
+	return nil
+}
+
+func (n *Nft) ParseTable(tbl *nftables.Table) error {
 	if validator.IsEmpty(n.Table.Name) {
 		log.Errorf("Failed to add nft table, Missing table name")
 		return fmt.Errorf("missing table name")
 	}
+	tbl.Name = n.Table.Name
 
 	if !validator.IsEmpty(n.Table.Family) {
 		if !validator.IsNFTFamily(n.Table.Family) {
@@ -106,60 +176,209 @@ func (n *Nft) AddTable(w http.ResponseWriter) error {
 	} else {
 		n.Table.Family = "ipv4"
 	}
+	tbl.Family = convertToUnixFamily(n.Table.Family)
+
+	return nil
+}
+
+func (n *Nft) AddTable(w http.ResponseWriter) error {
+	tbl := nftables.Table{}
+	if err := n.ParseTable(&tbl); err != nil {
+		log.Errorf("Failed to parse table: %v", err)
+		return err
+	}
 
 	c := newConnection()
 
-	c.AddTable(&nftables.Table{
-		Name:   n.Table.Name,
-		Family: addressFamilyStringToByte(n.Table.Family),
-	})
+	c.AddTable(&tbl)
 
 	if err := c.Flush(); err != nil {
-		log.Errorf("Unable to flush connection %v", err)
+		log.Errorf("Unable to flush connection: %v", err)
 		return err
 	}
 
 	return web.JSONResponse("added", w)
 }
 
-func (n *Nft) ShowTable(w http.ResponseWriter) error {
-	tables, err := acquireTables()
-	if err != nil {
-		log.Errorf("Failed to get nft tables: %v", err)
+func (n *Nft) RemoveTable(w http.ResponseWriter) error {
+	tbl := nftables.Table{}
+	if err := n.ParseTable(&tbl); err != nil {
+		log.Errorf("Failed to parse table: %v", err)
 		return err
 	}
 
-	tableMap := make(map[string]Table)
-	for _, t := range tables {
-		tt := Table{
-			Name:   t.Name,
-			Family: addressFamilyByteToString(t.Family),
-		}
+	c := newConnection()
 
-		key := createMapKey(tt.Name, tt.Family)
-		tableMap[key] = tt
+	c.DelTable(&tbl)
+
+	if err := c.Flush(); err != nil {
+		log.Errorf("Unable to flush connection: %v", err)
+		return err
+	}
+
+	return web.JSONResponse("removed", w)
+}
+
+func (n *Nft) ShowTable(w http.ResponseWriter) error {
+	tableMap := make(map[string]*nftables.Table)
+	if err := getTablesAndCreateMap(tableMap); err != nil {
+		log.Errorf("Failed to get nft tables: %v", err)
+		return fmt.Errorf("failed to get nft tables: %v", err)
 	}
 
 	if !validator.IsEmpty(n.Table.Name) && !validator.IsEmpty(n.Table.Family) {
-		key := createMapKey(n.Table.Name, n.Table.Family)
+		key := createTableMapKey(n.Table.Name, convertToUnixFamily(n.Table.Family))
 		v, ok := tableMap[key]
-		if ok {
-			result := make(map[string]Table)
-			result[n.Table.Name] = v
-			return web.JSONResponse(result, w)
-		} else {
+		if !ok {
 			return fmt.Errorf("Table not found='%s'", n.Table.Name)
 		}
+		result := make(map[string]*nftables.Table)
+		result[n.Table.Name] = v
+		return web.JSONResponse(result, w)
 	}
 
 	return web.JSONResponse(tableMap, w)
 }
 
-func (n *Nft) SaveTable(w http.ResponseWriter) error {
-	stdout, err := system.ExecAndCapture("nftt", "list", "ruleset")
+func (n *Nft) ParseChain(ch *nftables.Chain) error {
+	if validator.IsEmpty(n.Chain.Name) {
+		log.Errorf("Failed to add nft chain, Missing chain name")
+		return fmt.Errorf("missing chain name")
+	}
+	ch.Name = n.Chain.Name
+
+	if validator.IsEmpty(n.Chain.Table) {
+		log.Errorf("Failed to add nft chain, Missing table name")
+		return fmt.Errorf("missing table name")
+	}
+
+	if !validator.IsEmpty(n.Chain.Family) {
+		if !validator.IsNFTFamily(n.Chain.Family) {
+			log.Errorf("Failed to add nft chain, Invalid family")
+			return fmt.Errorf("invalid family: '%s'", n.Chain.Family)
+		}
+	} else {
+		n.Chain.Family = "ipv4"
+	}
+
+	if !validator.IsEmpty(n.Chain.Hook) {
+		if !validator.IsNFTChainHook(n.Chain.Hook) {
+			log.Errorf("Failed to add nft chain, Invalid hook")
+			return fmt.Errorf("invalid hook: '%s'", n.Chain.Hook)
+		}
+		ch.Hooknum = convertToUnixHook(n.Chain.Hook)
+	}
+
+	if !validator.IsEmpty(n.Chain.Type) {
+		if !validator.IsNFTChainType(n.Chain.Type) {
+			log.Errorf("Failed to add nft chain, Invalid type")
+			return fmt.Errorf("invalid type: '%s'", n.Chain.Type)
+		}
+		ch.Type = nftables.ChainType(n.Chain.Type)
+	}
+
+	if !validator.IsEmpty(n.Chain.Priority) {
+		v, err := validator.IsInt(n.Chain.Priority)
+		if err != nil {
+			log.Errorf("Failed to add nft chain, Invalid priority")
+			return fmt.Errorf("invalid priority: '%s'", n.Chain.Priority)
+		}
+		ch.Priority = nftables.ChainPriority(v)
+	}
+
+	return nil
+}
+
+func (n *Nft) AddChain(w http.ResponseWriter) error {
+	ch := nftables.Chain{}
+	if err := n.ParseChain(&ch); err != nil {
+		log.Errorf("Failed to parse chain: %v", err)
+		return err
+	}
+
+	tableMap := make(map[string]*nftables.Table)
+	if err := getTablesAndCreateMap(tableMap); err != nil {
+		log.Errorf("Failed to acquire nft tables: %v", err)
+		return fmt.Errorf("failed to acquire nft tables: %v", err)
+	}
+
+	key := createTableMapKey(n.Chain.Table, convertToUnixFamily(n.Chain.Family))
+	tbl, ok := tableMap[key]
+	if !ok {
+		log.Errorf("Failed to add chain='%s', table_family not found='%s'", key)
+		return fmt.Errorf("table family not found='%s'", key)
+	}
+	ch.Table = tbl
+
+	c := newConnection()
+	c.AddChain(&ch)
+
+	if err := c.Flush(); err != nil {
+		log.Errorf("Unable to flush connection: %v", err)
+		return err
+	}
+
+	return web.JSONResponse("added", w)
+}
+
+func (n *Nft) RemoveChain(w http.ResponseWriter) error {
+	ch := nftables.Chain{}
+	if err := n.ParseChain(&ch); err != nil {
+		log.Errorf("Failed to parse chain: %v", err)
+		return err
+	}
+
+	chainMap := make(map[string]*nftables.Chain)
+	if err := getChainsAndCreateMap(chainMap); err != nil {
+		log.Errorf("Failed to acquire nft chains: %v", err)
+		return fmt.Errorf("failed to acquire nft chains: %v", err)
+	}
+
+	key := createChainMapKey(n.Chain.Table, n.Chain.Name, convertToUnixFamily(n.Chain.Family))
+	v, ok := chainMap[key]
+	if !ok {
+		log.Errorf("Failed to delete chain='%s', table_chain_family not found='%s'", key)
+		return fmt.Errorf("table chain family not found='%s'", key)
+	}
+	ch.Table = v.Table
+
+	c := newConnection()
+	c.DelChain(&ch)
+
+	if err := c.Flush(); err != nil {
+		log.Errorf("Unable to flush connection: %v", err)
+		return err
+	}
+
+	return web.JSONResponse("removed", w)
+}
+
+func (n *Nft) ShowChain(w http.ResponseWriter) error {
+	chainMap := make(map[string]*nftables.Chain)
+	if err := getChainsAndCreateMap(chainMap); err != nil {
+		log.Errorf("Failed to acquire nft chains: %v", err)
+		return fmt.Errorf("failed to acquire nft chains: %v", err)
+	}
+
+	if !validator.IsEmpty(n.Chain.Name) && !validator.IsEmpty(n.Chain.Table) && !validator.IsEmpty(n.Chain.Family) {
+		key := createChainMapKey(n.Chain.Table, n.Chain.Name, convertToUnixFamily(n.Chain.Family))
+		v, ok := chainMap[key]
+		if !ok {
+			return fmt.Errorf("chain not found='%s'", n.Chain.Name)
+		}
+		result := make(map[string]*nftables.Chain)
+		result[n.Chain.Name] = v
+		return web.JSONResponse(result, w)
+	}
+
+	return web.JSONResponse(chainMap, w)
+}
+
+func (n *Nft) SaveNFT(w http.ResponseWriter) error {
+	stdout, err := system.ExecAndCapture("nft", "list", "ruleset")
 	if err != nil {
-		log.Errorf("Failed to get command output=%v", err)
-		return fmt.Errorf("Failed to get command output=%v", err)
+		log.Errorf("Failed to acquire command output=%v", err)
+		return fmt.Errorf("Failed to acquire command output=%v", err)
 	}
 
 	if err := ioutil.WriteFile(nftFilePath, []byte(stdout), 0644); err != nil {
@@ -168,34 +387,4 @@ func (n *Nft) SaveTable(w http.ResponseWriter) error {
 	}
 
 	return web.JSONResponse("saved", w)
-}
-
-func (n *Nft) RemoveTable(w http.ResponseWriter) error {
-	if validator.IsEmpty(n.Table.Name) {
-		log.Errorf("Failed to remove nft table, Missing table name")
-		return fmt.Errorf("missing table name")
-	}
-
-	if !validator.IsEmpty(n.Table.Family) {
-		if !validator.IsNFTFamily(n.Table.Family) {
-			log.Errorf("Failed to remove nft table, Invalid family")
-			return fmt.Errorf("Invalid family")
-		}
-	} else {
-		n.Table.Family = "ipv4"
-	}
-
-	c := newConnection()
-
-	c.DelTable(&nftables.Table{
-		Name:   n.Table.Name,
-		Family: addressFamilyStringToByte(n.Table.Family),
-	})
-
-	if err := c.Flush(); err != nil {
-		log.Errorf("Unable to flush connection %v", err)
-		return err
-	}
-
-	return web.JSONResponse("removed", w)
 }

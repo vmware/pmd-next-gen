@@ -799,7 +799,7 @@ func main() {
 				},
 				{
 					Name:        "add-nft-table",
-					UsageText:   "add-nft-table tablename [STRING] family [STRING]",
+					UsageText:   "add-nft-table name [STRING] family [STRING]",
 					Description: "Add NFT tables.",
 
 					Action: func(c *cli.Context) error {
@@ -808,7 +808,7 @@ func main() {
 							return nil
 						}
 
-						networkAddNftTable(c.Args(), c.String("url"), token)
+						networkAddNFTTable(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
@@ -818,13 +818,13 @@ func main() {
 					Description: "Show NFT tables.",
 
 					Action: func(c *cli.Context) error {
-						networkShowNftTable(c.Args(), c.String("url"), token)
+						networkShowNFTTable(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
 					Name:        "delete-nft-table",
-					UsageText:   "delete-nft-table table-name [STRING] family [STRING]",
+					UsageText:   "delete-nft-table name [STRING] family [STRING]",
 					Description: "Delete NFT tables.",
 
 					Action: func(c *cli.Context) error {
@@ -833,17 +833,57 @@ func main() {
 							return nil
 						}
 
-						networkDeleteNftTable(c.Args(), c.String("url"), token)
+						networkDeleteNFTTable(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "add-nft-chain",
+					UsageText:   "add-nft-chain name [STRING] table [STRING] family [STRING] hook [STRING] priority [STRING] type [STRING]",
+					Description: "Add NFT chain.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkAddNFTChain(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "delete-nft-chain",
+					UsageText:   "delete-nft-chain name [STRING] table [STRING] family [STRING]",
+					Description: "Delete NFT chain.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkDeleteNFTChain(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "show-nft-chain",
+					UsageText:   "show-nft-chain name [STRING] table [STRING] family [STRING]",
+					Description: "Show NFT chain.",
+
+					Action: func(c *cli.Context) error {
+						networkShowNFTChain(c.Args(), c.String("url"), token)
 						return nil
 					},
 				},
 				{
 					Name:        "nft-save",
 					UsageText:   "nft-save",
-					Description: "Save NFT tables.",
+					Description: "Save NFT configuration to a file.",
 
 					Action: func(c *cli.Context) error {
-						networkSaveNftTable(c.String("url"), token)
+						networkSaveNFT(c.String("url"), token)
 						return nil
 					},
 				},
