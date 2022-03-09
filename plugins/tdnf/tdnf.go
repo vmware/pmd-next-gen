@@ -309,7 +309,7 @@ func acquireRepoList(w http.ResponseWriter, options Options) error {
 	return web.JSONResponse(repoList, w)
 }
 
-func acquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
+func acquireInfoList(w http.ResponseWriter, pkg string, options ListOptions) error {
 	return acquireCmdWithDelayedResponse(w, "info", pkg, &options)
 }
 
