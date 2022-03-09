@@ -421,3 +421,7 @@ func IsNFTChainHook(h string) bool {
 func IsNFTChainType(c string) bool {
 	return c == "filter" || c == "route" || c == "nat"
 }
+
+func IsNFTChainPolicy(p string) bool {
+	return p == "drop" || p == "accept"
+}

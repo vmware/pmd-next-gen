@@ -29,6 +29,7 @@ type Chain struct {
 	Hook     string `json:"Hook"`
 	Priority string `json:"Priority"`
 	Type     string `json:"Type"`
+	Policy   string `json:"Policy"`
 }
 
 type Nft struct {
@@ -129,6 +130,18 @@ func convertToUnixHook(h string) nftables.ChainHook {
 	}
 
 	return hook
+}
+
+func convertToUnixPolicy(p string) *nftables.ChainPolicy {
+	var policy nftables.ChainPolicy
+	switch p {
+	case "drop":
+		policy = nftables.ChainPolicyDrop
+	case "accept":
+		policy = nftables.ChainPolicyAccept
+	}
+
+	return &policy
 }
 
 func getTablesAndCreateMap(tableMap map[string]*nftables.Table) error {
@@ -284,6 +297,14 @@ func (n *Nft) ParseChain(ch *nftables.Chain) error {
 			return fmt.Errorf("invalid priority: '%s'", n.Chain.Priority)
 		}
 		ch.Priority = nftables.ChainPriority(v)
+	}
+
+	if !validator.IsEmpty(n.Chain.Policy) {
+		if !validator.IsNFTChainPolicy(n.Chain.Policy) {
+			log.Errorf("Failed to add nft chain, Invalid policy")
+			return fmt.Errorf("invalid policy: '%s'", n.Chain.Policy)
+		}
+		ch.Policy = convertToUnixPolicy(n.Chain.Policy)
 	}
 
 	return nil
