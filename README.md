@@ -647,8 +647,8 @@ pmctl network show-nft-table name <TABLE> family <FAMILY>
 >pmctl network show-nft-table
 
 # Add nft chain.
-pmctl network add-nft-chain name <CHAIN> table <TABLE> family <FAMILY> hook <HOOK> priority <PRIORITY> type <TYPE> 
->pmctl network add-nft-chain name chain1 table test99 family inet hook input priority 300 type filter 
+pmctl network add-nft-chain name <CHAIN> table <TABLE> family <FAMILY> hook <HOOK> priority <PRIORITY> type <TYPE> policy <POLICY>
+>pmctl network add-nft-chain name chain1 table test99 family inet hook input priority 300 type filter policy drop
 
 # Delete nft chain.
 pmctl network delete-nft-chain name <CHAIN> table <TABLE> family <FAMILY>

@@ -839,7 +839,7 @@ func main() {
 				},
 				{
 					Name:        "add-nft-chain",
-					UsageText:   "add-nft-chain name [STRING] table [STRING] family [STRING] hook [STRING] priority [STRING] type [STRING]",
+					UsageText:   "add-nft-chain name [STRING] table [STRING] family [STRING] hook [STRING] priority [STRING] type [STRING] policy [STRING]",
 					Description: "Add NFT chain.",
 
 					Action: func(c *cli.Context) error {

@@ -86,6 +86,11 @@ func parseNFTChain(args cli.Args) (*firewall.Nft, error) {
 				return nil, fmt.Errorf("missing priority: '%s'", argStrings[i+1])
 			}
 			n.Chain.Priority = argStrings[i+1]
+		case "policy":
+			if !validator.IsNFTChainPolicy(argStrings[i+1]) {
+				return nil, fmt.Errorf("invalid policy: '%s'", argStrings[i+1])
+			}
+			n.Chain.Policy = argStrings[i+1]
 		}
 	}
 
@@ -264,6 +269,7 @@ func networkShowNFTChain(args cli.Args, host string, token map[string]string) {
 		fmt.Printf("               %v %v\n", color.HiBlueString("Chain:"), v.Name)
 		fmt.Printf("                %v %v\n", color.HiBlueString("Hook:"), v.Hooknum)
 		fmt.Printf("                %v %v\n", color.HiBlueString("Type:"), v.Type)
+		fmt.Printf("              %v %v\n", color.HiBlueString("Policy:"), *v.Policy)
 		fmt.Printf("            %v %v\n\n", color.HiBlueString("Priority:"), v.Priority)
 	}
 }
