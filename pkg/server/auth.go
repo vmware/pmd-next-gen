@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -37,49 +38,48 @@ func active(nbf, exp interface{}) bool {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tk := r.Header.Get("X-Session-Token")
-
-		token, err := jwt.Parse(tk, func(token *jwt.Token) (interface{}, error) {
+		token := r.Header.Get("X-Session-Token")
+		tokenJWT, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 
-			return []byte("test123"), nil
+			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
 		if err != nil {
 			if ve, ok := err.(*jwt.ValidationError); ok {
 				if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-					fmt.Printf("token malformed\n")
-					web.JSONResponseError(errors.New("failed"), w)
+					log.Errorf("Invalid token='%v'", tokenJWT.Raw)
+					web.JSONResponseError(errors.New("invalid token"), w)
 					return
 				}
 			}
 		}
 
-		result := map[string]interface{}{}
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if ok {
-			cls := map[string]interface{}{}
-			for k, v := range claims {
-				cls[k] = v
-			}
-			result["active"] = active(cls["nbf"], cls["exp"])
+		if !tokenJWT.Valid {
+			log.Errorf("Invalid token='%v'", tokenJWT.Raw)
+			web.JSONResponseError(errors.New("invalid token"), w)
+			return
+		}
 
-			for _, tc := range []string{"exp", "nbf", "iat"} { // https://tools.ietf.org/html/rfc7519#section-4.1
-				if unix, ok := cls[tc].(float64); ok {
-					t := time.Unix(int64(unix), 0)
-					cls[tc] = t.UTC().Format(time.RFC3339)
-				}
-			}
-			result["payload"] = cls
+		claims, ok := tokenJWT.Claims.(jwt.MapClaims)
+		if !ok {
+			log.Errorf("Invalid token claims ='%v'", tokenJWT.Raw)
+			web.JSONResponseError(errors.New("invalid token claims"), w)
+			return
 		}
-		if token.Valid {
-			result["signature"] = true
-		} else {
-			result["signature"] = false
+		cls := map[string]interface{}{}
+		for k, v := range claims {
+			cls[k] = v
 		}
-		result["header"] = token.Header
+
+		if !active(cls["nbf"], cls["exp"]) {
+			log.Errorf("expired token", tokenJWT.Raw)
+			web.JSONResponseError(errors.New("expired token"), w)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

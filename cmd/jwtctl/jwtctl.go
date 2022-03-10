@@ -30,11 +30,11 @@ func main() {
 		{
 			Name:        "encode",
 			Aliases:     []string{"s"},
-			Usage:       "echo '{\"Hello\": \"World\"}' | jwtctl encode --secret SECRET",
+			Usage:       "encode secret [SECRET] data [JSON DATA] alg [SIGNAlGORITHM [H256|H384|H512]]",
 			Description: "Encode data using a secret",
 
 			Action: func(c *cli.Context) error {
-				encode()
+				encode(c.Args())
 				return nil
 			},
 		},

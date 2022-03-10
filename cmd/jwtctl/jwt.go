@@ -4,43 +4,49 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt"
+	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/urfave/cli/v2"
 )
 
-func readFromStdIn() ([]byte, error) {
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		return []byte{}, fmt.Errorf("could not get StdIn")
-	}
-	if info.Mode()&os.ModeCharDevice == os.ModeCharDevice { // || info.Size() <= 0 {
-		return []byte{}, fmt.Errorf("could not read the data")
-	}
+func encode(args cli.Args) {
+	argStrings := args.Slice()
 
-	reader := bufio.NewReader(os.Stdin)
-	var output []byte
-
-	for {
-		input, err := reader.ReadByte()
-		if err != nil && err == io.EOF {
-			break
+	var data string
+	var secret string
+	var signMethod string
+	for i := range argStrings {
+		switch argStrings[i] {
+		case "secret":
+			secret = argStrings[i+1]
+		case "data":
+			data = argStrings[i+1]
+		case "alg":
+			signMethod = argStrings[i+1]
 		}
-		output = append(output, input)
 	}
 
-	return output, nil
-}
+	if validator.IsEmpty(secret) {
+		secret = os.Getenv("JWT_SECRET")
+	}
 
-func encode() {
+	if validator.IsEmpty(secret) || validator.IsEmpty(data) {
+		fmt.Printf("Missing secret or JSON data \n")
+		return
+	}
+
+	var dataJSON map[string]interface{}
+	if err := json.Unmarshal([]byte(data), &dataJSON); err != nil {
+		fmt.Errorf("Could not unmarshal the JSON data: %v", err)
+		return
+	}
+
 	var signAlgorithm *jwt.SigningMethodHMAC
-
-	signMethod := "H256"
 	switch signMethod {
 	case "H256":
 		signAlgorithm = jwt.SigningMethodHS256
@@ -52,28 +58,13 @@ func encode() {
 		signAlgorithm = jwt.SigningMethodHS256
 	}
 
-	data := "{\"Hello\":\"world\"}"
-	/*if data == "@-" {
-		stdIn, err := readFromStdIn()
-		if err != nil {
-			return fmt.Errorf("could not read from stdIn: %w", err)
-		}
-		data = string(stdIn)
-	}*/
-
-	var dataJSON map[string]interface{}
-	if err := json.Unmarshal([]byte(data), &dataJSON); err != nil {
-		fmt.Errorf("could not unmarshal the data: %w", err)
-		return
-	}
-
-	if t, ok := dataJSON["exp"]; ok { // t is a unix timestamp
+	if t, ok := dataJSON["exp"]; ok {
 		dataJSON["exp"] = t
 	} else {
 		dataJSON["exp"] = time.Now().Add(5 * 24 * time.Hour).Unix()
 	}
 
-	if t, ok := dataJSON["iat"]; ok { // t is a unix timestamp
+	if t, ok := dataJSON["iat"]; ok {
 		dataJSON["iat"] = t
 	} else {
 		dataJSON["iat"] = time.Now().Unix()
@@ -85,12 +76,11 @@ func encode() {
 		),
 	)
 
-	token, err := claim.SignedString([]byte("test123"))
+	token, err := claim.SignedString([]byte(secret))
 	if err != nil {
-		fmt.Printf("could not write token")
-	} else {
-
-		fmt.Printf("%s\n", token)
+		fmt.Printf("Failed to write token \n")
+		return
 	}
 
+	fmt.Printf("%s\n", token)
 }
