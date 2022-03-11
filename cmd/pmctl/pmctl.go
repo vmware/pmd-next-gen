@@ -887,6 +887,16 @@ func main() {
 						return nil
 					},
 				},
+				{
+					Name:        "nft-run",
+					UsageText:   "nft-run",
+					Description: "Run NFT configuration command.",
+
+					Action: func(c *cli.Context) error {
+						networkRunNFT(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
 			},
 		},
 		{

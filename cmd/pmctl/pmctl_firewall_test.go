@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/pmd-nextgen/pkg/web"
@@ -64,6 +65,26 @@ func deleteNFTTable() error {
 	return nil
 }
 
+func runNFT(n *firewall.Nft) error {
+	resp, err := web.DispatchSocket(http.MethodPost, "", "/api/v1/network/firewall/nft/run", nil, n)
+	if err != nil {
+		return err
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		return err
+	}
+
+	if !m.Success {
+		return fmt.Errorf("%v", m.Errors)
+	} else {
+		fmt.Printf("%v", m.Message)
+	}
+
+	return nil
+}
+
 func TestAddNFTTable(t *testing.T) {
 	if err := addNFTTable(); err != nil {
 		t.Fatalf("Failed to add table: %v\n", err)
@@ -110,6 +131,7 @@ func TestAddNFTChain(t *testing.T) {
 			Hook:     "input",
 			Priority: "300",
 			Type:     "filter",
+			Policy:   "accept",
 		},
 	}
 
@@ -146,6 +168,7 @@ func TestShowNFTChain(t *testing.T) {
 			fmt.Printf("               %v %v\n", color.HiBlueString("Chain:"), v.Name)
 			fmt.Printf("                %v %v\n", color.HiBlueString("Hook:"), v.Hooknum)
 			fmt.Printf("                %v %v\n", color.HiBlueString("Type:"), v.Type)
+			fmt.Printf("              %v %v\n", color.HiBlueString("Policy:"), *v.Policy)
 			fmt.Printf("            %v %v\n\n", color.HiBlueString("Priority:"), v.Priority)
 		}
 	} else {
@@ -179,4 +202,72 @@ func TestDeleteNFTChain(t *testing.T) {
 	if err := deleteNFTTable(); err != nil {
 		t.Fatalf("Failed to remove table: %v\n", err)
 	}
+}
+
+func TestRunNFT(t *testing.T) {
+	at := []string{"nft", "add", "table", "inet", "test99"}
+	ac := []string{"nft", "add", "chain", "inet", "test99", "test99chain", "{ type filter hook input priority 0; }"}
+	ar := []string{"nft", "add", "rule", "inet", "test99", "test99chain", "tcp", "dport", "{telnet, http, https}", "accept"}
+	vr := []string{"nft", "list", "ruleset"}
+	dr := []string{"nft", "delete", "rule", "inet", "test99", "test99chain", "handle", "3"}
+	dc := []string{"nft", "delete", "chain", "inet", "test99", "test99chain"}
+	dt := []string{"nft", "delete", "table", "inet", "test99"}
+
+	// Add Table
+	n := firewall.Nft{
+		Command: at,
+	}
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to add table via command line: %v\n", err)
+
+	}
+	time.Sleep(time.Second * 1)
+
+	// Add Chain
+	n.Command = ac
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to add chain via command line: %v\n", err)
+
+	}
+	time.Sleep(time.Second * 1)
+
+	// Add Rule
+	n.Command = ar
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to add rule via command line: %v\n", err)
+
+	}
+	time.Sleep(time.Second * 1)
+
+	// View RuleSet
+	n.Command = vr
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to add rule via command line: %v\n", err)
+
+	}
+	time.Sleep(time.Second * 1)
+
+	// Remove Rule
+	n.Command = dr
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to delete rule via command line: %v\n", err)
+
+	}
+	time.Sleep(time.Second * 1)
+
+	// Remove Chain
+	n.Command = dc
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to delete chain via command line: %v\n", err)
+
+	}
+	time.Sleep(time.Second * 1)
+
+	// Remove Table
+	n.Command = dt
+	if err := runNFT(&n); err != nil {
+		t.Fatalf("Failed to delete table via command line: %v\n", err)
+
+	}
+
 }

@@ -83,7 +83,7 @@ func routerShowChain(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routerSaveNft(w http.ResponseWriter, r *http.Request) {
+func routerSaveNFT(w http.ResponseWriter, r *http.Request) {
 	t, err := decodeNftJSONRequest(r)
 	if err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
@@ -91,6 +91,18 @@ func routerSaveNft(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := t.SaveNFT(w); err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerRunNFT(w http.ResponseWriter, r *http.Request) {
+	t, err := decodeNftJSONRequest(r)
+	if err != nil {
+		http.Error(w, "Error decoding request", http.StatusBadRequest)
+		return
+	}
+
+	if err := t.RunNFT(w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -104,5 +116,6 @@ func RegisterRouterNft(router *mux.Router) {
 	n.HandleFunc("/chain/add", routerAddChain).Methods("POST")
 	n.HandleFunc("/chain/remove", routerRemoveChain).Methods("DELETE")
 	n.HandleFunc("/chain/show", routerShowChain).Methods("GET")
-	n.HandleFunc("/save", routerSaveNft).Methods("PUT")
+	n.HandleFunc("/save", routerSaveNFT).Methods("PUT")
+	n.HandleFunc("/run", routerRunNFT).Methods("POST")
 }

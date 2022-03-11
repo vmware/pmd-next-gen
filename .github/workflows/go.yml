@@ -18,6 +18,9 @@ jobs:
       with:
         go-version: 1.17
 
+    - name: Install nft
+      run: sudo apt install nftables
+
     - name: Build
       run: make build
 

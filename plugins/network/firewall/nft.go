@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/google/nftables"
 	"github.com/pmd-nextgen/pkg/system"
@@ -33,8 +34,9 @@ type Chain struct {
 }
 
 type Nft struct {
-	Table Table `json:"Table"`
-	Chain Chain `json:"Chain"`
+	Table   Table    `json:"Table"`
+	Chain   Chain    `json:"Chain"`
+	Command []string `json:"Command"`
 }
 
 const (
@@ -408,4 +410,19 @@ func (n *Nft) SaveNFT(w http.ResponseWriter) error {
 	}
 
 	return web.JSONResponse("saved", w)
+}
+
+func (n *Nft) RunNFT(w http.ResponseWriter) error {
+	cmd := n.Command[0]
+	n.Command = n.Command[1:]
+	args := strings.Join(n.Command, " ")
+
+	stdout, err := system.ExecAndCapture(cmd, args)
+	if err != nil {
+		log.Errorf("Failed to run command='%s %s', command output=%v", cmd, args, err)
+		return fmt.Errorf("Failed to acquire command output=%v", err)
+		//return fmt.Errorf("Failed to run command='%s %s', command output=%v", cmd, args, err)
+	}
+
+	return web.JSONResponse(stdout, w)
 }

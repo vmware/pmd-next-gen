@@ -273,3 +273,30 @@ func networkShowNFTChain(args cli.Args, host string, token map[string]string) {
 		fmt.Printf("            %v %v\n\n", color.HiBlueString("Priority:"), v.Priority)
 	}
 }
+
+func networkRunNFT(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := firewall.Nft{
+		Command: argStrings,
+	}
+
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/firewall/nft/run", token, n)
+	if err != nil {
+		fmt.Printf("Failed to run nft command: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to run nft command: %v\n", m.Errors)
+		return
+	}
+
+	fmt.Printf("%v", m.Message)
+}
