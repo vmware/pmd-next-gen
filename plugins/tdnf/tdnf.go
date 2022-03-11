@@ -103,6 +103,11 @@ type UpdateInfoSummary struct {
 	Unknown     int
 }
 
+type Version struct {
+	Name    string
+	Version string
+}
+
 type Options struct {
 	AllowErasing    bool     `tdnf:"--allowerasing"`
 	Best            bool     `tdnf:"--best"`
@@ -304,7 +309,7 @@ func acquireRepoList(w http.ResponseWriter, options Options) error {
 	return web.JSONResponse(repoList, w)
 }
 
-func acquireInfoList(w http.ResponseWriter, pkg string, options Options) error {
+func acquireInfoList(w http.ResponseWriter, pkg string, options ListOptions) error {
 	return acquireCmdWithDelayedResponse(w, "info", pkg, &options)
 }
 
@@ -355,4 +360,17 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 
 func acquireUpdateInfo(w http.ResponseWriter, pkg string, options UpdateInfoOptions) error {
 	return acquireCmdWithDelayedResponse(w, "updateinfo", pkg, &options)
+}
+
+func acquireVersion(w http.ResponseWriter, options Options) error {
+	s, err := TdnfExec(&options, "--version")
+	if err != nil {
+		log.Errorf("Failed to execute tdnf --version': %v", err)
+		return err
+	}
+	var version interface{}
+	if err := json.Unmarshal([]byte(s), &version); err != nil {
+		return err
+	}
+	return web.JSONResponse(version, w)
 }

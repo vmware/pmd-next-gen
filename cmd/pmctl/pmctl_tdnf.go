@@ -69,6 +69,12 @@ type AlterResultDesc struct {
 	Errors  string           `json:"errors"`
 }
 
+type VersionDesc struct {
+	Success bool         `json:"success"`
+	Message tdnf.Version `json:"message"`
+	Errors  string       `json:"errors"`
+}
+
 type NilDesc struct {
 	Success bool   `json:"success"`
 	Errors  string `json:"errors"`
@@ -436,7 +442,7 @@ func acquireTdnfRepoList(options *tdnf.Options, host string, token map[string]st
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) (*InfoListDesc, error) {
+func acquireTdnfInfoList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) (*InfoListDesc, error) {
 	var path string
 	if !validator.IsEmpty(pkg) {
 		path = "/api/v1/tdnf/info/" + pkg
@@ -616,6 +622,25 @@ func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, to
 	return nil, errors.New(m.Errors)
 }
 
+func acquireTdnfVersion(options *tdnf.Options, host string, token map[string]string) (*VersionDesc, error) {
+	resp, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/version"+tdnfOptionsQuery(options), token, nil)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf version: %v\n", err)
+		return nil, err
+	}
+
+	m := VersionDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
 func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) (*AlterResultDesc, error) {
 	var msg []byte
 
@@ -691,7 +716,7 @@ func tdnfSearch(options *tdnf.Options, pkg string, host string, token map[string
 	displayTdnfSearch(l)
 }
 
-func tdnfInfoList(options *tdnf.Options, pkg string, host string, token map[string]string) {
+func tdnfInfoList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) {
 	l, err := acquireTdnfInfoList(options, pkg, host, token)
 	if err != nil {
 		fmt.Printf("Failed to acquire tdnf info: %v\n", err)

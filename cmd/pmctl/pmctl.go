@@ -1247,9 +1247,10 @@ func main() {
 					Name:        "info",
 					Aliases:     []string{"i"},
 					Description: "Package Info",
+					Flags:       tdnfCreateScopeFlags(),
 
 					Action: func(c *cli.Context) error {
-						options := tdnfParseFlags(c)
+						options := tdnfParseListFlags(c)
 						if c.NArg() >= 1 {
 							tdnfInfoList(&options, c.Args().First(), c.String("url"), token)
 						} else {

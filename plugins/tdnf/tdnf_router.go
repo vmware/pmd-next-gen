@@ -97,7 +97,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	case "downgrade":
 		err = acquireAlterCmd(w, cmd, "", options)
 	case "info":
-		err = acquireInfoList(w, "", options)
+		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
+		err = acquireInfoList(w, "", listOptions)
 	case "list":
 		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
 		err = acquireList(w, "", listOptions)
@@ -120,6 +121,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	case "updateinfo":
 		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form), routerParseModeOptions(r.Form)}
 		err = acquireUpdateInfo(w, "", updateInfoOptions)
+	case "version":
+		err = acquireVersion(w, options)
 	default:
 		err = errors.New("unsupported")
 	}
@@ -149,7 +152,8 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 	case "erase":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "info":
-		err = acquireInfoList(w, pkg, options)
+		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
+		err = acquireInfoList(w, pkg, listOptions)
 	case "install":
 		err = acquireAlterCmd(w, cmd, pkg, options)
 	case "list":
