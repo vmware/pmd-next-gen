@@ -198,7 +198,7 @@ func (n *NetDev) BuildNetDevSection(m *configfile.Meta) error {
 	}
 
 	if !validator.IsEmpty(n.MTUBytes) {
-		if !validator.IsUint(n.MTUBytes) {
+		if !validator.IsUint32(n.MTUBytes) {
 			log.Errorf("Failed to create VLan='%s'. Invalid MTUBytes='%s': %v", n.Name, n.MTUBytes)
 			return fmt.Errorf("invalid MTUBytes='%s'", n.MTUBytes)
 		}
@@ -299,7 +299,6 @@ func (n *NetDev) buildMacVTapSection(m *configfile.Meta) error {
 
 	return nil
 }
-
 
 func (n *NetDev) buildIpVLanSection(m *configfile.Meta) error {
 	m.NewSection("IPVLAN")

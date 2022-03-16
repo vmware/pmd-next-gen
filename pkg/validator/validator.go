@@ -50,8 +50,18 @@ func IsUintOrMax(s string) bool {
 	return err == nil
 }
 
-func IsUint(s string) bool {
+func IsUint32(s string) bool {
 	_, err := strconv.ParseUint(s, 10, 32)
+	return err == nil
+}
+
+func IsUint16(s string) bool {
+	_, err := strconv.ParseUint(s, 10, 16)
+	return err == nil
+}
+
+func IsUint8(s string) bool {
+	_, err := strconv.ParseUint(s, 10, 8)
 	return err == nil
 }
 
@@ -107,12 +117,39 @@ func IsIPs(s []string) bool {
 	return true
 }
 
+func IsDHCPDUIDType(id string) bool {
+	return id == "vendor" || id == "uuid" || id == "link-layer-time" || id == "link-layer"
+}
+
+func IsDHCPOptionType(op string) bool {
+	return op == "uint8" || op == "uint16" || op == "uint32" || op == "ipv4address" || op == "ipv6address" || op == "string"
+}
+
 func IsDHCPv4ClientIdentifier(identifier string) bool {
 	return identifier == "mac" || identifier == "duid" || identifier == "duid-only"
 }
 
-func IsDHCPv4DUIDType(id string) bool {
-	return id == "vendor" || id == "uuid" || id == "link-layer-time" || id == "link-layer"
+func IsDHCPv4SendOption(option string) bool {
+	vs := strings.Split(option, ",")
+	if len(vs) < 3 {
+		return false
+	}
+
+	return IsUint8(vs[0]) && IsDHCPOptionType(vs[1])
+
+}
+
+func IsDHCPv6WithoutRA(ra string) bool {
+	return ra == "no" || ra == "solicit" || ra == "information-request"
+}
+
+func IsDHCPv6SendVendorOption(option string) bool {
+	vs := strings.Split(option, ",")
+	if len(vs) < 4 {
+		return false
+	}
+
+	return IsUint32(vs[0]) && IsUint8(vs[1]) && IsDHCPOptionType(vs[2])
 }
 
 func IsNotMAC(mac string) bool {
@@ -256,14 +293,14 @@ func IsLinkMtu(value string) bool {
 	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
 		return true
 	}
-	return IsUint(value)
+	return IsUint32(value)
 }
 
 func IsLinkBitsPerSecond(value string) bool {
 	if strings.HasSuffix(value, "K") || strings.HasSuffix(value, "M") || strings.HasSuffix(value, "G") {
 		return true
 	}
-	return IsUint(value)
+	return IsUint32(value)
 }
 
 func IsLinkDuplex(duplex string) bool {
@@ -339,7 +376,7 @@ func IsRoutingFirewallMark(mark string) bool {
 	}
 
 	for _, m := range mrk {
-		if !IsUint(m) {
+		if !IsUint32(m) {
 			return false
 		}
 	}
@@ -379,7 +416,7 @@ func IsRoutingUser(usr string) bool {
 	}
 
 	for _, uu := range u {
-		if !IsUint(uu) {
+		if !IsUint32(uu) {
 			return false
 		}
 	}
