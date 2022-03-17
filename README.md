@@ -487,6 +487,22 @@ pmctl network set-dhcpv4-duid dev <deviceName> duidtype <DUIDType> duidrawdata <
 pmctl network set-dhcpv4-use dev <deviceName> usedns <UseDNS> usentp <UseNTP> usesip <UseSIP> usemtu <UseMTU> usehostname <UseHostname> usedomains <UseDomains> useroutes <UseRoutes> usegateway <UseGateway> usetimezone <UseTimezone>
 >pmctl network set-dhcpv4-use dev ens37 usedns false usentp false usesip false usemtu yes usehostname true usedomains yes useroutes no usegateway yes usetimezone no
 
+# Configure network DHCPv6
+pmctl network set-dhcpv6 dev <deviceName> mudurl <MUDURL> userclass <UserClass> vendorclass <VendorClass> prefixhint <IPV6ADDRESS> withoutra <WithoutRA>
+>pmctl network set-dhcpv6 dev ens37 mudurl https://example.com/devB userclass usrcls1,usrcls2 vendorclass vdrcls1 prefixhint 2001:db1:fff::/64 withoutra solicit
+ 
+# Configure network DHCPv6 id's
+pmctl network set-dhcpv6-id dev <deviceName> iaid <IAID> duidtype <DUIDType> duidrawdata <DUIDRawData>
+>pmctl network set-dhcpv6-id dev ens37 iaid 201 duidtype vendor duidrawdata af:03:ff:87
+
+# Configure network DHCPv6 Use
+pmctl network set-dhcpv6-use dev <deviceName> useaddr <UseAddress> useprefix <UsePrefix> usedns <UseDNS> usentp <UseNTP> usehostname <UseHostname> usedomains <UseDomains>
+>pmctl network set-dhcpv6-use dev ens37 useaddr yes useprefix no usedns false usentp false usehostname true usedomains yes
+
+# Configure network DHCPv6 Options
+pmctl network set-dhcpv6-option dev <deviceName> reqopt <RequestOptions> sendopt <SendOption> sendvendoropt <SendVendorOption>
+>pmctl network set-dhcpv6-option dev ens37 reqopt 10,198,34 sendopt 34563 sendvendoropt 1987653,65,ipv6address,af:03:ff:87
+
 # Configure network DHCPServer
 pmctl network add-dhcpv4-server dev <Devicename> pool-offset <poolOffset> pool-size <PoolSize> default-lease-time-sec <DefaultLeaseTimeSec> max-lease-time-sec <MaxLeaseTimeSec> dns <DNS> emit-dns <EmitDNS> emit-ntp <EmitNTP> emit-router <EmitRouter>
 >pmctl network add-dhcpv4-server dev ens37 pool-offset 100 pool-size 200 default-lease-time-sec 10 max-lease-time-sec 30 dns 192.168.1.2,192.168.10.10,192.168.20.30 emit-dns yes emit-ntp no emit-router yes

@@ -424,8 +424,8 @@ func networkConfigureRoute(args cli.Args, host string, token map[string]string) 
 	link := ""
 
 	r := networkd.RouteSection{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			link = argStrings[i+1]
 		case "gw":
@@ -471,8 +471,6 @@ func networkConfigureRoute(args cli.Args, host string, token map[string]string) 
 			}
 			r.Scope = argStrings[i+1]
 		}
-
-		i++
 	}
 
 	n := networkd.Network{
@@ -489,8 +487,8 @@ func networkConfigureDHCPv4Id(args cli.Args, host string, token map[string]strin
 	argStrings := args.Slice()
 
 	n := networkd.Network{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			n.Link = argStrings[i+1]
 		case "clientid":
@@ -506,14 +504,12 @@ func networkConfigureDHCPv4Id(args cli.Args, host string, token map[string]strin
 			}
 			n.DHCPv4Section.VendorClassIdentifier = argStrings[i+1]
 		case "iaid":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid iaid=%s\n", argStrings[i+1])
 				return
 			}
 			n.DHCPv4Section.IAID = argStrings[i+1]
 		}
-
-		i++
 	}
 
 	// Dispatch Request.
@@ -524,12 +520,12 @@ func networkConfigureDHCPv4DUID(args cli.Args, host string, token map[string]str
 	argStrings := args.Slice()
 
 	n := networkd.Network{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			n.Link = argStrings[i+1]
 		case "duidtype":
-			if !validator.IsDHCPv4DUIDType(argStrings[i+1]) {
+			if !validator.IsDHCPDUIDType(argStrings[i+1]) {
 				fmt.Printf("Invalid duidtype=%s\n", argStrings[i+1])
 				return
 			}
@@ -541,8 +537,6 @@ func networkConfigureDHCPv4DUID(args cli.Args, host string, token map[string]str
 			}
 			n.DHCPv4Section.DUIDRawData = argStrings[i+1]
 		}
-
-		i++
 	}
 
 	// Dispatch Request.
@@ -553,8 +547,8 @@ func networkConfigureDHCPv4UseOption(args cli.Args, host string, token map[strin
 	argStrings := args.Slice()
 
 	n := networkd.Network{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			n.Link = argStrings[i+1]
 		case "usedns":
@@ -612,8 +606,6 @@ func networkConfigureDHCPv4UseOption(args cli.Args, host string, token map[strin
 			}
 			n.DHCPv4Section.UseTimezone = validator.BoolToString(argStrings[i+1])
 		}
-
-		i++
 	}
 
 	// Dispatch Request.
@@ -624,30 +616,30 @@ func networkConfigureAddDHCPv4Server(args cli.Args, host string, token map[strin
 	argStrings := args.Slice()
 
 	n := networkd.Network{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			n.Link = argStrings[i+1]
 		case "pool-offset":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid pool-offset=%s\n", argStrings[i+1])
 				return
 			}
 			n.DHCPv4ServerSection.PoolOffset = argStrings[i+1]
 		case "pool-size":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid pool-size=%s\n", argStrings[i+1])
 				return
 			}
 			n.DHCPv4ServerSection.PoolSize = argStrings[i+1]
 		case "default-lease-time-sec":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid default-lease-time-sec=%s\n", argStrings[i+1])
 				return
 			}
 			n.DHCPv4ServerSection.DefaultLeaseTimeSec = argStrings[i+1]
 		case "max-lease-time-sec":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid max-lease-time-sec=%s\n", argStrings[i+1])
 				return
 			}
@@ -680,8 +672,6 @@ func networkConfigureAddDHCPv4Server(args cli.Args, host string, token map[strin
 			}
 			n.DHCPv4ServerSection.EmitRouter = validator.BoolToString(argStrings[i+1])
 		}
-
-		i++
 	}
 
 	n.NetworkSection.DHCPServer = "yes"
@@ -796,8 +786,8 @@ func networkConfigureMode(args cli.Args, host string, token map[string]string) {
 	argStrings := args.Slice()
 
 	n := networkd.Network{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			n.Link = argStrings[i+1]
 		case "arp":
@@ -831,8 +821,6 @@ func networkConfigureMode(args cli.Args, host string, token map[string]string) {
 			}
 			n.LinkSection.RequiredForOnline = validator.BoolToString(argStrings[i+1])
 		}
-
-		i++
 	}
 
 	networkConfigure(&n, host, token)
@@ -882,8 +870,8 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 	link := ""
 
 	r := networkd.RoutingPolicyRuleSection{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			link = argStrings[i+1]
 		case "tos":
@@ -907,12 +895,12 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 			}
 			r.FirewallMark = argStrings[i+1]
 		case "table":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				return nil, fmt.Errorf("Invalid table=%s\n", argStrings[i+1])
 			}
 			r.Table = argStrings[i+1]
 		case "prio":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				return nil, fmt.Errorf("Invalid prio=%s\n", argStrings[i+1])
 			}
 			r.Priority = argStrings[i+1]
@@ -962,7 +950,7 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 			}
 			r.SuppressPrefixLength = argStrings[i+1]
 		case "suppressifgrp":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				return nil, fmt.Errorf("Invalid suppressifgrp=%s\n", argStrings[i+1])
 			}
 			r.SuppressInterfaceGroup = argStrings[i+1]
@@ -972,8 +960,6 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 			}
 			r.Type = argStrings[i+1]
 		}
-
-		i++
 	}
 
 	n := networkd.Network{
@@ -1371,8 +1357,8 @@ func networkConfigureIPv6SendRA(args cli.Args, host string, token map[string]str
 	s := networkd.IPv6SendRASection{}
 	p := networkd.IPv6PrefixSection{}
 	r := networkd.IPv6RoutePrefixSection{}
-	for i := 0; i < len(argStrings); {
-		switch argStrings[i] {
+	for i, args := range argStrings {
+		switch args {
 		case "dev":
 			link = argStrings[i+1]
 		case "rt-pref":
@@ -1406,7 +1392,7 @@ func networkConfigureIPv6SendRA(args cli.Args, host string, token map[string]str
 			domainslist := strings.Split(argStrings[i+1], ",")
 			s.Domains = domainslist
 		case "dns-lifetime-sec":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid dns-lifetime-sec=%s\n", argStrings[i+1])
 				return
 			}
@@ -1418,13 +1404,13 @@ func networkConfigureIPv6SendRA(args cli.Args, host string, token map[string]str
 			}
 			p.Prefix = argStrings[i+1]
 		case "pref-lifetime-sec":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid pref-lifetime-sec=%s\n", argStrings[i+1])
 				return
 			}
 			p.PreferredLifetimeSec = argStrings[i+1]
 		case "valid-lifetime-sec":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid valid-lifetime-sec=%s\n", argStrings[i+1])
 				return
 			}
@@ -1442,14 +1428,12 @@ func networkConfigureIPv6SendRA(args cli.Args, host string, token map[string]str
 			}
 			r.Route = argStrings[i+1]
 		case "lifetime-sec":
-			if !validator.IsUint(argStrings[i+1]) {
+			if !validator.IsUint32(argStrings[i+1]) {
 				fmt.Printf("Invalid lifetime-sec=%s\n", argStrings[i+1])
 				return
 			}
 			r.LifetimeSec = argStrings[i+1]
 		}
-
-		i++
 	}
 
 	n := networkd.Network{
@@ -1495,4 +1479,169 @@ func networkConfigureRemoveIPv6SendRA(link string, host string, token map[string
 	if !m.Success {
 		fmt.Printf("Failed to remove network IPv6SendRA: %v\n", m.Errors)
 	}
+}
+
+func networkConfigureDHCPv6(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "mudurl":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invalid mudurl=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.MUDURL = argStrings[i+1]
+		case "userclass":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invalid userclass=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UserClass = strings.Split(argStrings[i+1], ",")
+		case "vendorclass":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invalid vendorclass=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.VendorClass = strings.Split(argStrings[i+1], ",")
+		case "prefixhint":
+			if !validator.IsIP(argStrings[i+1]) {
+				fmt.Printf("Invalid prefixhint=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.PrefixDelegationHint = argStrings[i+1]
+		case "withoutra":
+			if !validator.IsDHCPv6WithoutRA(argStrings[i+1]) {
+				fmt.Printf("Invalid withoutra=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.WithoutRA = argStrings[i+1]
+		}
+	}
+
+	// Dispatch Request.
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureDHCPv6Id(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "iaid":
+			if !validator.IsUint32(argStrings[i+1]) {
+				fmt.Printf("Invalid iaid=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.IAID = argStrings[i+1]
+		case "duidtype":
+			if !validator.IsDHCPDUIDType(argStrings[i+1]) {
+				fmt.Printf("Invalid duidtype=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.DUIDType = argStrings[i+1]
+		case "duidrawdata":
+			if validator.IsEmpty(argStrings[i+1]) {
+				fmt.Printf("Invduidrawdata=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.DUIDRawData = argStrings[i+1]
+		}
+	}
+
+	// Dispatch Request.
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureDHCPv6Use(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "useaddr":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid useaddr=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UseAddress = validator.BoolToString(argStrings[i+1])
+		case "useprefix":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid useprefix=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UseDelegatedPrefix = validator.BoolToString(argStrings[i+1])
+		case "usedns":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usedns=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UseDNS = validator.BoolToString(argStrings[i+1])
+		case "usentp":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usentp=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UseNTP = validator.BoolToString(argStrings[i+1])
+		case "usehostname":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usehostname=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UseHostname = validator.BoolToString(argStrings[i+1])
+		case "usedomains":
+			if !validator.IsBool(argStrings[i+1]) {
+				fmt.Printf("Invalid usedomains=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.UseDomains = validator.BoolToString(argStrings[i+1])
+		}
+	}
+
+	// Dispatch Request.
+	networkConfigure(&n, host, token)
+}
+
+func networkConfigureDHCPv6Option(args cli.Args, host string, token map[string]string) {
+	argStrings := args.Slice()
+
+	n := networkd.Network{}
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			n.Link = argStrings[i+1]
+		case "reqopt":
+			req := strings.Split(argStrings[i+1], ",")
+			for _, r := range req {
+				if !validator.IsUint8(r) {
+					fmt.Printf("invalid reqopt=%s\n", r)
+					return
+				}
+			}
+			n.DHCPv6Section.RequestOptions = req
+		case "sendopt":
+			if !validator.IsUint16(argStrings[i+1]) {
+				fmt.Printf("Invalid sendopt=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.SendOption = argStrings[i+1]
+		case "sendvendoropt":
+			if !validator.IsDHCPv6SendVendorOption(argStrings[i+1]) {
+				fmt.Printf("Invalid sendvendoropt=%s\n", argStrings[i+1])
+				return
+			}
+			n.DHCPv6Section.SendVendorOption = argStrings[i+1]
+		}
+	}
+
+	// Dispatch Request.
+	networkConfigure(&n, host, token)
 }

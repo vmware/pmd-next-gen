@@ -73,22 +73,42 @@ type RouteSection struct {
 }
 
 type DHCPv4Section struct {
-	ClientIdentifier      string `json:"ClientIdentifier"`
-	VendorClassIdentifier string `json:"VendorClassIdentifier"`
-	DUIDType              string `json:"DUIDType"`
-	DUIDRawData           string `json:"DUIDRawData"`
-	IAID                  string `json:"IAID"`
-	RequestOptions        string `json:"RequestOptions"`
-	SendOption            string `json:"SendOption"`
-	UseDNS                string `json:"UseDNS"`
-	UseNTP                string `json:"UseNTP"`
-	UseSIP                string `json:"UseSIP"`
-	UseMTU                string `json:"UseMTU"`
-	UseHostname           string `json:"UseHostname"`
-	UseDomains            string `json:"UseDomains"`
-	UseRoutes             string `json:"UseRoutes"`
-	UseGateway            string `json:"UseGateway"`
-	UseTimezone           string `json:"UseTimezone"`
+	ClientIdentifier      string   `json:"ClientIdentifier"`
+	VendorClassIdentifier string   `json:"VendorClassIdentifier"`
+	DUIDType              string   `json:"DUIDType"`
+	DUIDRawData           string   `json:"DUIDRawData"`
+	IAID                  string   `json:"IAID"`
+	RequestOptions        []string `json:"RequestOptions"`
+	SendOption            string   `json:"SendOption"`
+	UseDNS                string   `json:"UseDNS"`
+	UseNTP                string   `json:"UseNTP"`
+	UseSIP                string   `json:"UseSIP"`
+	UseMTU                string   `json:"UseMTU"`
+	UseHostname           string   `json:"UseHostname"`
+	UseDomains            string   `json:"UseDomains"`
+	UseRoutes             string   `json:"UseRoutes"`
+	UseGateway            string   `json:"UseGateway"`
+	UseTimezone           string   `json:"UseTimezone"`
+}
+
+type DHCPv6Section struct {
+	MUDURL               string   `json:"MUDURL"`
+	IAID                 string   `json:"IAID"`
+	DUIDType             string   `json:"DUIDType"`
+	DUIDRawData          string   `json:"DUIDRawData"`
+	RequestOptions       []string `json:"RequestOptions"`
+	SendOption           string   `json:"SendOption"`
+	SendVendorOption     string   `json:"SendVendorOption"`
+	UserClass            []string `json:"UserClass"`
+	VendorClass          []string `json:"VendorClass"`
+	PrefixDelegationHint string   `json:"PrefixDelegationHint"`
+	UseAddress           string   `json:"UseAddress"`
+	UseDelegatedPrefix   string   `json:"UseDelegatedPrefix"`
+	UseDNS               string   `json:"UseDNS"`
+	UseNTP               string   `json:"UseNTP"`
+	UseHostname          string   `json:"UseHostname"`
+	UseDomains           string   `json:"UseDomains"`
+	WithoutRA            string   `json:"WithoutRA"`
 }
 
 type DHCPv4ServerSection struct {
@@ -150,6 +170,7 @@ type Network struct {
 	NetworkSection            NetworkSection             `json:"NetworkSection"`
 	DHCPv4Section             DHCPv4Section              `json:"DHCPv4Section"`
 	DHCPv4ServerSection       DHCPv4ServerSection        `json:"DHCPv4ServerSection"`
+	DHCPv6Section             DHCPv6Section              `json:"DHCPv6Section"`
 	AddressSections           []AddressSection           `json:"AddressSections"`
 	RouteSections             []RouteSection             `json:"RouteSections"`
 	RoutingPolicyRuleSections []RoutingPolicyRuleSection `json:"RoutingPolicyRuleSections"`
@@ -438,7 +459,7 @@ func (n *Network) removeNetworkSection(m *configfile.Meta) error {
 
 func (n *Network) buildLinkSection(m *configfile.Meta) error {
 	if !validator.IsEmpty(n.LinkSection.MTUBytes) {
-		if validator.IsUint(n.LinkSection.MTUBytes) {
+		if validator.IsUint32(n.LinkSection.MTUBytes) {
 			m.SetKeySectionString("Link", "MTUBytes", n.LinkSection.MTUBytes)
 		} else {
 			log.Errorf("Invalid MTU='%s'", n.LinkSection.MTUBytes)
@@ -520,11 +541,11 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 		m.SetKeySectionString("DHCPv4", "VendorClassIdentifier", n.DHCPv4Section.VendorClassIdentifier)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsUint(n.DHCPv4Section.IAID) {
+	if !validator.IsEmpty(n.DHCPv4Section.IAID) && validator.IsUint32(n.DHCPv4Section.IAID) {
 		m.SetKeySectionString("DHCPv4", "IAID", n.DHCPv4Section.IAID)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.DUIDType) && validator.IsDHCPv4DUIDType(n.DHCPv4Section.DUIDType) {
+	if !validator.IsEmpty(n.DHCPv4Section.DUIDType) && validator.IsDHCPDUIDType(n.DHCPv4Section.DUIDType) {
 		m.SetKeySectionString("DHCPv4", "DUIDType", n.DHCPv4Section.DUIDType)
 	}
 
@@ -532,11 +553,17 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 		m.SetKeySectionString("DHCPv4", "DUIDRawData", n.DHCPv4Section.DUIDRawData)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.RequestOptions) {
-		m.SetKeySectionString("DHCPv4", "RequestOptions", n.DHCPv4Section.RequestOptions)
+	if !validator.IsArrayEmpty(n.DHCPv4Section.RequestOptions) {
+		for _, o := range n.DHCPv4Section.RequestOptions {
+			if !validator.IsUint8(o) {
+				log.Errorf("Failed to create DHCPv4Section. Invalid RequestOptions='%s'", o)
+				return fmt.Errorf("invalid options='%s'", o)
+			}
+		}
+		m.SetKeySectionString("DHCPv4", "RequestOptions", strings.Join(n.DHCPv4Section.RequestOptions, " "))
 	}
 
-	if !validator.IsEmpty(n.DHCPv4Section.SendOption) {
+	if !validator.IsEmpty(n.DHCPv4Section.SendOption) && validator.IsDHCPv4SendOption(n.DHCPv4Section.SendOption) {
 		m.SetKeySectionString("DHCPv4", "SendOption", n.DHCPv4Section.SendOption)
 	}
 
@@ -579,20 +606,98 @@ func (n *Network) buildDHCPv4Section(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) buildDHCPv6Section(m *configfile.Meta) error {
+	if !validator.IsEmpty(n.DHCPv6Section.MUDURL) {
+		m.SetKeySectionString("DHCPv6", "MUDURL", n.DHCPv6Section.MUDURL)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.IAID) && validator.IsUint32(n.DHCPv6Section.IAID) {
+		m.SetKeySectionString("DHCPv6", "IAID", n.DHCPv6Section.IAID)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.DUIDType) && validator.IsDHCPDUIDType(n.DHCPv6Section.DUIDType) {
+		m.SetKeySectionString("DHCPv6", "DUIDType", n.DHCPv6Section.DUIDType)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.DUIDRawData) {
+		m.SetKeySectionString("DHCPv6", "DUIDRawData", n.DHCPv6Section.DUIDRawData)
+	}
+
+	if !validator.IsArrayEmpty(n.DHCPv6Section.RequestOptions) {
+		for _, o := range n.DHCPv6Section.RequestOptions {
+			if !validator.IsUint8(o) {
+				log.Errorf("Failed to create DHCPv6Section. Invalid RequestOptions='%s'", o)
+				return fmt.Errorf("invalid options='%s'", o)
+			}
+		}
+		m.SetKeySectionString("DHCPv6", "RequestOptions", strings.Join(n.DHCPv6Section.RequestOptions, " "))
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.SendOption) && validator.IsUint16(n.DHCPv6Section.SendOption) {
+		m.SetKeySectionString("DHCPv6", "SendOption", n.DHCPv6Section.SendOption)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.SendVendorOption) && validator.IsDHCPv6SendVendorOption(n.DHCPv6Section.SendVendorOption) {
+		m.SetKeySectionString("DHCPv6", "SendVendorOption", strings.Replace(n.DHCPv6Section.SendVendorOption, ",", ":", -1))
+	}
+
+	if !validator.IsArrayEmpty(n.DHCPv6Section.UserClass) {
+		m.SetKeySectionString("DHCPv6", "UserClass", strings.Join(n.DHCPv6Section.UserClass, " "))
+	}
+
+	if !validator.IsArrayEmpty(n.DHCPv6Section.VendorClass) {
+		m.SetKeySectionString("DHCPv6", "VendorClass", strings.Join(n.DHCPv6Section.VendorClass, " "))
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.PrefixDelegationHint) && validator.IsIP(n.DHCPv6Section.PrefixDelegationHint) {
+		m.SetKeySectionString("DHCPv6", "PrefixDelegationHint", n.DHCPv6Section.PrefixDelegationHint)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.UseAddress) && validator.IsBool(n.DHCPv6Section.UseAddress) {
+		m.SetKeySectionString("DHCPv6", "UseAddress", n.DHCPv6Section.UseAddress)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.UseDelegatedPrefix) && validator.IsBool(n.DHCPv6Section.UseDelegatedPrefix) {
+		m.SetKeySectionString("DHCPv6", "UseDelegatedPrefix", n.DHCPv6Section.UseDelegatedPrefix)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.UseDNS) && validator.IsBool(n.DHCPv6Section.UseDNS) {
+		m.SetKeySectionString("DHCPv6", "UseDNS", n.DHCPv6Section.UseDNS)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.UseNTP) && validator.IsBool(n.DHCPv6Section.UseNTP) {
+		m.SetKeySectionString("DHCPv6", "UseNTP", n.DHCPv6Section.UseNTP)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.UseHostname) && validator.IsBool(n.DHCPv6Section.UseHostname) {
+		m.SetKeySectionString("DHCPv6", "UseHostname", n.DHCPv6Section.UseHostname)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.UseDomains) && validator.IsBool(n.DHCPv6Section.UseDomains) {
+		m.SetKeySectionString("DHCPv6", "UseDomains", n.DHCPv6Section.UseDomains)
+	}
+
+	if !validator.IsEmpty(n.DHCPv6Section.WithoutRA) && validator.IsDHCPv6WithoutRA(n.DHCPv6Section.WithoutRA) {
+		m.SetKeySectionString("DHCPv6", "WithoutRA", n.DHCPv6Section.WithoutRA)
+	}
+
+	return nil
+}
+
 func (n *Network) buildDHCPv4ServerSection(m *configfile.Meta) error {
-	if !validator.IsEmpty(n.DHCPv4ServerSection.PoolOffset) && validator.IsUint(n.DHCPv4ServerSection.PoolOffset) {
+	if !validator.IsEmpty(n.DHCPv4ServerSection.PoolOffset) && validator.IsUint32(n.DHCPv4ServerSection.PoolOffset) {
 		m.SetKeySectionString("DHCPServer", "PoolOffset", n.DHCPv4ServerSection.PoolOffset)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4ServerSection.PoolSize) && validator.IsUint(n.DHCPv4ServerSection.PoolSize) {
+	if !validator.IsEmpty(n.DHCPv4ServerSection.PoolSize) && validator.IsUint32(n.DHCPv4ServerSection.PoolSize) {
 		m.SetKeySectionString("DHCPServer", "PoolSize", n.DHCPv4ServerSection.PoolSize)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4ServerSection.DefaultLeaseTimeSec) && validator.IsUint(n.DHCPv4ServerSection.DefaultLeaseTimeSec) {
+	if !validator.IsEmpty(n.DHCPv4ServerSection.DefaultLeaseTimeSec) && validator.IsUint32(n.DHCPv4ServerSection.DefaultLeaseTimeSec) {
 		m.SetKeySectionString("DHCPServer", "DefaultLeaseTimeSec", n.DHCPv4ServerSection.DefaultLeaseTimeSec)
 	}
 
-	if !validator.IsEmpty(n.DHCPv4ServerSection.MaxLeaseTimeSec) && validator.IsUint(n.DHCPv4ServerSection.MaxLeaseTimeSec) {
+	if !validator.IsEmpty(n.DHCPv4ServerSection.MaxLeaseTimeSec) && validator.IsUint32(n.DHCPv4ServerSection.MaxLeaseTimeSec) {
 		m.SetKeySectionString("DHCPServer", "MaxLeaseTimeSec", n.DHCPv4ServerSection.MaxLeaseTimeSec)
 	}
 
@@ -758,7 +863,7 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(rtpr.Table) {
-			if !validator.IsUint(rtpr.Table) {
+			if !validator.IsUint32(rtpr.Table) {
 				log.Errorf("Failed to parse Table='%s'", rtpr.Table)
 				return fmt.Errorf("invalid Table='%s'", rtpr.Table)
 			}
@@ -766,7 +871,7 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(rtpr.Priority) {
-			if !validator.IsUint(rtpr.Priority) {
+			if !validator.IsUint32(rtpr.Priority) {
 				log.Errorf("Failed to parse Priority='%s'", rtpr.Priority)
 				return fmt.Errorf("invalid Priority='%s'", rtpr.Priority)
 			}
@@ -838,7 +943,7 @@ func (n *Network) buildRoutingPolicyRuleSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(rtpr.SuppressInterfaceGroup) {
-			if !validator.IsUint(rtpr.SuppressInterfaceGroup) {
+			if !validator.IsUint32(rtpr.SuppressInterfaceGroup) {
 				log.Errorf("Failed to parse SuppressInterfaceGroup='%s'", rtpr.SuppressInterfaceGroup)
 				return fmt.Errorf("invalid SuppressInterfaceGroup='%s'", rtpr.SuppressInterfaceGroup)
 			}
@@ -890,7 +995,7 @@ func (n *Network) buildIPv6SendRASection(m *configfile.Meta) error {
 	}
 
 	if !validator.IsEmpty(n.IPv6SendRASection.DNSLifetimeSec) {
-		if !validator.IsUint(n.IPv6SendRASection.DNSLifetimeSec) {
+		if !validator.IsUint32(n.IPv6SendRASection.DNSLifetimeSec) {
 			log.Errorf("Failed to parse DNSLifetimeSec='%s'", n.IPv6SendRASection.DNSLifetimeSec)
 			return fmt.Errorf("invalid DNSLifetimeSec='%s'", n.IPv6SendRASection.DNSLifetimeSec)
 		}
@@ -915,7 +1020,7 @@ func (n *Network) buildIPv6PrefixSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(p.PreferredLifetimeSec) {
-			if !validator.IsUint(p.PreferredLifetimeSec) {
+			if !validator.IsUint32(p.PreferredLifetimeSec) {
 				log.Errorf("Failed to parse PreferredLifetimeSec='%s'", p.PreferredLifetimeSec)
 				return fmt.Errorf("invalid PreferredLifetimeSec='%s'", p.PreferredLifetimeSec)
 			}
@@ -923,7 +1028,7 @@ func (n *Network) buildIPv6PrefixSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(p.ValidLifetimeSec) {
-			if !validator.IsUint(p.ValidLifetimeSec) {
+			if !validator.IsUint32(p.ValidLifetimeSec) {
 				log.Errorf("Failed to parse ValidLifetimeSec='%s'", p.ValidLifetimeSec)
 				return fmt.Errorf("invalid ValidLifetimeSec='%s'", p.ValidLifetimeSec)
 			}
@@ -953,7 +1058,7 @@ func (n *Network) buildIPv6RoutePrefixSection(m *configfile.Meta) error {
 		}
 
 		if !validator.IsEmpty(r.LifetimeSec) {
-			if !validator.IsUint(r.LifetimeSec) {
+			if !validator.IsUint32(r.LifetimeSec) {
 				log.Errorf("Failed to parse LifetimeSec='%s'", r.LifetimeSec)
 				return fmt.Errorf("invalid LifetimeSec='%s'", r.LifetimeSec)
 			}
@@ -1181,6 +1286,12 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 	if err := n.buildDHCPv4ServerSection(m); err != nil {
+		return err
+	}
+	if err := n.buildDHCPv4Section(m); err != nil {
+		return err
+	}
+	if err := n.buildDHCPv6Section(m); err != nil {
 		return err
 	}
 	if err := n.buildAddressSection(m); err != nil {

@@ -473,6 +473,66 @@ func main() {
 					},
 				},
 				{
+					Name:        "set-dhcpv6",
+					UsageText:   "set-dhcpv6 dev [LINK] mudurl [STRING] userclass [STRING] vendorclass [STRING] prefixhint [STRING] withoutra [STRING]",
+					Description: "Configures Link DHCPv6 url, class, prefix hint and withoutRA.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCPv6(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-dhcpv6-id",
+					UsageText:   "set-dhcpv6-id dev [LINK] iaid [STRING] duidtype [STRING] duidrawdata [STRING]",
+					Description: "Configures Link DHCPv6 identifiers.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCPv6Id(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-dhcpv6-use",
+					UsageText:   "set-dhcpv6-use dev [LINK] useaddr [BOOLEAN] useprefix [BOOLEAN] usedns [BOOLEAN] usentp [BOOLEAN] usehostname [BOOLEAN] usedomains [BOOLEAN]",
+					Description: "Configures Link DHCPv6 enable the use of Address, Prefix, DNS, NTP, DOMAINS etc",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCPv6Use(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "set-dhcpv6-option",
+					UsageText:   "set-dhcpv6-option dev [LINK] reqopt [STRING] sendopt [STRING] sendvendoropt [STRING]",
+					Description: "Configures Link DHCPv6 Options",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkConfigureDHCPv6Option(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "add-dhcpv4-server",
 					UsageText:   "add-dhcpv4-server dev [LINK] pool-offset [NUMBER] pool-size [NUMBER] default-lease-time-sec [NUMBER] max-lease-time-sec [NUMBER] dns [STRING] emit-dns [BOOLEAN] emit-ntp [BOOLEAN] emit-router [BOOLEAN]",
 					Description: "Confifure the DHCPv4 Server",
@@ -543,7 +603,7 @@ func main() {
 							return nil
 						}
 
-						if !validator.IsUint(c.Args().Get(1)) {
+						if !validator.IsUint32(c.Args().Get(1)) {
 							fmt.Printf("MTU must be a valid value.\n")
 							return nil
 						}
