@@ -462,3 +462,40 @@ func IsNFTChainType(c string) bool {
 func IsNFTChainPolicy(p string) bool {
 	return p == "drop" || p == "accept"
 }
+
+// see https://fedoraproject.org/wiki/Packaging:Naming
+func IsValidPkgName(name string) bool {
+	if IsEmpty(name) {
+		return false
+	}
+	for _, c := range name {
+		if c >= 'A' && c <= 'Z' {
+			continue
+		}
+		if c >= 'a' && c <= 'z' {
+			continue
+		}
+		if c >= '0' && c <= '9' {
+			continue
+		}
+		if c == '-' || c == '.' || c == '_' || c == '+' {
+			continue
+		}
+		// allow globs
+		if c == '*' || c == '?' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+// we allow multiple packages separated by commas
+func IsValidPkgNameList(pkglist string) bool {
+	for _, name := range strings.Split(pkglist, ",") {
+		if !IsValidPkgName(name) {
+			return false
+		}
+	}
+	return true
+}

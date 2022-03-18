@@ -210,7 +210,15 @@ func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequir
 
 		Action: func(c *cli.Context) error {
 			options := tdnfParseFlags(c)
-			if c.NArg() >= 1 {
+			if c.NArg() > 1 {
+				fmt.Printf("Too many arguments\n")
+				return nil
+			} else if c.NArg() == 1 {
+				pkgs := c.Args().First()
+				if !validator.IsValidPkgNameList(pkgs) {
+					fmt.Printf("Not a valid a package name or list\n")
+					return nil
+				}
 				tdnfAlterCmd(&options, cmd, c.Args().First(), c.String("url"), token)
 			} else {
 				if pkgRequired {

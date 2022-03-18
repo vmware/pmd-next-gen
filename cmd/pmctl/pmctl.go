@@ -1256,7 +1256,15 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseFlags(c)
-						if c.NArg() >= 1 {
+						if c.NArg() > 1 {
+							fmt.Printf("Too many arguments\n")
+							return nil
+						} else if c.NArg() == 1 {
+							pkgs := c.Args().First()
+							if !validator.IsValidPkgNameList(pkgs) {
+								fmt.Printf("Not a valid a package name or list\n")
+								return nil
+							}
 							tdnfCheckUpdate(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							tdnfCheckUpdate(&options, "", c.String("url"), token)
@@ -1283,7 +1291,15 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseListFlags(c)
-						if c.NArg() >= 1 {
+						if c.NArg() > 1 {
+							fmt.Printf("Too many arguments\n")
+							return nil
+						} else if c.NArg() == 1 {
+							pkgs := c.Args().First()
+							if !validator.IsValidPkgNameList(pkgs) {
+								fmt.Printf("Not a valid a package name or list\n")
+								return nil
+							}
 							tdnfList(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							tdnfList(&options, "", c.String("url"), token)
@@ -1321,7 +1337,15 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseListFlags(c)
-						if c.NArg() >= 1 {
+						if c.NArg() > 1 {
+							fmt.Printf("Too many arguments\n")
+							return nil
+						} else if c.NArg() == 1 {
+							pkgs := c.Args().First()
+							if !validator.IsValidPkgNameList(pkgs) {
+								fmt.Printf("Not a valid a package name or list\n")
+								return nil
+							}
 							tdnfInfoList(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							tdnfInfoList(&options, "", c.String("url"), token)
@@ -1336,7 +1360,10 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseFlags(c)
-						if c.NArg() >= 1 {
+						if c.NArg() > 1 {
+							fmt.Printf("Too many arguments\n")
+							return nil
+						} else if c.NArg() == 1 {
 							tdnfSearch(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							fmt.Printf("Needs a search string\n")
@@ -1352,7 +1379,15 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseRepoQueryFlags(c)
-						if c.NArg() >= 1 {
+						if c.NArg() > 1 {
+							fmt.Printf("Too many arguments\n")
+							return nil
+						} else if c.NArg() == 1 {
+							pkgs := c.Args().First()
+							if !validator.IsValidPkgNameList(pkgs) {
+								fmt.Printf("Not a valid a package name or list\n")
+								return nil
+							}
 							tdnfRepoQuery(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							tdnfRepoQuery(&options, "", c.String("url"), token)
@@ -1368,7 +1403,15 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						options := tdnfParseUpdateInfoFlags(c)
-						if c.NArg() >= 1 {
+						if c.NArg() > 1 {
+							fmt.Printf("Too many arguments\n")
+							return nil
+						} else if c.NArg() == 1 {
+							pkgs := c.Args().First()
+							if !validator.IsValidPkgNameList(pkgs) {
+								fmt.Printf("Not a valid a package name or list\n")
+								return nil
+							}
 							tdnfUpdateInfo(&options, c.Args().First(), c.String("url"), token)
 						} else {
 							tdnfUpdateInfo(&options, "", c.String("url"), token)

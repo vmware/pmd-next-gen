@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os/exec"
 	"reflect"
+	"strings"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -265,12 +266,12 @@ func TdnfExec(options interface{}, args ...string) (string, error) {
 	return result.Stdout.String(), nil
 }
 
-func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkg string, options interface{}) error {
+func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkgs string, options interface{}) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
-		if !validator.IsEmpty(pkg) {
-			s, err = TdnfExec(options, cmd, pkg)
+		if !validator.IsEmpty(pkgs) {
+			s, err = TdnfExec(options, append([]string{cmd}, strings.Split(pkgs, ",")...)...)
 		} else {
 			s, err = TdnfExec(options, cmd)
 		}
@@ -283,16 +284,16 @@ func acquireCmdWithDelayedResponse(w http.ResponseWriter, cmd string, pkg string
 	return jobs.AcceptedResponse(w, job)
 }
 
-func acquireCheckUpdate(w http.ResponseWriter, pkg string, options Options) error {
-	return acquireCmdWithDelayedResponse(w, "check-update", pkg, &options)
+func acquireCheckUpdate(w http.ResponseWriter, pkgs string, options Options) error {
+	return acquireCmdWithDelayedResponse(w, "check-update", pkgs, &options)
 }
 
-func acquireList(w http.ResponseWriter, pkg string, options ListOptions) error {
-	return acquireCmdWithDelayedResponse(w, "list", pkg, &options)
+func acquireList(w http.ResponseWriter, pkgs string, options ListOptions) error {
+	return acquireCmdWithDelayedResponse(w, "list", pkgs, &options)
 }
 
-func acquireSearch(w http.ResponseWriter, pkg string, options Options) error {
-	return acquireCmdWithDelayedResponse(w, "search", pkg, &options)
+func acquireSearch(w http.ResponseWriter, pkgs string, options Options) error {
+	return acquireCmdWithDelayedResponse(w, "search", pkgs, &options)
 }
 
 func acquireRepoList(w http.ResponseWriter, options Options) error {
@@ -309,12 +310,12 @@ func acquireRepoList(w http.ResponseWriter, options Options) error {
 	return web.JSONResponse(repoList, w)
 }
 
-func acquireInfoList(w http.ResponseWriter, pkg string, options ListOptions) error {
-	return acquireCmdWithDelayedResponse(w, "info", pkg, &options)
+func acquireInfoList(w http.ResponseWriter, pkgs string, options ListOptions) error {
+	return acquireCmdWithDelayedResponse(w, "info", pkgs, &options)
 }
 
-func acquireRepoQuery(w http.ResponseWriter, pkg string, options RepoQueryOptions) error {
-	return acquireCmdWithDelayedResponse(w, "repoquery", pkg, &options)
+func acquireRepoQuery(w http.ResponseWriter, pkgs string, options RepoQueryOptions) error {
+	return acquireCmdWithDelayedResponse(w, "repoquery", pkgs, &options)
 }
 
 func acquireMakeCache(w http.ResponseWriter, options Options) error {
@@ -334,12 +335,12 @@ func acquireClean(w http.ResponseWriter, options Options) error {
 	return web.JSONResponse("cleaned", w)
 }
 
-func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Options) error {
+func acquireAlterCmd(w http.ResponseWriter, cmd string, pkgs string, options Options) error {
 	job := jobs.CreateJob(func() (interface{}, error) {
 		var s string
 		var err error
-		if !validator.IsEmpty(pkg) {
-			s, err = TdnfExec(&options, "-y", cmd, pkg)
+		if !validator.IsEmpty(pkgs) {
+			s, err = TdnfExec(&options, "-y", cmd, pkgs)
 		} else {
 			s, err = TdnfExec(&options, "-y", cmd)
 		}
@@ -358,8 +359,8 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkg string, options Opti
 	return jobs.AcceptedResponse(w, job)
 }
 
-func acquireUpdateInfo(w http.ResponseWriter, pkg string, options UpdateInfoOptions) error {
-	return acquireCmdWithDelayedResponse(w, "updateinfo", pkg, &options)
+func acquireUpdateInfo(w http.ResponseWriter, pkgs string, options UpdateInfoOptions) error {
+	return acquireCmdWithDelayedResponse(w, "updateinfo", pkgs, &options)
 }
 
 func acquireVersion(w http.ResponseWriter, options Options) error {

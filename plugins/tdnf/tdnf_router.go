@@ -132,10 +132,10 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
+func routeracquireCommandPkgs(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	pkg := mux.Vars(r)["pkg"]
+	pkgs := mux.Vars(r)["pkgs"]
 
 	if err = r.ParseForm(); err != nil {
 		web.JSONResponseError(err, w)
@@ -144,31 +144,31 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 
 	switch cmd := mux.Vars(r)["command"]; cmd {
 	case "autoremove":
-		err = acquireAlterCmd(w, cmd, pkg, options)
+		err = acquireAlterCmd(w, cmd, pkgs, options)
 	case "downgrade":
-		err = acquireAlterCmd(w, cmd, pkg, options)
+		err = acquireAlterCmd(w, cmd, pkgs, options)
 	case "check-update":
-		err = acquireCheckUpdate(w, pkg, options)
+		err = acquireCheckUpdate(w, pkgs, options)
 	case "erase":
-		err = acquireAlterCmd(w, cmd, pkg, options)
+		err = acquireAlterCmd(w, cmd, pkgs, options)
 	case "info":
 		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
-		err = acquireInfoList(w, pkg, listOptions)
+		err = acquireInfoList(w, pkgs, listOptions)
 	case "install":
-		err = acquireAlterCmd(w, cmd, pkg, options)
+		err = acquireAlterCmd(w, cmd, pkgs, options)
 	case "list":
 		listOptions := ListOptions{options, routerParseScopeOptions(r.Form)}
-		err = acquireList(w, pkg, listOptions)
+		err = acquireList(w, pkgs, listOptions)
 	case "reinstall":
-		err = acquireAlterCmd(w, cmd, pkg, options)
+		err = acquireAlterCmd(w, cmd, pkgs, options)
 	case "repoquery":
 		repoQueryOptions := RepoQueryOptions{options, routerParseQueryOptions(r.Form)}
-		err = acquireRepoQuery(w, pkg, repoQueryOptions)
+		err = acquireRepoQuery(w, pkgs, repoQueryOptions)
 	case "update":
-		err = acquireAlterCmd(w, cmd, pkg, options)
+		err = acquireAlterCmd(w, cmd, pkgs, options)
 	case "updateinfo":
 		updateInfoOptions := UpdateInfoOptions{options, routerParseScopeOptions(r.Form), routerParseModeOptions(r.Form)}
-		err = acquireUpdateInfo(w, pkg, updateInfoOptions)
+		err = acquireUpdateInfo(w, pkgs, updateInfoOptions)
 	default:
 		err = errors.New("unsupported")
 	}
@@ -181,6 +181,6 @@ func routeracquireCommandPkg(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterTdnf(router *mux.Router) {
 	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/{command}/{pkg}", routeracquireCommandPkg).Methods("GET")
+	n.HandleFunc("/{command}/{pkgs}", routeracquireCommandPkgs).Methods("GET")
 	n.HandleFunc("/{command}", routeracquireCommand).Methods("GET")
 }
