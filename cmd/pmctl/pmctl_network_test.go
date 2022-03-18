@@ -876,7 +876,7 @@ func TestNetworkConfigureDHCPv4Id(t *testing.T) {
 
 	m, err := configureNetwork(t, n)
 	if err != nil {
-		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+		t.Fatalf("Failed to configure DHCPv4 Identifier: %v\n", err)
 	}
 	defer os.Remove(m.Path)
 
@@ -908,7 +908,7 @@ func TestNetworkConfigureDHCPv4DUID(t *testing.T) {
 
 	m, err := configureNetwork(t, n)
 	if err != nil {
-		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+		t.Fatalf("Failed to configure DHCPv4 duid: %v\n", err)
 	}
 	defer os.Remove(m.Path)
 
@@ -944,7 +944,7 @@ func TestNetworkConfigureDHCPv4UseOption(t *testing.T) {
 
 	m, err := configureNetwork(t, n)
 	if err != nil {
-		t.Fatalf("Failed to configure RoutingPolicyRule: %v\n", err)
+		t.Fatalf("Failed to configure DHCPv4 Use: %v\n", err)
 	}
 	defer os.Remove(m.Path)
 
@@ -1240,5 +1240,157 @@ func TestNetworkRemoveIPv6SendRA(t *testing.T) {
 		m.GetKeySectionString("IPv6RoutePrefix", "Route") == "2001:db1:fff::/64" ||
 		m.GetKeySectionString("IPv6RoutePrefix", "LifetimeSec") == "1000" {
 		t.Fatalf("Failed to remove IPv6SendRA")
+	}
+}
+
+func TestNetworkConfigureDHCPv6(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv6Section: networkd.DHCPv6Section{
+			MUDURL:               "https://example.com/devB",
+			UserClass:            []string{"usrcls1", "usrcls2"},
+			VendorClass:          []string{"vdrcls1"},
+			PrefixDelegationHint: "2001:db1:fff::/64",
+			WithoutRA:            "solicit",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure DHCPv6: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv6", "MUDURL") != "https://example.com/devB" {
+		t.Fatalf("Failed to set MUDURL")
+	}
+	if m.GetKeySectionString("DHCPv6", "UserClass") != "usrcls1 usrcls2" {
+		t.Fatalf("Failed to set UserClass")
+	}
+	if m.GetKeySectionString("DHCPv6", "VendorClass") != "vdrcls1" {
+		t.Fatalf("Failed to set VendorClass")
+	}
+	if m.GetKeySectionString("DHCPv6", "PrefixDelegationHint") != "2001:db1:fff::/64" {
+		t.Fatalf("Failed to set PrefixDelegationHint")
+	}
+	if m.GetKeySectionString("DHCPv6", "WithoutRA") != "solicit" {
+		t.Fatalf("Failed to set WithoutRA")
+	}
+}
+
+func TestNetworkConfigureDHCPv6Id(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv6Section: networkd.DHCPv6Section{
+			IAID:        "8765434",
+			DUIDType:    "vendor",
+			DUIDRawData: "af:03:ff:87",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure DHCPv6 Identifier: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv6", "IAID") != "8765434" {
+		t.Fatalf("Failed to set IAID")
+	}
+	if m.GetKeySectionString("DHCPv6", "DUIDType") != "vendor" {
+		t.Fatalf("Failed to set DUIDType")
+	}
+	if m.GetKeySectionString("DHCPv6", "DUIDRawData") != "af:03:ff:87" {
+		t.Fatalf("Failed to set DUIDrawData")
+	}
+}
+
+func TestNetworkConfigureDHCPv6Use(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv6Section: networkd.DHCPv6Section{
+			UseAddress:         "yes",
+			UseDelegatedPrefix: "no",
+			UseDNS:             "no",
+			UseNTP:             "no",
+			UseHostname:        "yes",
+			UseDomains:         "yes",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure DHCPv6 Use: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv6", "UseAddress") != "yes" {
+		t.Fatalf("Failed to set UseAddress")
+	}
+	if m.GetKeySectionString("DHCPv6", "UseDelegatedPrefix") != "no" {
+		t.Fatalf("Failed to set UseDelegatedPrefix")
+	}
+	if m.GetKeySectionString("DHCPv6", "UseDNS") != "no" {
+		t.Fatalf("Failed to set UseDNS")
+	}
+	if m.GetKeySectionString("DHCPv6", "UseNTP") != "no" {
+		t.Fatalf("Failed to set UseNTP")
+	}
+	if m.GetKeySectionString("DHCPv6", "UseHostname") != "yes" {
+		t.Fatalf("Failed to set UseHostname")
+	}
+	if m.GetKeySectionString("DHCPv6", "UseDomains") != "yes" {
+		t.Fatalf("Failed to set UseDomains")
+	}
+}
+
+func TestNetworkConfigureDHCPv6Option(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		DHCPv6Section: networkd.DHCPv6Section{
+			RequestOptions:   []string{"10", "198", "34"},
+			SendOption:       "34563",
+			SendVendorOption: "1987653,65,ipv6address,af:03:ff:87",
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure DHCPv6 Use: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("DHCPv6", "RequestOptions") != "10 198 34" {
+		t.Fatalf("Failed to set RequestOptions")
+	}
+	if m.GetKeySectionString("DHCPv6", "SendOption") != "34563" {
+		t.Fatalf("Failed to set SendOption")
+	}
+	if m.GetKeySectionString("DHCPv6", "SendVendorOption") != "1987653:65:ipv6address:af:03:ff:87" {
+		t.Fatalf("Failed to set SendVendorOption")
 	}
 }
