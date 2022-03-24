@@ -160,6 +160,31 @@ func main() {
 					},
 				},
 				{
+					Name:        "login",
+					Aliases:     []string{"l"},
+					Description: "Introspects login status",
+					Subcommands: []*cli.Command{
+						{
+							Name:        "user",
+							Description: "Show login user list",
+
+							Action: func(c *cli.Context) error {
+								acquireLoginUserStatus(c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "session",
+							Description: "Show login session list",
+
+							Action: func(c *cli.Context) error {
+								acquireLoginSessionStatus(c.String("url"), token)
+								return nil
+							},
+						},
+					},
+				},
+				{
 					Name:        "system",
 					Aliases:     []string{"s"},
 					Description: "Introspects system status",
