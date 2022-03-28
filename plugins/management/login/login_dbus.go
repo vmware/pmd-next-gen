@@ -80,3 +80,20 @@ func (c *SDConnection) DBusAcquireUSessionsFromLogin(ctx context.Context) ([]Ses
 
 	return sessions, nil
 }
+
+func (c *SDConnection) DBusAcquireUSessionFromLogin(ctx context.Context, id string) (*Session, error) {
+	var out interface{}
+	if err := c.object.Call(dbusManagerinterface+".GetSession", 0, id).Store(&out); err != nil {
+		return nil, err
+	}
+
+	ret, ok := out.(dbus.ObjectPath)
+	if !ok {
+		return nil, fmt.Errorf("failed to typecast session to ObjectPath")
+	}
+
+	s := Session{
+		Path: fmt.Sprintf("%v", ret),
+	}
+	return &s, nil
+}
