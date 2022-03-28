@@ -206,6 +206,17 @@ IPv6Address State: degraded
               DNS: 172.16.130.2
 ```
 
+#### Login status
+```bash
+
+#ListUsers
+>pmctl status login user
+
+#ListSessions
+>pmctl status login session
+
+```
+
 #### sysctl usecase via pmctl
 ```bash
 
