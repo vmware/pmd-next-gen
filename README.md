@@ -217,6 +217,17 @@ IPv6Address State: degraded
 
 ```
 
+```
+
+#### Ethtool status
+```bash
+
+#Get Ethtool status 
+pmctl status ethtool <LINK> <ACTION>
+>pmctl status ethtool ens37 bus
+
+```
+
 #### sysctl usecase via pmctl
 ```bash
 

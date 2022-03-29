@@ -185,6 +185,20 @@ func main() {
 					},
 				},
 				{
+					Name:        "ethtool",
+					Aliases:     []string{"e"},
+					Description: "Introspects ethtool status",
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						acquireEthtoolStatus(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "system",
 					Aliases:     []string{"s"},
 					Description: "Introspects system status",
