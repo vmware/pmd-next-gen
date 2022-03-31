@@ -225,6 +225,17 @@ pmctl status login session <ID>
 
 ```
 
+```
+
+#### Ethtool status
+```bash
+
+#Get Ethtool status 
+pmctl status ethtool <LINK> <ACTION>
+>pmctl status ethtool ens37 bus
+
+```
+
 #### sysctl usecase via pmctl
 ```bash
 
