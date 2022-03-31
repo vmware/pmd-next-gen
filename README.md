@@ -215,6 +215,14 @@ IPv6Address State: degraded
 #ListSessions
 >pmctl status login session
 
+#Get User based on UID
+pmctl status login user <UID>
+>pmctl status login user 2
+
+#Get Session based on ID
+pmctl status login session <ID>
+>pmctl status login session 1000
+
 ```
 
 #### sysctl usecase via pmctl

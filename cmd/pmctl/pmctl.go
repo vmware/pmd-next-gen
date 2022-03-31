@@ -169,7 +169,11 @@ func main() {
 							Description: "Show login user list",
 
 							Action: func(c *cli.Context) error {
-								acquireLoginUserStatus(c.String("url"), token)
+								if c.NArg() < 1 {
+									acquireLoginUserListStatus(c.String("url"), token)
+								} else {
+									acquireLoginUserStatus(c.Args().First(), c.String("url"), token)
+								}
 								return nil
 							},
 						},
@@ -178,7 +182,11 @@ func main() {
 							Description: "Show login session list",
 
 							Action: func(c *cli.Context) error {
-								acquireLoginSessionStatus(c.String("url"), token)
+								if c.NArg() < 1 {
+									acquireLoginSessionListStatus(c.String("url"), token)
+								} else {
+									acquireLoginSessionStatus(c.Args().First(), c.String("url"), token)
+								}
 								return nil
 							},
 						},
