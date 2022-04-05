@@ -14,11 +14,23 @@ import (
 func routerAcquirEthTool(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	e := Ethtool{
+		Link: vars["link"],
+	}
+
+	err := e.AcquireEthTool(w)
+	if err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routerAcquirActionEthTool(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	e := Ethtool{
 		Link:   vars["link"],
 		Action: vars["property"],
 	}
 
-	err := e.AcquireEthTool(w)
+	err := e.AcquireActionEthTool(w)
 	if err != nil {
 		web.JSONResponseError(err, w)
 	}
@@ -46,6 +58,7 @@ func routerConfigureEthTool(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterEthTool(n *mux.Router) {
 	e := n.PathPrefix("/ethtool").Subrouter().StrictSlash(false)
 
-	e.HandleFunc("/{link}/{property}", routerAcquirEthTool).Methods("GET")
+	e.HandleFunc("/{link}", routerAcquirEthTool).Methods("GET")
+	e.HandleFunc("/{link}/{property}", routerAcquirActionEthTool).Methods("GET")
 	e.HandleFunc("/{link}/{command}", routerConfigureEthTool).Methods("POST")
 }

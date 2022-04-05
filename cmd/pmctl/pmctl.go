@@ -198,11 +198,11 @@ func main() {
 					Description: "Introspects ethtool status",
 					Action: func(c *cli.Context) error {
 						if c.NArg() < 2 {
-							fmt.Printf("Too few arguments.\n")
-							return nil
+							acquireEthtoolStatus(c.Args().First(), c.String("url"), token)
+						} else {
+							acquireEthtoolActionStatus(c.Args().First(), c.Args().Get(1), c.String("url"), token)
 						}
 
-						acquireEthtoolStatus(c.Args().First(), c.Args().Get(1), c.String("url"), token)
 						return nil
 					},
 				},

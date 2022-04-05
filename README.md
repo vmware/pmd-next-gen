@@ -230,7 +230,11 @@ pmctl status login session <ID>
 #### Ethtool status
 ```bash
 
-#Get Ethtool status 
+#Get Ethtool all status 
+pmctl status ethtool <LINK>
+>pmctl status ethtool ens37
+
+#Get Ethtool status based on action
 pmctl status ethtool <LINK> <ACTION>
 >pmctl status ethtool ens37 bus
 
