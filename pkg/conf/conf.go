@@ -38,6 +38,7 @@ type System struct {
 type Network struct {
 	Listen           string
 	ListenUnixSocket bool
+	ListenVSock      bool
 }
 
 func Parse() (*Config, error) {
