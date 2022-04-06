@@ -2,8 +2,8 @@
 ## explicit; go 1.16
 github.com/BurntSushi/toml
 github.com/BurntSushi/toml/internal
-# github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
-## explicit
+# github.com/StackExchange/wmi v1.2.1
+## explicit; go 1.13
 github.com/StackExchange/wmi
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit; go 1.13
@@ -11,11 +11,9 @@ github.com/asaskevich/govalidator
 # github.com/coreos/go-systemd/v22 v22.3.2
 ## explicit; go 1.12
 github.com/coreos/go-systemd/v22/dbus
-# github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d
-## explicit; go 1.12
+# github.com/cpuguy83/go-md2man/v2 v2.0.1
+## explicit; go 1.11
 github.com/cpuguy83/go-md2man/v2/md2man
-# github.com/dgrijalva/jwt-go v3.2.0+incompatible
-## explicit
 # github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
@@ -32,7 +30,7 @@ github.com/go-ini/ini
 ## explicit; go 1.12
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/godbus/dbus/v5 v5.0.6
+# github.com/godbus/dbus/v5 v5.1.0
 ## explicit; go 1.12
 github.com/godbus/dbus/v5
 # github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -45,7 +43,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/nftables v0.0.0-20220221214239-211824995dcb
+# github.com/google/nftables v0.0.0-20220405194427-2ba518ec5ca0
 ## explicit; go 1.12
 github.com/google/nftables
 github.com/google/nftables/binaryutil
@@ -65,8 +63,8 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/jaypipes/ghw v0.8.0
-## explicit; go 1.12
+# github.com/jaypipes/ghw v0.9.0
+## explicit; go 1.15
 github.com/jaypipes/ghw
 github.com/jaypipes/ghw/pkg/baseboard
 github.com/jaypipes/ghw/pkg/bios
@@ -88,14 +86,15 @@ github.com/jaypipes/ghw/pkg/snapshot
 github.com/jaypipes/ghw/pkg/topology
 github.com/jaypipes/ghw/pkg/unitutil
 github.com/jaypipes/ghw/pkg/util
-# github.com/jaypipes/pcidb v0.6.0
-## explicit; go 1.11
+# github.com/jaypipes/pcidb v1.0.0
+## explicit; go 1.17
 github.com/jaypipes/pcidb
 # github.com/josharian/native v0.0.0-20200817173448-b6b71def0850
 ## explicit; go 1.13
 github.com/josharian/native
-# github.com/kr/pretty v0.2.1
-## explicit; go 1.12
+# github.com/linuxkit/virtsock v0.0.0-20220326174755-1c88ab3ae042
+## explicit
+github.com/linuxkit/virtsock/pkg/vsock
 # github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0
 ## explicit; go 1.16
 github.com/lufia/plan9stats
@@ -131,13 +130,13 @@ github.com/pkg/errors
 # github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c
 ## explicit; go 1.14
 github.com/power-devops/perfstat
-# github.com/russross/blackfriday/v2 v2.0.1
+# github.com/russross/blackfriday/v2 v2.1.0
 ## explicit
 github.com/russross/blackfriday/v2
-# github.com/safchain/ethtool v0.1.0
+# github.com/safchain/ethtool v0.2.0
 ## explicit; go 1.16
 github.com/safchain/ethtool
-# github.com/shirou/gopsutil/v3 v3.22.1
+# github.com/shirou/gopsutil/v3 v3.22.3
 ## explicit; go 1.15
 github.com/shirou/gopsutil/v3/cpu
 github.com/shirou/gopsutil/v3/disk
@@ -147,9 +146,6 @@ github.com/shirou/gopsutil/v3/load
 github.com/shirou/gopsutil/v3/mem
 github.com/shirou/gopsutil/v3/net
 github.com/shirou/gopsutil/v3/process
-# github.com/shurcooL/sanitized_anchor_name v1.0.0
-## explicit
-github.com/shurcooL/sanitized_anchor_name
 # github.com/sirupsen/logrus v1.8.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
@@ -180,13 +176,13 @@ github.com/subosito/gotenv
 # github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 ## explicit
 github.com/syndtr/gocapability/capability
-# github.com/tklauser/go-sysconf v0.3.9
+# github.com/tklauser/go-sysconf v0.3.10
 ## explicit; go 1.13
 github.com/tklauser/go-sysconf
-# github.com/tklauser/numcpus v0.3.0
+# github.com/tklauser/numcpus v0.4.0
 ## explicit; go 1.11
 github.com/tklauser/numcpus
-# github.com/urfave/cli/v2 v2.3.0
+# github.com/urfave/cli/v2 v2.4.0
 ## explicit; go 1.11
 github.com/urfave/cli/v2
 # github.com/vishvananda/netlink v1.1.0
@@ -205,7 +201,7 @@ golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20211209124913-491a49abca63
 ## explicit; go 1.17
 golang.org/x/net/bpf
-# golang.org/x/sys v0.0.0-20220209214540-3681064d5158
+# golang.org/x/sys v0.0.0-20220405210540-1e041c57c461
 ## explicit; go 1.17
 golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader
@@ -289,6 +285,6 @@ honnef.co/go/tools/staticcheck/fakexml
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/unused/typemap
-# howett.net/plist v0.0.0-20181124034731-591f970eefbb
-## explicit
+# howett.net/plist v1.0.0
+## explicit; go 1.12
 howett.net/plist

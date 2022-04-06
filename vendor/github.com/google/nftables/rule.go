@@ -89,6 +89,9 @@ func (cc *Conn) GetRule(t *Table, c *Chain) ([]*Rule, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Carry over all Table attributes (including Family), as the Table
+		// object which ruleFromMsg creates only contains the name.
+		r.Table = t
 		rules = append(rules, r)
 	}
 
@@ -251,10 +254,14 @@ func exprsFromMsg(b []byte) ([]expr.Any, error) {
 						e = &expr.NAT{}
 					case "limit":
 						e = &expr.Limit{}
+					case "quota":
+						e = &expr.Quota{}
 					case "dynset":
 						e = &expr.Dynset{}
 					case "log":
 						e = &expr.Log{}
+					case "exthdr":
+						e = &expr.Exthdr{}
 					}
 					if e == nil {
 						// TODO: introduce an opaque expression type so that users know
