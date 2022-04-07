@@ -93,7 +93,6 @@ func runVSockHttpServer(c *conf.Config, r *mux.Router) error {
 	log.Infof("Starting photon-mgmtd... Listening on VSOCK")
 
 	l, err := vsock.Listen(vsock.CIDAny, 8082)
-	//l, err := vsock.Listen(1235, 8082)
 	if err != nil {
 		return err
 	}

@@ -5,3 +5,4 @@ LogLevel="info"
 [Network]
 #Listen="127.0.0.1:5208"
 ListenUnixSocket="true"
+#ListenVSock="true"
