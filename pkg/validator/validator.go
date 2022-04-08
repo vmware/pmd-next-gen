@@ -117,6 +117,16 @@ func IsIPs(s []string) bool {
 	return true
 }
 
+func IsVSockHost(host string) bool {
+	h := strings.Split(host, ":")
+	if len(h) < 2 {
+		return false
+	}
+
+	return IsUint32(h[0]) && IsPort(h[1])
+
+}
+
 func IsDHCPDUIDType(id string) bool {
 	return id == "vendor" || id == "uuid" || id == "link-layer-time" || id == "link-layer"
 }

@@ -12,8 +12,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/linuxkit/virtsock/pkg/vsock"
 	"github.com/pkg/errors"
 
 	"github.com/pmd-nextgen/pkg/conf"
@@ -89,8 +92,23 @@ func DispatchSocketWithStatus(method, host string, url string, headers map[strin
 		}
 		url = "http://localhost" + url
 	} else {
-		httpClient = http.DefaultClient
-		url = host + url
+		if validator.IsVSockHost(host) {
+			h := strings.Split(host, ":")
+			cid, _ := strconv.ParseUint(h[0], 10, 32)
+			port, _ := strconv.ParseUint(h[1], 10, 32)
+
+			httpClient = &http.Client{
+				Transport: &http.Transport{
+					DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+						return vsock.Dial(uint32(cid), uint32(port))
+					},
+				},
+			}
+			url = "http://localhost" + url
+		} else {
+			httpClient = http.DefaultClient
+			url = host + url
+		}
 	}
 
 	req, err := buildHttpRequest(ctx, method, url, headers, data)
