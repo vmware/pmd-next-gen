@@ -152,7 +152,13 @@ Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" leve
 
 ```
 
+# Configure system hostname
+```
+bash
+❯ pmctl system set-hostname static ubuntu transient transientname pretty prettyname
+```
 
+# Acquire system status
 ```bash
 ❯ pmctl status  system
               System Name: Zeus
@@ -179,7 +185,7 @@ Operating System Home URL: https://vmware.github.io/photon/
                    Memory: Total (13564788736) Used (13564788736) Free (589791232) Available (9723891712)
 ```
 
-
+# Network status
 ```bash
 ❯ pmctl status network -i ens33
              Name: ens33
@@ -204,6 +210,84 @@ IPv6Address State: degraded
         Addresses: 172.16.130.132/24 172.16.130.131/24 fe80::3279:c56d:55f9:aed7/64
           Gateway: 172.16.130.2
               DNS: 172.16.130.2
+```
+
+# Network dns status
+```bash
+> pmctl status network dns
+Global
+
+        DNS: 8.8.8.1 8.8.8.2 
+DNS Domains: test3.com test4.com . localdomain . localdomain 
+Link 2 (ens33)
+Current DNS Server:  172.16.61.2
+       DNS Servers:  172.16.61.2
+
+Link 3 (ens37)
+Current DNS Server:  172.16.61.2
+       DNS Servers:  172.16.61.2
+```
+
+# Network iostat status
+```bash
+> pmctl status network iostat
+            Name: lo
+Packets received: 7510
+  Bytes received: 7510
+      Bytes sent: 7510
+         Drop in: 7510
+        Drop out: 0
+        Error in: 0
+       Error out: 0
+         Fifo in: 0
+        Fifo out: 0
+
+            Name: ens33
+Packets received: 46014
+  Bytes received: 19072
+      Bytes sent: 19072
+         Drop in: 19072
+        Drop out: 0
+        Error in: 0
+       Error out: 0
+         Fifo in: 0
+        Fifo out: 0
+
+            Name: ens37
+Packets received: 9682
+  Bytes received: 10779
+      Bytes sent: 10779
+         Drop in: 10779
+        Drop out: 0
+        Error in: 0
+       Error out: 0
+         Fifo in: 0
+        Fifo out: 0
+```
+
+# Network interfaces status
+```bash
+> pmctl status network interfaces
+            Name: lo
+           Index: 1
+             MTU: 65536
+           Flags: up loopback
+Hardware Address: 
+       Addresses: 127.0.0.1/8 ::1/128
+
+            Name: ens33
+           Index: 2
+             MTU: 1500
+           Flags: up broadcast multicast
+Hardware Address: 00:0c:29:7c:6f:84
+       Addresses: 172.16.61.128/24 fe80::c099:2598:cc4c:14d1/64
+
+            Name: ens37
+           Index: 3
+             MTU: 1500
+           Flags: up broadcast multicast
+Hardware Address: 00:0c:29:7c:6f:8e
+       Addresses: 172.16.61.134/24 fe80::be9:7746:7729:3e2/64
 ```
 
 #### Login status
