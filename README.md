@@ -809,6 +809,80 @@ pmctl network nft-run <COMMAND>
 
 ```
 
+#### proc info and configuration
+```bash
+
+# Net device property stats.
+pmctl status proc net path <PATH> dev <LINK> property <PROPERTY>
+>pmctl status proc net path ipv6 dev ens37 property mtu
+                 Path: ipv6
+                 Link: ens37
+             Property: mtu
+                Value: 1300
+
+# Net device property configuration.
+pmctl proc net path <PATH> dev <LINK> property <PROPERTY> value <VALUE>
+>pmctl proc net path ipv6 dev ens37 property mtu value 1500
+
+# VM property stats.
+pmctl status proc vm <PROPERTY>
+>pmctl status proc vm page-cluster
+             Property: page-cluster
+                Value: 3
+
+# VM property configuration.
+>pmctl proc vm <PROPERTY> <VALUE>
+pmctl proc vm page-cluster 5
+
+# System property stats.
+pmctl status proc system <PROPERTY>
+>pmctl status proc system cpuinfo
+
+# ARP stats.
+pmctl status proc arp
+>pmctl status proc arp
+             IPAddress: 172.16.61.254
+                HWType: 0x1
+                 Flags: 0x2
+             HWAddress: 00:50:56:f3:5d:48
+                  Mask: *
+                Device: ens37
+
+             IPAddress: 172.16.61.254
+                HWType: 0x1
+                 Flags: 0x2
+             HWAddress: 00:50:56:f3:5d:48
+                  Mask: *
+                Device: ens33
+
+             IPAddress: 172.16.61.2
+                HWType: 0x1
+                 Flags: 0x2
+             HWAddress: 00:50:56:f4:e7:22
+                  Mask: *
+                Device: ens33
+
+             IPAddress: 172.16.61.2
+                HWType: 0x1
+                 Flags: 0x2
+             HWAddress: 00:50:56:f4:e7:22
+                  Mask: *
+                Device: ens37
+
+# Netstat info.
+pmctl status proc netstat <PROTOCOL>
+>pmctl status proc netstat tcp
+
+# Process stats.
+pmctl status proc process <PID> <PROPERTY>
+>pmctl status proc process 88157 pid-memory-percent
+
+# Protopidstat stats.
+pmctl status proc protopidstat <PID> <PROTOCOL>
+>pmctl status proc protopidstat 89502 tcp
+
+```
+
 #### Package Management
 ```bash
 # List all packages

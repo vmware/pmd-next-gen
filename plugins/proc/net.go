@@ -79,5 +79,21 @@ func (r *SysNet) SetSysNet(rw http.ResponseWriter) error {
 		return err
 	}
 
-	return system.WriteOneLineFile(path, r.Value)
+	if err := system.WriteOneLineFile(path, r.Value); err != nil {
+		return err
+	}
+
+	line, err := system.ReadOneLineFile(path)
+	if err != nil {
+		return err
+	}
+
+	s := SysNet{
+		Path:     r.Path,
+		Property: r.Property,
+		Value:    line,
+		Link:     r.Link,
+	}
+
+	return web.JSONResponse(s, rw)
 }

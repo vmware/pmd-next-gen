@@ -473,6 +473,10 @@ func IsNFTChainPolicy(p string) bool {
 	return p == "drop" || p == "accept"
 }
 
+func IsProcSysNetPath(p string) bool {
+	return p == "core" || p == "ipv4" || p == "ipv6"
+}
+
 // see https://fedoraproject.org/wiki/Packaging:Naming
 func IsValidPkgName(name string) bool {
 	if IsEmpty(name) {

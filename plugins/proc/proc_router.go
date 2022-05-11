@@ -33,7 +33,7 @@ func routerAcquireProcPidNetStat(w http.ResponseWriter, r *http.Request) {
 
 func routerAcquireProcSysVM(w http.ResponseWriter, r *http.Request) {
 	vm := VM{
-		Property: mux.Vars(r)["path"],
+		Property: mux.Vars(r)["property"],
 	}
 
 	if err := vm.GetVM(w); err != nil {
@@ -43,7 +43,7 @@ func routerAcquireProcSysVM(w http.ResponseWriter, r *http.Request) {
 
 func routerConfigureProcSysVM(w http.ResponseWriter, r *http.Request) {
 	vm := VM{
-		Property: mux.Vars(r)["path"],
+		Property: mux.Vars(r)["property"],
 	}
 
 	v := Proc{}
@@ -61,7 +61,7 @@ func routerConfigureProcSysVM(w http.ResponseWriter, r *http.Request) {
 func routerAcquireProcSysNet(w http.ResponseWriter, r *http.Request) {
 	proc := SysNet{
 		Path:     mux.Vars(r)["path"],
-		Property: mux.Vars(r)["conf"],
+		Property: mux.Vars(r)["property"],
 		Link:     mux.Vars(r)["link"],
 	}
 
@@ -73,7 +73,7 @@ func routerAcquireProcSysNet(w http.ResponseWriter, r *http.Request) {
 func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 	proc := SysNet{
 		Path:     mux.Vars(r)["path"],
-		Property: mux.Vars(r)["conf"],
+		Property: mux.Vars(r)["property"],
 		Link:     mux.Vars(r)["link"],
 	}
 
@@ -151,17 +151,17 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterProc(router *mux.Router) {
 	n := router.PathPrefix("/proc").Subrouter().StrictSlash(false)
 
-	n.HandleFunc("/sys/net/{path}/{link}/{conf}", routerAcquireProcSysNet).Methods("GET")
-	n.HandleFunc("/sys/net/{path}/{link}/{conf}", configureProcSysNet).Methods("PUT")
+	n.HandleFunc("/sys/net/{path}/{link}/{property}", routerAcquireProcSysNet).Methods("GET")
+	n.HandleFunc("/sys/net/{path}/{link}/{property}", configureProcSysNet).Methods("PUT")
 
-	n.HandleFunc("/sys/vm/{path}", routerAcquireProcSysVM).Methods("GET")
-	n.HandleFunc("/sys/vm/{path}", routerConfigureProcSysVM).Methods("PUT")
+	n.HandleFunc("/sys/vm/{property}", routerAcquireProcSysVM).Methods("GET")
+	n.HandleFunc("/sys/vm/{property}", routerConfigureProcSysVM).Methods("PUT")
 
 	n.HandleFunc("/{system}", routerAcquireSystem).Methods("GET")
 
 	n.HandleFunc("/net/arp", routerAcquireProcNetArp).Methods("GET")
 	n.HandleFunc("/netstat/{protocol}", routerAcquireProcNetStat).Methods("GET")
 
-	n.HandleFunc("/process/{pid}/{property}/", routerAcquireProcProcess).Methods("GET")
+	n.HandleFunc("/process/{pid}/{property}", routerAcquireProcProcess).Methods("GET")
 	n.HandleFunc("/protopidstat/{pid}/{protocol}", routerAcquireProcPidNetStat).Methods("GET")
 }
