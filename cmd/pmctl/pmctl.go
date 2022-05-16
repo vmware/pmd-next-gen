@@ -280,6 +280,118 @@ func main() {
 						},
 					},
 				},
+				{
+					Name:        "proc",
+					Aliases:     []string{"p"},
+					Description: "Introspects proc status",
+					Subcommands: []*cli.Command{
+						{
+							Name:        "net",
+							Aliases:     []string{"n"},
+							UsageText:   "net path [PATH] dev [LINK] property [PROPERTY]",
+							Description: "Show proc net info",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 6 {
+									fmt.Printf("Too few arguments.\n")
+									return nil
+								}
+
+								acquireProcSysNetStats(c.Args(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "vm",
+							Aliases:     []string{"s"},
+							UsageText:   "vm [PROPERTY]",
+							Description: "Show proc vm info",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 1 {
+									fmt.Printf("Too few arguments.\n")
+									return nil
+								}
+
+								acquireProcSysVMStats(c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "system",
+							Aliases:     []string{"s"},
+							UsageText:   "system [PROPERTY]",
+							Description: "Show proc system info",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 1 {
+									fmt.Printf("Too few arguments.\n")
+									return nil
+								}
+
+								acquireProcSystemStats(c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "arp",
+							Description: "Show proc net arp info",
+
+							Action: func(c *cli.Context) error {
+								acquireProcNetArpStats(c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "netstat",
+							Aliases:     []string{"n"},
+							UsageText:   "netstat [PROTOCOL]",
+							Description: "Show proc netstat info for protocol",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 1 {
+									fmt.Printf("Too few arguments.\n")
+									return nil
+								}
+
+								acquireProcNetStats(c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "process",
+							Aliases:     []string{"p"},
+							UsageText:   "process [PID] [PROPERTY]",
+							Description: "Show process info for process id",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 2 {
+									fmt.Printf("Too few arguments.\n")
+									return nil
+								}
+
+								acquireProcessStats(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "protopidstat",
+							Aliases:     []string{"p"},
+							UsageText:   "protopidstat [PID] [PROPERTY]",
+							Description: "Show proto pid info for process id",
+
+							Action: func(c *cli.Context) error {
+								if c.NArg() < 2 {
+									fmt.Printf("Too few arguments.\n")
+									return nil
+								}
+
+								acquireProtoPidStats(c.Args().First(), c.Args().Get(1), c.String("url"), token)
+								return nil
+							},
+						},
+					},
+				},
 			},
 		},
 		{
@@ -1596,6 +1708,41 @@ func main() {
 
 					Action: func(c *cli.Context) error {
 						sysctlLoadConfig(c.String("files"), c.String("url"), token)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "proc",
+			Aliases: []string{"p"},
+			Usage:   "Add or Update, remove and load proc sys properties",
+			Subcommands: []*cli.Command{
+				{
+					Name:      "net",
+					UsageText: "net path [PATH] dev [LINK] property [PROPERTY] value [VALUE]",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 8 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						configureProcSysNet(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:      "vm",
+					UsageText: "vm [PROPERTY] [VALUE]",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 2 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						configureProcSysVM(c.Args().First(), c.Args().Get(1), c.String("url"), token)
 						return nil
 					},
 				},
