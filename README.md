@@ -813,6 +813,17 @@ pmctl network nft-run <COMMAND>
 ```bash
 
 # Net device property stats.
+pmctl status proc net path <PATH> property <PROPERTY>
+pmctl status proc net path ipv6 property calipso_cache_bucket_size
+                 Path: ipv6
+             Property: calipso_cache_bucket_size
+                Value: 10
+
+# Net device property configuration.
+pmctl proc net path <PATH> property <PROPERTY> value <VALUE>
+>pmctl proc net path ipv6 property calipso_cache_bucket_size value 12
+
+# Net device link property stats.
 pmctl status proc net path <PATH> dev <LINK> property <PROPERTY>
 >pmctl status proc net path ipv6 dev ens37 property mtu
                  Path: ipv6
@@ -820,7 +831,7 @@ pmctl status proc net path <PATH> dev <LINK> property <PROPERTY>
              Property: mtu
                 Value: 1300
 
-# Net device property configuration.
+# Net device link property configuration.
 pmctl proc net path <PATH> dev <LINK> property <PROPERTY> value <VALUE>
 >pmctl proc net path ipv6 dev ens37 property mtu value 1500
 
