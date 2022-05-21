@@ -292,7 +292,7 @@ func main() {
 							Description: "Show proc net info",
 
 							Action: func(c *cli.Context) error {
-								if c.NArg() < 6 {
+								if c.NArg() < 4 {
 									fmt.Printf("Too few arguments.\n")
 									return nil
 								}
@@ -1723,7 +1723,7 @@ func main() {
 					UsageText: "net path [PATH] dev [LINK] property [PROPERTY] value [VALUE]",
 
 					Action: func(c *cli.Context) error {
-						if c.NArg() < 8 {
+						if c.NArg() < 6 {
 							fmt.Printf("Too few arguments.\n")
 							return nil
 						}

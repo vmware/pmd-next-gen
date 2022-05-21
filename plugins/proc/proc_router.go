@@ -151,7 +151,9 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 func RegisterRouterProc(router *mux.Router) {
 	n := router.PathPrefix("/proc").Subrouter().StrictSlash(false)
 
+	n.HandleFunc("/sys/net/{path}/{property}", routerAcquireProcSysNet).Methods("GET")
 	n.HandleFunc("/sys/net/{path}/{link}/{property}", routerAcquireProcSysNet).Methods("GET")
+	n.HandleFunc("/sys/net/{path}/{property}", configureProcSysNet).Methods("PUT")
 	n.HandleFunc("/sys/net/{path}/{link}/{property}", configureProcSysNet).Methods("PUT")
 
 	n.HandleFunc("/sys/vm/{property}", routerAcquireProcSysVM).Methods("GET")
