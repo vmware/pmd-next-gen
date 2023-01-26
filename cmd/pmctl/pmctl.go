@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -12,8 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 func main() {
@@ -330,6 +330,26 @@ func main() {
 								}
 
 								acquireProcSystemStats(c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "disk-partitions",
+							UsageText:   "disk-partitions",
+							Description: "Show disk partition info",
+
+							Action: func(c *cli.Context) error {
+								acquireProcDiskPartitions(c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "disk-usage",
+							UsageText:   "disk-usage",
+							Description: "Show disk diskusage info",
+
+							Action: func(c *cli.Context) error {
+								acquireProcDiskUsage(c.String("url"), token)
 								return nil
 							},
 						},
@@ -867,6 +887,21 @@ func main() {
 					},
 				},
 				{
+					Name:        "add-sriov",
+					UsageText:   "add-sriov dev [LINK MASTER] vf [NUMBER] vlanid [NUMBER] qos [NUMBER] vlanproto [STRING] macsfc [BOOLEAN] qrss [BOOLEAN] trust [BOOLEAN] linkstate [STRING] macaddr [ADDRESS]",
+					Description: "Add SR-IOV.",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 4 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkAddSRIOV(c.Args(), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "add-rule",
 					UsageText:   "add-rule dev [LINK MASTER] tos [NUMBER] from [ADDRESS] to [ADDRESS] fwmark [STRING] table [STRING] prio [NUMBER] iif [STRING] oif [STRING] srcport [STRING] destport [STRING] ipproto [STRING] invertrule [STRING] family [STRING] usr [STRING] suppressprefixlen [NUMBER] suppressifgrp [NUMBER] type [STRING]",
 					Description: "Add RoutingPolicyRule.",
@@ -1002,8 +1037,38 @@ func main() {
 					},
 				},
 				{
+					Name:        "create-tun",
+					UsageText:   "create-tun [Tun name] dev [LINK MASTER] mq [STRING] pktinfo [STRING] vnet-hdr [string] usr [string] grp [STRING] kc [STRING]",
+					Description: "Create tun(Tun).",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 3 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateTunOrTap(c.Args(), c.String("tun"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "create-tap",
+					UsageText:   "create-tap [Tap name] dev [LINK MASTER] mq [STRING] pktinfo [STRING] vnet-hdr [string] usr [string] grp [STRING] kc [STRING]",
+					Description: "Create tap(Tap).",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 3 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateTunOrTap(c.Args(), c.String("tap"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
 					Name:        "remove-netdev",
-					UsageText:   "remove-netdev [NETDEV name] kind [KIND {vlan|bridge|bond|vxlan|macvlan|macvtap|ipvlan|ipvtap|vrf|veth|ipip|sit|vti|gre|wg]",
+					UsageText:   "remove-netdev [NETDEV name] kind [KIND {vlan|bridge|bond|vxlan|macvlan|macvtap|ipvlan|ipvtap|vrf|veth|ipip|sit|vti|gre|wg|tun]",
 					Description: "Removes .netdev and .network files.",
 
 					Action: func(c *cli.Context) error {
@@ -1401,7 +1466,7 @@ func main() {
 			Usage:   "Package Management",
 			Flags:   tdnfCreateFlags(),
 			Subcommands: []*cli.Command{
-				tdnfCreateAlterCommand("autoremove", []string{}, "Remove a Package and Dependencies", true, token),
+				tdnfCreateAlterCommand("autoremove", []string{}, "Remove a Package and Dependencies", false, token),
 				tdnfCreateAlterCommand("downgrade", []string{}, "Downgrade Package(s)", false, token),
 				tdnfCreateAlterCommand("distro-sync", []string{}, "Distro Sync", false, token),
 				tdnfCreateAlterCommand("erase", []string{"remove", "r"}, "Remove a Package", true, token),
@@ -1576,6 +1641,89 @@ func main() {
 							tdnfUpdateInfo(&options, "", c.String("url"), token)
 						}
 						return nil
+					},
+				},
+				{
+					Name:        "history",
+					Aliases:     []string{"h"},
+					Description: "History Commands",
+
+					Subcommands: []*cli.Command{
+						tdnfCreateHistoryAlterCommand("rollback", []string{"r"}, "Rollback History", token),
+						tdnfCreateHistoryAlterCommand("undo", []string{"u"}, "Undo History", token),
+						tdnfCreateHistoryAlterCommand("redo", []string{"re"}, "Redo History", token),
+						{
+							Name:        "init",
+							Aliases:     []string{"i"},
+							Description: "Initialize History DB",
+
+							Action: func(c *cli.Context) error {
+								options := tdnfParseFlags(c)
+								if c.NArg() >= 1 {
+									fmt.Printf("Too many arguments\n")
+									return nil
+								}
+								tdnfHistoryInit(&options, c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "list",
+							Aliases:     []string{"l"},
+							Description: "List History",
+							Flags:       tdnfCreateHistoryFlags(),
+
+							Action: func(c *cli.Context) error {
+								options := tdnfParseHistoryCmdFlags(c)
+								if c.NArg() >= 1 {
+									fmt.Printf("Too many arguments\n")
+									return nil
+								}
+								tdnfHistoryList(&options, c.String("url"), token)
+								return nil
+							},
+						},
+					},
+				},
+				{
+					Name:        "mark",
+					Aliases:     []string{"m"},
+					Description: "Mark Package(s)",
+					Subcommands: []*cli.Command{
+						{
+							Name:        "install",
+							Aliases:     []string{"i"},
+							Description: "Mark as user installed",
+							Action: func(c *cli.Context) error {
+								options := tdnfParseFlags(c)
+								if c.NArg() > 1 {
+									fmt.Printf("Too many arguments\n")
+									return nil
+								} else if c.NArg() < 1 {
+									fmt.Printf("Needs packages names(s)\n")
+									return nil
+								}
+								tdnfMark(&options, "install", c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "remove",
+							Aliases:     []string{"i"},
+							Description: "Mark as auto installed",
+							Action: func(c *cli.Context) error {
+								options := tdnfParseFlags(c)
+								if c.NArg() > 1 {
+									fmt.Printf("Too many arguments\n")
+									return nil
+								} else if c.NArg() < 1 {
+									fmt.Printf("Needs packages names(s)\n")
+									return nil
+								}
+								tdnfMark(&options, "remove", c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
 					},
 				},
 			},

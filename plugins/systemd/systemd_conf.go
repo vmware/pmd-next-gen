@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package systemd
 
@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/go-ini/ini"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
 

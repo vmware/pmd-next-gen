@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -10,7 +10,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt"
-	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/vmware/pmd/pkg/validator"
 	"github.com/urfave/cli/v2"
 )
 

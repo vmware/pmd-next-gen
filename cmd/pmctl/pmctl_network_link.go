@@ -1,5 +1,5 @@
 //  SPDX-License-Identifier: Apache-2.0
-//  Copyright 2022 VMware, Inc.
+//  Copyright 2023 VMware, Inc.
 
 package main
 
@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/network/networkd"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/network/networkd"
 	"github.com/urfave/cli/v2"
 )
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/network/firewall"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/network/firewall"
 )
 
 func addNFTTable() error {
@@ -166,9 +166,11 @@ func TestShowNFTChain(t *testing.T) {
 			fmt.Printf("               %v %v\n", color.HiBlueString("Table:"), v.Table.Name)
 			fmt.Printf("              %v %v\n", color.HiBlueString("Family:"), v.Table.Family)
 			fmt.Printf("               %v %v\n", color.HiBlueString("Chain:"), v.Name)
-			fmt.Printf("                %v %v\n", color.HiBlueString("Hook:"), v.Hooknum)
 			fmt.Printf("                %v %v\n", color.HiBlueString("Type:"), v.Type)
-			fmt.Printf("              %v %v\n", color.HiBlueString("Policy:"), *v.Policy)
+			fmt.Printf("                %v %v\n", color.HiBlueString("Hook:"), v.Hooknum)
+			if v.Policy != nil {
+				fmt.Printf("              %v %v\n", color.HiBlueString("Policy:"), *v.Policy)
+			}
 			fmt.Printf("            %v %v\n\n", color.HiBlueString("Priority:"), v.Priority)
 		}
 	} else {

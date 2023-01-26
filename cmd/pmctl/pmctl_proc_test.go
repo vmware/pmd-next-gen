@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -12,10 +12,11 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/proc"
 	"github.com/vishvananda/netlink"
+
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/proc"
 )
 
 func TestConfigureProcSysNet(t *testing.T) {
@@ -276,6 +277,52 @@ func TestAcquireProtoPidStats(t *testing.T) {
 	resp, err := web.DispatchSocket(http.MethodGet, "", "/api/v1/proc/protopidstat/"+strconv.Itoa(os.Getpid())+"/tcp", nil, nil)
 	if err != nil {
 		t.Fatalf("Failed to acquire proto pid stats: %v\n", err)
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+
+	if m.Success {
+		jsonData, err := json.Marshal(m.Message)
+		if err != nil {
+			t.Fatalf(err.Error())
+		} else {
+			fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+		}
+	} else {
+		t.Fatalf(m.Errors)
+	}
+}
+
+func TestAcquireProcDiskPartitions(t *testing.T) {
+	resp, err := web.DispatchSocket(http.MethodGet, "", "/api/v1/proc/diskpartitions", nil, nil)
+	if err != nil {
+		t.Fatalf("Failed to acquire disk partition info: %v\n", err)
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+
+	if m.Success {
+		jsonData, err := json.Marshal(m.Message)
+		if err != nil {
+			t.Fatalf(err.Error())
+		} else {
+			fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+		}
+	} else {
+		t.Fatalf(m.Errors)
+	}
+}
+
+func TestAcquireProcDiskUsage(t *testing.T) {
+	resp, err := web.DispatchSocket(http.MethodGet, "", "/api/v1/proc/diskusage", nil, nil)
+	if err != nil {
+		t.Fatalf("Failed to acquire disk usage info: %v\n", err)
 	}
 
 	m := web.JSONResponseMessage{}

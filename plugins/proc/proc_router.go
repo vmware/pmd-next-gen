@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package proc
 
@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 type Proc struct {
@@ -113,10 +113,10 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 		err = AcquireCPUTimeStat(w)
 	case "diskusage":
 		err = AcquireDiskUsage(w)
+	case "diskpartitions":
+		err = AcquireDiskPartitions(w)
 	case "iocounters":
 		err = AcquireIOCounters(w)
-	case "partitions":
-		err = AcquirePartitions(w)
 	case "temperaturestat":
 		err = AcquireTemperatureStat(w)
 	case "modules":

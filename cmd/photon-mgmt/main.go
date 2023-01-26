@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd-nextgen/pkg/conf"
-	"github.com/pmd-nextgen/pkg/server"
-	"github.com/pmd-nextgen/pkg/system"
+	"github.com/vmware/pmd/pkg/conf"
+	"github.com/vmware/pmd/pkg/server"
+	"github.com/vmware/pmd/pkg/system"
 )
 
 func main() {

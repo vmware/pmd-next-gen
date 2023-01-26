@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package proc
 
@@ -19,8 +19,8 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd-nextgen/pkg/system"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/system"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 const (
@@ -198,7 +198,7 @@ func AcquireAvgStat(w http.ResponseWriter) error {
 	return web.JSONResponse(avgStat, w)
 }
 
-func AcquirePartitions(w http.ResponseWriter) error {
+func AcquireDiskPartitions(w http.ResponseWriter) error {
 	part, err := disk.Partitions(true)
 	if err != nil {
 		return err

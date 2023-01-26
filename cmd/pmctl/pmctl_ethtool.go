@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 func acquireEthtoolStatus(link, host string, token map[string]string) {

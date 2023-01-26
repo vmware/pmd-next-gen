@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/network/networkd"
 	"github.com/urfave/cli/v2"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/network/networkd"
 )
 
 func networkCreateVLan(args cli.Args, host string, token map[string]string) {
@@ -396,6 +396,56 @@ func networkCreateWireGuard(args cli.Args, host string, token map[string]string)
 
 	if !m.Success {
 		fmt.Printf("Failed to create WireGuard: %v\n", m.Errors)
+	}
+}
+
+func networkCreateTunOrTap(args cli.Args, kind, host string, token map[string]string) {
+	argStrings := args.Slice()
+	n := networkd.NetDev{
+		Name: argStrings[0],
+		Kind: kind,
+	}
+
+	for i := 1; i < len(argStrings); {
+		switch argStrings[i] {
+		case "dev":
+			n.Links = strings.Fields(argStrings[i+1])
+		case "mq":
+			n.TunOrTapSection.MultiQueue = argStrings[i+1]
+		case "pktinfo":
+			n.TunOrTapSection.PacketInfo = argStrings[i+1]
+		case "vnet-hdr":
+			n.TunOrTapSection.VNetHeader = argStrings[i+1]
+		case "usr":
+			n.TunOrTapSection.User = argStrings[i+1]
+		case "grp":
+			n.TunOrTapSection.Group = argStrings[i+1]
+		case "kc":
+			n.TunOrTapSection.KeepCarrier = argStrings[i+1]
+		}
+
+		i++
+	}
+
+	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) {
+		fmt.Printf("Failed to create %s. Missing name or dev\n", kind)
+		return
+	}
+
+	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
+	if err != nil {
+		fmt.Printf("Failed to create %s: %v\n", kind, err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to create %s: %v\n", kind, m.Errors)
 	}
 }
 

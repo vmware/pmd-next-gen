@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package conf
 
 import (
-	"github.com/pmd-nextgen/pkg/parser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/vmware/pmd/pkg/parser"
 )
 
 const (
 	Version  = "0.1"
 	ConfPath = "/etc/photon-mgmt"
-	ConfFile = "photon-mgmt"
+	ConfFile = "mgmt"
 	TLSCert  = "cert/server.crt"
 	TLSKey   = "cert/server.key"
 
@@ -23,7 +23,7 @@ const (
 	DefaultPort      = "5208"
 	ListenUnixSocket = "true"
 
-	UnixDomainSocketPath = "/run/photon-mgmt/photon-mgmt.sock"
+	UnixDomainSocketPath = "/run/photon-mgmt/mgmt.sock"
 )
 
 type Config struct {

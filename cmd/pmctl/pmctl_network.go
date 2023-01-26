@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -12,18 +12,19 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/share"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/network"
-	"github.com/pmd-nextgen/plugins/network/netlink/address"
-	"github.com/pmd-nextgen/plugins/network/netlink/link"
-	"github.com/pmd-nextgen/plugins/network/netlink/route"
-	"github.com/pmd-nextgen/plugins/network/networkd"
-	"github.com/pmd-nextgen/plugins/network/resolved"
-	"github.com/pmd-nextgen/plugins/network/timesyncd"
 	"github.com/shirou/gopsutil/v3/net"
 	"github.com/urfave/cli/v2"
+
+	"github.com/vmware/pmd/pkg/share"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/network"
+	"github.com/vmware/pmd/plugins/network/netlink/address"
+	"github.com/vmware/pmd/plugins/network/netlink/link"
+	"github.com/vmware/pmd/plugins/network/netlink/route"
+	"github.com/vmware/pmd/plugins/network/networkd"
+	"github.com/vmware/pmd/plugins/network/resolved"
+	"github.com/vmware/pmd/plugins/network/timesyncd"
 )
 
 type NetDevIOCounters struct {
@@ -231,7 +232,7 @@ func displayDnsAndDomains(n *resolved.Describe) {
 	}
 }
 
-func displayOneLinkNTP(link string, ntp *timesyncd.Describe) {
+func displayOneLinkNTP(ntp *timesyncd.Describe) {
 	if len(ntp.LinkNTPServers) > 0 {
 		fmt.Printf("              %v %v\n", color.HiBlueString("NTP:"), ntp.LinkNTPServers)
 	}
@@ -971,6 +972,84 @@ func parseRoutingPolicyRule(args cli.Args) (*networkd.Network, error) {
 
 	return &n, nil
 
+}
+
+func parseSRIOV(args cli.Args) (*networkd.Network, error) {
+	argStrings := args.Slice()
+	link := ""
+
+	s := networkd.SRIOVSection{}
+	for i, args := range argStrings {
+		switch args {
+		case "dev":
+			link = argStrings[i+1]
+		case "vf":
+			if validator.IsEmpty(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid vf=%s\n", argStrings[i+1])
+			}
+			s.VirtualFunction = argStrings[i+1]
+		case "vlanid":
+			if validator.IsEmpty(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid vlanid=%s\n", argStrings[i+1])
+			}
+			s.VLANId = argStrings[i+1]
+		case "qos":
+			if validator.IsEmpty(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid qos=%s\n", argStrings[i+1])
+			}
+			s.QualityOfService = argStrings[i+1]
+		case "vlanproto":
+			if validator.IsEmpty(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid vlanproto=%s\n", argStrings[i+1])
+			}
+			s.VLANProtocol = argStrings[i+1]
+		case "macsfc":
+			if !validator.IsBool(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid macsfc=%s\n", argStrings[i+1])
+			}
+			s.MACSpoofCheck = validator.BoolToString(argStrings[i+1])
+		case "qrss":
+			if !validator.IsBool(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid qrss=%s\n", argStrings[i+1])
+			}
+			s.QueryReceiveSideScaling = validator.BoolToString(argStrings[i+1])
+		case "trust":
+			if !validator.IsBool(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid trust=%s\n", argStrings[i+1])
+			}
+			s.Trust = validator.BoolToString(argStrings[i+1])
+		case "linkstate":
+			if validator.IsEmpty(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid linkstate=%s\n", argStrings[i+1])
+			}
+			s.LinkState = argStrings[i+1]
+		case "macaddr":
+			if validator.IsEmpty(argStrings[i+1]) {
+				return nil, fmt.Errorf("Invalid macaddr=%s\n", argStrings[i+1])
+			}
+			s.MACAddress = argStrings[i+1]
+		}
+	}
+
+	n := networkd.Network{
+		Link: link,
+		SRIOVSections: []networkd.SRIOVSection{
+			s,
+		},
+	}
+
+	return &n, nil
+
+}
+
+func networkAddSRIOV(args cli.Args, host string, token map[string]string) {
+	n, err := parseSRIOV(args)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
+	networkConfigure(n, host, token)
 }
 
 func networkAddRoutingPolicyRule(args cli.Args, host string, token map[string]string) {

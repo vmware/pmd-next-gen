@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package route
 
@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 func routerAddRoute(w http.ResponseWriter, r *http.Request) {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package resolved
 
@@ -13,7 +13,7 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/vishvananda/netlink"
 
-	"github.com/pmd-nextgen/pkg/bus"
+	"github.com/vmware/pmd/pkg/bus"
 )
 
 const (

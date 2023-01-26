@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package server
 
@@ -15,9 +15,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/pmd-nextgen/pkg/share"
-	"github.com/pmd-nextgen/pkg/system"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/share"
+	"github.com/vmware/pmd/pkg/system"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 func active(nbf, exp interface{}) bool {
@@ -39,6 +40,11 @@ func active(nbf, exp interface{}) bool {
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("X-Session-Token")
+		if validator.IsEmpty(token) {
+			log.Errorf("Could not parse authentication token")
+			web.JSONResponseError(errors.New("invalid token"), w)
+			return
+		}
 		tokenJWT, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

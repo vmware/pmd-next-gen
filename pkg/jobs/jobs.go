@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package jobs
 
@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 type Result struct {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package system
 
@@ -13,7 +13,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pmd-nextgen/pkg/conf"
+	"github.com/vmware/pmd/pkg/conf"
 )
 
 func PathExists(path string) bool {

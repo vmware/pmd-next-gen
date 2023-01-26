@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/management/group"
-	"github.com/pmd-nextgen/plugins/management/user"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/management/group"
+	"github.com/vmware/pmd/plugins/management/user"
 )
 
 type GroupStats struct {

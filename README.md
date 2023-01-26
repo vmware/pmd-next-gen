@@ -4,7 +4,7 @@
 `photon-mgmtd` is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
-  `photon-mgmtd` saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
+  easy to gather statistics and perform analyses.
 - Platform independent REST APIs can be accessed via any application (curl, chrome, PostMan ...) from any OS (Linux, IOS, Android, Windows ...)
 - Minimal data transfer using JSON.
 - Plugin based Architechture. See how to write plugin section for more information.
@@ -14,46 +14,21 @@
 |Feature| Details |
 | ------ | ------ |
 |systemd  | information, services (start, stop, restart, status), service properties for example CPUShares
-see information from ```/proc``` fs| netstat, netdev, memory and much more
+see information from ```/proc``` fs| netstat, netdev, memory , vms, ARP and much more
+system | fetch and configure system information for example hostname
+network | fetch and configure network information example (dns, iostat, interface)
+network link | configure network link parameters like (dhcp, linkLocalAddressing, multicastDNS, Address, route, domains, dns, ntp, ipv6AcceptRA, mode, mtubytes, mac, group, requiredFamilyForOnline, activationPolicy, routingPolicyRule, DHCPv4, DHCPv6, DHCPServer, Ipv6SendRA) etc
+login | fetch list of users and sessions also get information for a id
+network devices | create and remove virtual network devices like (Vlan, Bond, Bridge, MacVLan, IpVLan, VxLan, WireGuard) etc
+ethtool | fetch ethernet settings for a link also based on a action
+sysctl | used to fetch, set, load and automate kernel parameters
+user | used to fetch, add, and remove user on the system
+group | used to fetch, add, and remove group on the system
+link | configure link parameters like (MACAddress, Name, AlternativeNames, Offload, VLANTAG, CHannels, Buffers, Queues, FlowControls, Coalesce) etc
+firewall | add, delete and show nft tables, chain and rules also is used to run any NFT commands
+package management (tdnf) | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc
 
-
-### Dependencies
-
-photon-mgmtd uses a following open source projects to work properly:
-
-* [logrus](https://github.com/sirupsen/logrus)
-* [gorilla mux](https://github.com/gorilla/mux)
-* [netlink](https://github.com/vishvananda/netlink)
-* [gopsutil](https://github.com/shirou/gopsutil)
-* [coreos go-systemd](https://github.com/coreos/go-systemd)
-* [dbus](https://github.com/godbus/dbus)
-* [ethtool](https://github.com/safchain/ethtool)
-* [viper](https://github.com/spf13/viper)
-* [go-ini](https://github.com/go-ini/ini)
-
-
-### Installation
-
-First configure your ```$GOPATH```. If you have already done this skip this step.
-
-```bash
-# keep in ~/.bashrc
-```
-
-```bash
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
-export OS_OUTPUT_GOPATH=1
-```
-
-Clone inside src dir of ```$GOPATH```. In my case
-
-```bash
-$ pwd
-/home/sus/go/src
-```
-
-#### Building from source
+#### Building and installation from source
 ----
 
 ```bash
@@ -72,7 +47,7 @@ Due to security `photon-mgmtd` runs in non root user `photon-mgmt`. It drops all
 #### Configuration
 ----
 
-Configuration file `photon-mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
+Configuration file `mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
 
 The `[System]` section takes following Keys:
 
@@ -81,23 +56,19 @@ The `[System]` section takes following Keys:
 Specifies the log level. Takes one of `Trace`, `Debug`, `Info`, `Warning`, `Error`, `Fatal` and `Panic`. Defaults to `info`. See [sirupsen](https://github.com/sirupsen/logrus#level-logging)
 
 `UseAuthentication=`
-
 A boolean. Specifies whether the users should be authenticated. Defaults to `true`.
-
 
 The `[Network]` section takes following Keys:
 
 `Listen=`
-
 Specifies the IP address and port which the REST API server will listen to. When enabled, defaults to `127.0.0.1:5208`.
 
 `ListenUnixSocket=`
-
-A boolean. Specifies whether the server would listen on a unix domain socket `/run/photon-mgmt/photon-mgmt.sock`. Defaults to `true`.
+A boolean. Specifies whether the server would listen on a unix domain socket `/run/photon-mgmt/mgmt.sock`. Defaults to `true`.
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
-❯ sudo cat /etc/photon-mgmt/photon-mgmt.toml
+❯ sudo cat /etc/photon-mgmt/mgmt.toml
 [System]
 LogLevel="debug"
 UseAuthentication="false"
@@ -107,26 +78,30 @@ ListenUnixSocket="true"
 ```
 
 ```bash
-❯ sudo systemctl status photon-mgmtd.service
-● photon-mgmtd.service - A REST API based configuration management microservice gateway
-     Loaded: loaded (/usr/lib/systemd/system/photon-mgmtd.service; disabled; vendor preset: disabled)
-     Active: active (running) since Thu 2022-01-06 16:32:19 IST; 4s ago
-   Main PID: 230041 (photon-mgmtd)
-      Tasks: 6 (limit: 15473)
-     Memory: 2.9M
-        CPU: 7ms
-     CGroup: /system.slice/photon-mgmtd.service
-             └─230041 /usr/bin/photon-mgmtd
+❯ sudo systemctl start photon-mgmtd
+```
 
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Passing 0 fds to service
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: About to execute /usr/bin/photon-mgmtd
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Forked /usr/bin/photon-mgmtd as 230041
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Changed failed -> running
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Job 56328 photon-mgmtd.service/start finished, result=done
-Jan 06 16:32:19 Zeus systemd[1]: Started photon-mgmtd.service - A REST API based configuration management microservice gateway.
-Jan 06 16:32:19 Zeus systemd[230041]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
-Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" level=info msg="photon-mgmtd: v0.1 (built go1.18beta1)"
-Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" level=info msg="Starting photon-mgmtd... Listening on unix domain socket='/run/photon-mgmt/photon-mgmt>
+```bash
+❯ sudo systemctl status photon-mgmtd
+● photon-mgmtd.service - A REST API based configuration management microservice gateway
+     Loaded: loaded (8;;file://zeus/usr/lib/systemd/system/photon-mgmtd.service^G/usr/lib/systemd/system/photon-mgmtd.service8;;^G; enabled; preset: enabled)
+     Active: active (running) since Thu 2023-01-26 11:34:05 UTC; 2min 44s ago
+   Main PID: 668 (photon-mgmtd)
+      Tasks: 6 (limit: 18735)
+     Memory: 22.8M
+     CGroup: /system.slice/photon-mgmtd.service
+             └─668 /usr/bin/photon-mgmtd
+
+Jan 26 11:34:05 zeus systemd[1]: photon-mgmtd.service: Changed dead -> running
+Jan 26 11:34:05 zeus systemd[1]: photon-mgmtd.service: Job 185 photon-mgmtd.service/start finished, result=done
+Jan 26 11:34:05 zeus systemd[1]: Started A REST API based configuration management microservice gateway.
+Jan 26 11:34:05 zeus systemd[668]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
+Jan 26 11:34:05 zeus photon-mgmtd[668]: time="2023-01-26T11:34:05Z" level=info msg="photon-mgmtd: v0.1 (built go1.19.3)"
+Jan 26 11:34:05 zeus photon-mgmtd[668]: time="2023-01-26T11:34:05Z" level=info msg="Starting photon-mgmtd... Listening on unix domain socket='/run/photon-mgmt/mgmt.sock' in HTTP>
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Trying to enqueue job photon-mgmtd.service/start/replace
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Installed new job photon-mgmtd.service/start as 596
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Enqueued job photon-mgmtd.service/start as 596
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Job 596 photon-mgmtd.service/start finished, result=done
 ```
 
 #### pmctl
@@ -135,45 +110,47 @@ Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" leve
 `pmctl` is a CLI tool allows to view and configure system/network/service status.
 
 ```bash
-❯ pmctl service status nginx.service
-                  Name: nginx.service
-           Description: The nginx HTTP and reverse proxy server
-               MainPid: 45732
-             LoadState: loaded
-           ActiveState: active
-              SubState: running
-         UnitFileState: disabled
-  StateChangeTimeStamp: Sun Oct 31 12:02:02 IST 2021
-  ActiveEnterTimestamp: Sun Oct 31 12:02:02 IST 2021
- InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
-   ActiveExitTimestamp: 0
- InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
-                Active: active (running) since Sun Oct 31 12:02:02 IST 2021
-
+❯ sudo pmctl service status systemd-networkd
+                   Name: systemd-networkd.service
+            Description: Network Configuration
+               Main Pid: 644
+             Load State: loaded
+           Active State: active
+              Sub State: running
+        Unit File State: enabled
+ State Change TimeStamp: Thu Jan 26 11:34:05 UTC 2023
+ Active Enter Timestamp: Thu Jan 26 11:34:05 UTC 2023
+Inactive Exit Timestamp: Thu Jan 26 11:34:04 UTC 2023
+  Active Exit Timestamp: 0
+Inactive Exit Timestamp: Thu Jan 26 11:34:04 UTC 2023
+                 Active: active (running) since Thu Jan 26 11:34:05 UTC 2023
 ```
 
-# Configure system hostname
-```
-bash
+#### Configure system hostname
+```bash
 ❯ pmctl system set-hostname static ubuntu transient transientname pretty prettyname
 ```
 
-# Acquire system status
+#### Acquire system status
 ```bash
-❯ pmctl status  system
-              System Name: Zeus
-                   Kernel: Linux (5.14.0-0.rc7.54.fc36.x86_64) #1 SMP Mon Aug 23 13:55:32 UTC 2021
+❯ sudo pmctl status system
+              System Name: zeus
+                   Kernel: Linux (5.10.159-2.ph4) #1-photon SMP Tue Jan 3 21:27:11 UTC 2023
                   Chassis: vm
            Hardware Model: VMware Virtual Platform
           Hardware Vendor: VMware, Inc.
              Product UUID: 979e4d56b63718b18534e112e64cb18
          Operating System: VMware Photon OS/Linux
 Operating System Home URL: https://vmware.github.io/photon/
-          Systemd Version: v247.10-3.ph4
+                Time zone: UTC (2023-01-26 11:42:49.847435 +0000 UTC)
+         NTP synchronized: true
+                     Time: Thu Jan 26 11:42:49 UTC 2023
+                 RTC Time: 2023-01-26 11:42:49.847435 +0000 UTC
+          Systemd Version: v252-1
              Architecture: x86-64
            Virtualization: vmware
             Network State: routable (carrier)
-     Network Online State: online
+     Network Online State: partial
                       DNS: 172.16.130.2
                   Address: 172.16.130.132/24 on link ens33
                            172.16.130.131/24 on link ens33
@@ -185,25 +162,25 @@ Operating System Home URL: https://vmware.github.io/photon/
                    Memory: Total (13564788736) Used (13564788736) Free (589791232) Available (9723891712)
 ```
 
-# Network status
+#### Network status
 ```bash
-❯ pmctl status network -i ens33
-             Name: ens33
-Alternative Names: enp2s1
+❯ sudo pmctl status network -i eth0
+             Name: eth0
+Alternative Names: eno1 enp11s0 ens192
             Index: 2
         Link File: /usr/lib/systemd/network/99-default.link
-     Network File: /etc/systemd/network/10-ens33.network
+     Network File: /etc/systemd/network/99-dhcp-en.network
              Type: ether
-            State: routable (configured)
-           Driver: e1000
-           Vendor: Intel Corporation
-            Model: 82545EM Gigabit Ethernet Controller (Copper) (PRO/1000 MT Single Port Adapter)
-             Path: pci-0000:02:01.0
+            State: routable ()
+           Driver: vmxnet3
+           Vendor: VMware
+            Model: VMXNET3 Ethernet Controller
+             Path: pci-0000:0b:00.0
     Carrier State: carrier
      Online State: online
 IPv4Address State: routable
 IPv6Address State: degraded
-       HW Address: 00:0c:29:5f:d1:39
+       HW Address: 00:0c:29:64:cb:18
               MTU: 1500
         OperState: up
             Flags: up|broadcast|multicast
@@ -212,13 +189,13 @@ IPv6Address State: degraded
               DNS: 172.16.130.2
 ```
 
-# Network dns status
+#### Network dns status
 ```bash
 > pmctl status network dns
 Global
 
-        DNS: 8.8.8.1 8.8.8.2 
-DNS Domains: test3.com test4.com . localdomain . localdomain 
+        DNS: 8.8.8.1 8.8.8.2
+DNS Domains: test3.com test4.com . localdomain . localdomain
 Link 2 (ens33)
 Current DNS Server:  172.16.61.2
        DNS Servers:  172.16.61.2
@@ -228,7 +205,7 @@ Current DNS Server:  172.16.61.2
        DNS Servers:  172.16.61.2
 ```
 
-# Network iostat status
+#### Network iostat status
 ```bash
 > pmctl status network iostat
             Name: lo
@@ -265,14 +242,14 @@ Packets received: 9682
         Fifo out: 0
 ```
 
-# Network interfaces status
+#### Network interfaces status
 ```bash
 > pmctl status network interfaces
             Name: lo
            Index: 1
              MTU: 65536
            Flags: up loopback
-Hardware Address: 
+Hardware Address:
        Addresses: 127.0.0.1/8 ::1/128
 
             Name: ens33
@@ -293,32 +270,29 @@ Hardware Address: 00:0c:29:7c:6f:8e
 #### Login status
 ```bash
 
-#ListUsers
+# List Users
 >pmctl status login user
 
-#ListSessions
+# List Sessions
 >pmctl status login session
 
-#Get User based on UID
+# Acquire User based on UID
 pmctl status login user <UID>
 >pmctl status login user 2
 
-#Get Session based on ID
+# Acquire Session based on ID
 pmctl status login session <ID>
 >pmctl status login session 1000
-
-```
-
 ```
 
 #### Ethtool status
 ```bash
 
-#Get Ethtool all status 
+# Acquire Ethtool all status
 pmctl status ethtool <LINK>
 >pmctl status ethtool ens37
 
-#Get Ethtool status based on action
+# Acquire Ethtool status based on action
 pmctl status ethtool <LINK> <ACTION>
 >pmctl status ethtool ens37 bus
 
@@ -327,10 +301,10 @@ pmctl status ethtool <LINK> <ACTION>
 #### sysctl usecase via pmctl
 ```bash
 
-# Get all sysctl configuration in the system in json format.
+# Acquire all sysctl configuration in the system in json format.
 pmctl status sysctl
 
-# Get particuller variable configuration from sysctl configuration.
+# Acquire one variable configuration from sysctl configuration.
 pmctl status sysctl k <InputKey>
 or
 pmctl status sysctl key <InputKey>
@@ -338,7 +312,7 @@ pmctl status sysctl key <InputKey>
 >pmctl status sysctl k fs.file-max
 fs.file-max: 9223372036854775807
 
-# Get all variable configuration from sysctl configuration based on input pattern.
+# Acquire all variable configuration from sysctl configuration based on input pattern.
 pmctl status sysctl p <InputPatern>
 or
 pmctl status sysctl pattern <InputPatern>
@@ -374,35 +348,35 @@ pmctl sysctl load files <InputFileList>
 #### sysctl usecase via curl
 ```bash
 
-# Get all sysctl configuration in the system in json format.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
+# Acquire all sysctl configuration in the system in json format.
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
 
-# Get particuller variable configuration from sysctl configuration.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
+# Acquire one variable configuration from sysctl configuration.
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
 
-# Get all variable configuration from sysctl configuration based on input pattern.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
+# Acquire all variable configuration from sysctl configuration based on input pattern.
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
 
 # Add or Update a variable configuration in sysctl configuration.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"<keyName>","value":"<Value>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/update
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"fs.file-max","value":"65409","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/update
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"key":"<keyName>","value":"<Value>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/update
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"key":"fs.file-max","value":"65409","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/update
 
 # Remove a variable configuration from sysctl configuration.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"<keyName>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/remove
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"fs.file-max","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/remove
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"apply":true,"key":"<keyName>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/remove
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"apply":true,"key":"fs.file-max","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/remove
 
 # Load sysctl configuration files.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["<fileName>","<fileName>"]}' http://localhost/api/v1/system/sysctl/load
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"files":["<fileName>","<fileName>"]}' http://localhost/api/v1/system/sysctl/load
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
 ```
 
 #### Group usecase via pmctl
 ```bash
 
-# Get all Group information.
+# Acquire all Group information.
 >pmctl status group
              Gid: 0
             Name: root
@@ -424,7 +398,7 @@ curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"ap
              Gid: 1001
             Name: photon-mgmt
 
-# Get particuller Group information.
+# Fetch a group information.
 pmctl status group <GroupName>
 or
 pmctl status group <GroupName>
@@ -447,25 +421,25 @@ pmctl group remove <GroupName>
 #### Group usecase via curl
 ```bash
 
-# Get all Group information.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view
+# Acquire all Group information.
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/group/view
 
-# Get particuller Group information.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
+# Acquire one Group information.
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
 
 # Add a new Group.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/add
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nk1","Gid":"101"}' http://localhost/api/v1/system/group/add
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/add
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"nk1","Gid":"101"}' http://localhost/api/v1/system/group/add
 
 # Remove a Group.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/remove
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"photon-mgmt","Gid":"101"}' http://localhost/api/v1/system/group/remove
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/remove
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"photon-mgmt","Gid":"101"}' http://localhost/api/v1/system/group/remove
 ```
 
 #### User usecase via pmctl
 ```bash
 
-# Get all User information.
+# Acquire all User information.
 >pmctl status user
           User Name: root
                 Uid: 0
@@ -510,16 +484,16 @@ pmctl user r <UserName>
 #### User usecase via curl
 ```bash
 
-# Get all User information.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/user/view
+# Acquire all User information.
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/user/view
 
 # Add a new User.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<UserName>","Uid":"<Uid>","Gid":"<Gid>","Groups":["group1","group2"],""HomeDirectory":"<HomeDir>","Shell":"<shell>","Comment":"<comment>","Password":"<xxxxxx>"}' http://localhost/api/v1/system/user/add
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nts1","Uid":"","Gid":"1004","Groups":["nts","group2"],"HomeDirectory":"home/nts","Shell":"","Comment":"hello","Password":"unknown"}' http://localhost/api/v1/system/user/add
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"<UserName>","Uid":"<Uid>","Gid":"<Gid>","Groups":["group1","group2"],""HomeDirectory":"<HomeDir>","Shell":"<shell>","Comment":"<comment>","Password":"<xxxxxx>"}' http://localhost/api/v1/system/user/add
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"nts1","Uid":"","Gid":"1004","Groups":["nts","group2"],"HomeDirectory":"home/nts","Shell":"","Comment":"hello","Password":"unknown"}' http://localhost/api/v1/system/user/add
 
 # Remove a User.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<UserName>"}' http://localhost/api/v1/system/user/remove
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"<UserName>"}' http://localhost/api/v1/system/user/remove
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
 ```
 
 #### Configure network link section using pmctl
@@ -540,6 +514,10 @@ pmctl network set-multicast-dns <deviceName> <MulticastDNSMode>
 # Configure network address
 pmctl network add-link-address <deviceName> address <Address> peer <Address> label <labelValue> scope <scopeValue>
 >pmctl network add-link-address ens37 address 192.168.0.15/24 peer 192.168.10.10/24 label ipv4 scope link
+
+# Configure network sriov
+pmctl network add-sriov dev <deviceName> vf <VirtualFunction> vlanid <VLANId> qos <QualityOfService> vlanproto <VLANProtocol> macsfc <MACSpoofCheck> qrss <QueryReceiveSideScaling> trust <Trust> linkstate <LinkState> macaddr <MACAddress>
+>pmctl network add-sriov dev ens37 vf 2 vlanid 1 qos 1024 vlanproto 802.1Q macsfc yes qrss yes trust yes linkstate auto macaddr 00:0c:29:3a:bc:11
 
 # Configure network route
 pmctl network add-route dev <deviceName> gw <Gateway> gwonlink <GatewayOnlink> src <Source> dest <Destination> prefsrc <preferredSource> table <Table> scope <Scope>
@@ -608,7 +586,7 @@ pmctl network set-dhcpv4-use dev <deviceName> usedns <UseDNS> usentp <UseNTP> us
 # Configure network DHCPv6
 pmctl network set-dhcpv6 dev <deviceName> mudurl <MUDURL> userclass <UserClass> vendorclass <VendorClass> prefixhint <IPV6ADDRESS> withoutra <WithoutRA>
 >pmctl network set-dhcpv6 dev ens37 mudurl https://example.com/devB userclass usrcls1,usrcls2 vendorclass vdrcls1 prefixhint 2001:db1:fff::/64 withoutra solicit
- 
+
 # Configure network DHCPv6 id's
 pmctl network set-dhcpv6-id dev <deviceName> iaid <IAID> duidtype <DUIDType> duidrawdata <DUIDRawData>
 >pmctl network set-dhcpv6-id dev ens37 iaid 201 duidtype vendor duidrawdata af:03:ff:87
@@ -677,6 +655,14 @@ pmctl network create-wg <wireguardName> dev <device> skey <privateKey> pkey<publ
 
 # Configure WireGuard with default
 >pmctl network create-wg wg1 dev ens37 skey wCmc/74PQpRoxTgqGircVFtdArZFUFIiOoyQY8kVgmI= pkey dSanSzExlryduCwNnAFt+rzpI5fKeHuJx1xx2zxEG2Q= endpoint 10.217.69.88:51820
+
+# Configure Tun
+pmctl network create-tun <tunName> dev <device> mq <MultiQueue> pktinfo<PacketInfo> vnet-hdr <VNetheader> usr <User> grp <Group> kc <KeepCarrier>
+>pmctl network create-tun tun1 dev ens37 mq yes pktinfo yes vnet-hdr no usr test-user grp test-group kc no
+
+# Configure Tap
+pmctl network create-tap <tapName> dev <device> mq <MultiQueue> pktinfo<PacketInfo> vnet-hdr <VNetheader> usr <User> grp <Group> kc <KeepCarrier>
+>pmctl network create-tap tap99 dev ens37 mq yes pktinfo yes vnet-hdr no usr test-user grp test-group kc no
 ```
 
 #### Remove network device using pmctl
@@ -879,16 +865,23 @@ pmctl status proc arp
              HWAddress: 00:50:56:f4:e7:22
                   Mask: *
                 Device: ens37
+```
 
-# Netstat info.
+#### Netstat info
+
+```bash
 pmctl status proc netstat <PROTOCOL>
 >pmctl status proc netstat tcp
+```
 
-# Process stats.
+#### Process stats
+```bash
 pmctl status proc process <PID> <PROPERTY>
 >pmctl status proc process 88157 pid-memory-percent
+```
 
-# Protopidstat stats.
+#### Protopidstat stats
+```bash
 pmctl status proc protopidstat <PID> <PROTOCOL>
 >pmctl status proc protopidstat 89502 tcp
 
@@ -924,7 +917,7 @@ pmctl pkg repolist
 > pmctl pkg search <pattern>
 pmctl pkg search lsof
 
-# Get update info
+# Acquire update info
 > pmctl pkg updateinfo
 > pmctl pkg updateinfo --list
 > pmctl pkg updateinfo --info
@@ -955,7 +948,7 @@ pmctl pkg update
 pmctl pkg --repoid=photon-debuginfo list lsof*
 ```
 
-### How to configure users ?
+#### How to configure users ?
 
 ##### Unix domain socket
 
@@ -971,7 +964,7 @@ Export the token key to the enviroment as below
 ❯ export PHOTON_MGMT_AUTH_TOKEN=secret
 ```
 
-### How to configure TLS ?
+#### How to configure TLS ?
 
 Generate private key (.key)
 
@@ -1018,7 +1011,7 @@ $ curl --header "X-Session-Token: secret" --request GET https://localhost:5208/a
 
 ```
 
-## How to write your own plugin ?
+#### How to write your own plugin ?
 
 photon-mgmtd is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
 You can implement and incorporate application features very quickly. Because plug-ins are separate modules with well-defined interfaces,
@@ -1031,13 +1024,3 @@ you can quickly isolate and solve problems. You can create custom versions of an
 * Register ```RegisterRouterModule``` with parent router for example for ```login``` registered with
   ```RegisterRouterSystem``` under ```system``` namespace as ```login.RegisterRouterLogin```
 * See examples directory how to write on your own plugin.
-
-### Todos
-
- - Write Tests
- - networkd
-
-License
-----
-
-Apache 2.0

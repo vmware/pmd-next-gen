@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package networkd
 
@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/configfile"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware/pmd/pkg/configfile"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 type VLan struct {
@@ -84,7 +84,7 @@ type Bridge struct {
 }
 
 type WireGuard struct {
-	PrivateKey     string `json:"privateKey"`
+	PrivateKey     string `json:"PrivateKey"`
 	PrivateKeyFile string `json:"PrivateKeyFile"`
 	ListenPort     string `json:"ListenPort"`
 	FirewallMark   string `json:"FirewallMark"`
@@ -93,7 +93,7 @@ type WireGuard struct {
 }
 
 type WireGuardPeer struct {
-	PublicKey           string   `json:"publicKey"`
+	PublicKey           string   `json:"PublicKey"`
 	PresharedKey        string   `json:"PresharedKey"`
 	PresharedKeyFile    string   `json:"PresharedKeyFile"`
 	AllowedIPs          []string `json:"AllowedIPs"`
@@ -101,6 +101,15 @@ type WireGuardPeer struct {
 	PersistentKeepalive string   `json:"PersistentKeepalive"`
 	RouteTable          string   `json:"RouteTable"`
 	RouteMetric         string   `json:"RouteMetric"`
+}
+
+type TunOrTap struct {
+	MultiQueue  string `json:"MultiQueue"`
+	PacketInfo  string `json:"PacketInfo"`
+	VNetHeader  string `json:"VNetHeader"`
+	User        string `json:"User"`
+	Group       string `json:"Group"`
+	KeepCarrier string `json:"KeepCarrier"`
 }
 
 type NetDev struct {
@@ -114,23 +123,16 @@ type NetDev struct {
 	Kind        string `json:"Kind"`
 	MTUBytes    string `json:"MTUBytes"`
 	MACAddress  string `json:"MACAddress"`
-
-	// [VLAN]
-	VLanSection VLan `json:"VLanSection"`
-	// [MACVLAN]
-	MacVLanSection MacVLan `json:"MacVLanSection"`
-	// [IPVLAN]
-	IpVLanSection IpVLan `json:"IpVLanSection"`
-	// [VXVLAN]
-	VxLanSection VxLan `json:"VxLanSection"`
-	// [BOND]
-	BondSection Bond `json:"BondSection"`
-	// [BRIDGE]
-	BridgeSection Bridge `json:"BridgeSection"`
-	// [WIREGUARD]
-	WireGuardSection WireGuard `json:"WireGuardSection"`
-	// [WIREGUARDPEER]
+	// [Kind]
+	VLanSection          VLan          `json:"VLanSection"`
+	MacVLanSection       MacVLan       `json:"MacVLanSection"`
+	IpVLanSection        IpVLan        `json:"IpVLanSection"`
+	VxLanSection         VxLan         `json:"VxLanSection"`
+	BondSection          Bond          `json:"BondSection"`
+	BridgeSection        Bridge        `json:"BridgeSection"`
+	WireGuardSection     WireGuard     `json:"WireGuardSection"`
 	WireGuardPeerSection WireGuardPeer `json:"WireGuardPeerSection"`
+	TunOrTapSection      TunOrTap      `json:"TunOrTapSection"`
 }
 
 func netDevKindToNetworkKind(s string) string {
@@ -154,6 +156,10 @@ func netDevKindToNetworkKind(s string) string {
 		kind = "VXLAN"
 	case "wireguard":
 		kind = "WireGuard"
+	case "tun":
+		kind = "Tun"
+	case "tap":
+		kind = "Tap"
 	}
 
 	return kind
@@ -446,6 +452,52 @@ func (n *NetDev) buildWireGuardPeerSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildTunOrTapSection(kind string, m *configfile.Meta) error {
+	m.NewSection(netDevKindToNetworkKind(kind))
+
+	if !validator.IsEmpty(n.TunOrTapSection.MultiQueue) {
+		if !validator.IsBool(n.TunOrTapSection.MultiQueue) {
+			log.Errorf("Failed to create %s='%s'. Invalid MultiQueue='%s'", kind, n.Name, n.TunOrTapSection.MultiQueue)
+			return fmt.Errorf("invalid multiqueue='%s'", n.TunOrTapSection.MultiQueue)
+		}
+		m.SetKeyToNewSectionString("MultiQueue", validator.BoolToString(n.TunOrTapSection.MultiQueue))
+	}
+
+	if !validator.IsEmpty(n.TunOrTapSection.PacketInfo) {
+		if !validator.IsBool(n.TunOrTapSection.PacketInfo) {
+			log.Errorf("Failed to create %s='%s'. Invalid PacketInfo='%s'", kind, n.Name, n.TunOrTapSection.PacketInfo)
+			return fmt.Errorf("invalid packetinfo='%s'", n.TunOrTapSection.PacketInfo)
+		}
+		m.SetKeyToNewSectionString("PacketInfo", validator.BoolToString(n.TunOrTapSection.PacketInfo))
+	}
+
+	if !validator.IsEmpty(n.TunOrTapSection.VNetHeader) {
+		if !validator.IsBool(n.TunOrTapSection.VNetHeader) {
+			log.Errorf("Failed to create %s='%s'. Invalid VNetHeader='%s'", kind, n.Name, n.TunOrTapSection.VNetHeader)
+			return fmt.Errorf("invalid vnetheader='%s'", n.TunOrTapSection.VNetHeader)
+		}
+		m.SetKeyToNewSectionString("VNetHeader", validator.BoolToString(n.TunOrTapSection.VNetHeader))
+	}
+
+	if !validator.IsEmpty(n.TunOrTapSection.User) {
+		m.SetKeyToNewSectionString("User", n.TunOrTapSection.User)
+	}
+
+	if !validator.IsEmpty(n.TunOrTapSection.Group) {
+		m.SetKeyToNewSectionString("Group", n.TunOrTapSection.Group)
+	}
+
+	if !validator.IsEmpty(n.TunOrTapSection.KeepCarrier) {
+		if !validator.IsBool(n.TunOrTapSection.KeepCarrier) {
+			log.Errorf("Failed to create %s='%s'. Invalid KeepCarrier='%s'", kind, n.Name, n.TunOrTapSection.KeepCarrier)
+			return fmt.Errorf("invalid keepcarrier='%s'", n.TunOrTapSection.KeepCarrier)
+		}
+		m.SetKeyToNewSectionString("KeepCarrier", validator.BoolToString(n.TunOrTapSection.KeepCarrier))
+	}
+
+	return nil
+}
+
 func (n *NetDev) BuildKindInLinkNetworkFile() error {
 	for _, l := range n.Links {
 		m, err := CreateOrParseNetworkFile(l)
@@ -512,6 +564,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 		}
 		if err := n.buildWireGuardPeerSection(m); err != nil {
 			log.Errorf("Failed to create WireGuardPeer ='%s': %v", n.Name, err)
+			return err
+		}
+	case "tun", "tap":
+		if err := n.buildTunOrTapSection(n.Kind, m); err != nil {
+			log.Errorf("Failed to create %s ='%s': %v", n.Kind, n.Name, err)
 			return err
 		}
 	}

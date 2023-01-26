@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package web
 
@@ -19,8 +19,8 @@ import (
 	"github.com/linuxkit/virtsock/pkg/vsock"
 	"github.com/pkg/errors"
 
-	"github.com/pmd-nextgen/pkg/conf"
-	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/vmware/pmd/pkg/conf"
+	"github.com/vmware/pmd/pkg/validator"
 )
 
 type Response struct {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package proc
 
@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/pmd-nextgen/pkg/system"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/system"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 const (

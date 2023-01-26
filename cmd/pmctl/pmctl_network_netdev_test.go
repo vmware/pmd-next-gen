@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package main
 
@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pmd-nextgen/pkg/system"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/network/networkd"
 	"github.com/vishvananda/netlink"
+	"github.com/vmware/pmd/pkg/system"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/network/networkd"
 )
 
 func configureNetDev(t *testing.T, n networkd.NetDev) error {
@@ -494,6 +494,162 @@ func TestNetDevCreateIPVLan(t *testing.T) {
 	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "IPVLAN") != "ipvlan99" {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateTun(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	n := networkd.NetDev{
+		Name:  "tun99",
+		Kind:  "tun",
+		Links: []string{"test99"},
+		TunOrTapSection: networkd.TunOrTap{
+			MultiQueue:  "yes",
+			PacketInfo:  "yes",
+			VNetHeader:  "no",
+			KeepCarrier: "no",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create Tun: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("tun99") {
+		t.Fatalf("Failed to create tun='tun99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "tun99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("tun99", "tun")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of tun='tun99'")
+	}
+
+	if m.GetKeySectionString("NetDev", "Kind") != "tun" {
+		t.Fatalf("Tun kind is not 'tun' in .netdev file of tun='tun99'")
+	}
+
+	if m.GetKeySectionString("Tun", "MultiQueue") != "yes" {
+		t.Fatalf("Invalid Tun multiqueue .netdev file of tun='tun99'")
+	}
+
+	if m.GetKeySectionString("Tun", "PacketInfo") != "yes" {
+		t.Fatalf("Invalid Tun packetinfo .netdev file of tun='tun99'")
+	}
+
+	if m.GetKeySectionString("Tun", "VNetHeader") != "no" {
+		t.Fatalf("Invalid Tun vnetheader .netdev file of tun='tun99'")
+	}
+
+	if m.GetKeySectionString("Tun", "KeepCarrier") != "no" {
+		t.Fatalf("Invalid Tun keepcarrier .netdev file of tun='tun99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("tun99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of tun='tun99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "tun99" {
+		t.Fatalf("Invalid netdev name in .network file of tun='tun99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "Tun") != "tun99" {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateTap(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	n := networkd.NetDev{
+		Name:  "tap99",
+		Kind:  "tap",
+		Links: []string{"test99"},
+		TunOrTapSection: networkd.TunOrTap{
+			MultiQueue:  "yes",
+			PacketInfo:  "yes",
+			VNetHeader:  "no",
+			KeepCarrier: "no",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create Tap: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("tap99") {
+		t.Fatalf("Failed to create tap='tap99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "tap99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("tap99", "tap")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("NetDev", "Kind") != "tap" {
+		t.Fatalf("Tap kind is not 'tap' in .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "MultiQueue") != "yes" {
+		t.Fatalf("Invalid Tap multiqueue .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "PacketInfo") != "yes" {
+		t.Fatalf("Invalid Tap packetinfo .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "VNetHeader") != "no" {
+		t.Fatalf("Invalid Tap vnetheader .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "KeepCarrier") != "no" {
+		t.Fatalf("Invalid Tap keepcarrier .netdev file of tap='tap99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("tap99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "tap99" {
+		t.Fatalf("Invalid netdev name in .network file of tap='tap99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "Tap") != "tap99" {
 		t.Fatalf("Failed to parse .network file of test99")
 	}
 

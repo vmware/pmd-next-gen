@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package share
 
@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/vmware/pmd/pkg/validator"
 )
 
 func StringContains(list []string, s string) bool {

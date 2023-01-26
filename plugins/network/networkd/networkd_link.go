@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package networkd
 
@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/configfile"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/configfile"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
 
