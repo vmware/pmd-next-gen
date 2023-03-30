@@ -124,6 +124,8 @@ Inactive Exit Timestamp: Thu Jan 26 11:34:04 UTC 2023
   Active Exit Timestamp: 0
 Inactive Exit Timestamp: Thu Jan 26 11:34:04 UTC 2023
                  Active: active (running) since Thu Jan 26 11:34:05 UTC 2023
+
+
 ```
 
 #### Configure system hostname
@@ -283,6 +285,7 @@ pmctl status login user <UID>
 # Acquire Session based on ID
 pmctl status login session <ID>
 >pmctl status login session 1000
+
 ```
 
 #### Ethtool status
