@@ -9,10 +9,9 @@ jobs:
             DIST: photon
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
               with:
-                  repository: 'oliverkurth/tdnf'
-                  ref: 'topic/okurth/json-output'
+                  repository: 'vmware/tdnf'
             - name: build container
               working-directory: ${{ github.workspace }}
               run: |
@@ -22,7 +21,7 @@ jobs:
               run: |
                 docker run --rm -e DIST -v$(pwd):/build -w/build ${DIST}/tdnf-build ./ci/build-rpms.sh
             - name: upload RPMs
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: tdnf-rpms
                   path: rpms
@@ -31,10 +30,10 @@ jobs:
         needs: photon-rpms
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
 
             - name: Download RPMs
-              uses: actions/download-artifact@v2
+              uses: actions/download-artifact@v3
               with:
                   name: tdnf-rpms
                   path: rpms
