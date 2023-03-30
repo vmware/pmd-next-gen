@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vmware/pmd/pkg/configfile"
-	"github.com/vmware/pmd/pkg/system"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/network/networkd"
+	"github.com/vmware/pmd-next-gen/pkg/configfile"
+	"github.com/vmware/pmd-next-gen/pkg/system"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/network/networkd"
 	"github.com/vishvananda/netlink"
 )
 

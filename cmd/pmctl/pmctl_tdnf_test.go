@@ -6,8 +6,8 @@ package main
 import (
 	"testing"
 
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/tdnf"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/tdnf"
 )
 
 func tdnfTestIsInstalled(t *testing.T, token map[string]string, pkg string) bool {

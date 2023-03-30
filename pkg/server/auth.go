@@ -15,10 +15,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/vmware/pmd/pkg/share"
-	"github.com/vmware/pmd/pkg/system"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd-next-gen/pkg/share"
+	"github.com/vmware/pmd-next-gen/pkg/system"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
 func active(nbf, exp interface{}) bool {
@@ -92,9 +92,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 func authenticateLocalUser(credentials *unix.Ucred) error {
 	if credentials.Uid != 0 {
-		pmUser, err := system.GetUserCredentials("pmd-nextgen")
+		pmUser, err := system.GetUserCredentials("pmd-next-gen-nextgen")
 		if err != nil {
-			log.Infof("Failed to get user 'pmd-nextgen' credentials: %+v", err)
+			log.Infof("Failed to get user 'pmd-next-gen-nextgen' credentials: %+v", err)
 			return err
 		}
 
@@ -102,7 +102,7 @@ func authenticateLocalUser(credentials *unix.Ucred) error {
 
 		groups, _ := u.GroupIds()
 		if !share.StringContains(groups, strconv.Itoa(int(pmUser.Gid))) {
-			return errors.New("user's gid not same as pmd-nextgen's gid")
+			return errors.New("user's gid not same as pmd-next-gen-nextgen's gid")
 		}
 
 		log.Debugf("Connection credentials: pid='%d', user='%s' uid='%d', gid='%d' belongs to groups='%v'", credentials.Pid, u.Username, credentials.Gid, credentials.Uid, groups)

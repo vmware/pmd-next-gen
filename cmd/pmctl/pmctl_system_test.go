@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/management/hostname"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/management/hostname"
 )
 
 func TestSetHostname(t *testing.T) {

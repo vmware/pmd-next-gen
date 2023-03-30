@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/systemd"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/systemd"
 )
 
 func TestExecuteSystemdUnitCommand(t *testing.T) {

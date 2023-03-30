@@ -14,9 +14,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/vishvananda/netlink"
 
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/proc"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/proc"
 )
 
 func TestConfigureProcSysNet(t *testing.T) {

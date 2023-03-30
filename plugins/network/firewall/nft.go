@@ -12,10 +12,11 @@ import (
 
 	"github.com/google/nftables"
 	log "github.com/sirupsen/logrus"
-	"github.com/vmware/pmd/pkg/system"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
 	"golang.org/x/sys/unix"
+
+	"github.com/vmware/pmd-next-gen/pkg/system"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
 type Table struct {
@@ -40,7 +41,7 @@ type Nft struct {
 }
 
 const (
-	nftFilePath = "/etc/nftables-pmd-nextgen.conf"
+	nftFilePath = "/etc/nftables-/pmd-next-gen-nextgen.conf"
 )
 
 func decodeNftJSONRequest(r *http.Request) (*Nft, error) {
@@ -115,25 +116,25 @@ func convertToStringFamily(f nftables.TableFamily) string {
 }
 
 func convertToUnixHook(h string) *nftables.ChainHook {
-        var hook *nftables.ChainHook
-        switch h {
-        case "prerouting":
-                hook = nftables.ChainHookRef(unix.NF_INET_PRE_ROUTING)
-        case "postrouting":
-                hook = nftables.ChainHookRef(unix.NF_INET_POST_ROUTING)
-        case "input":
-                hook = nftables.ChainHookRef(unix.NF_INET_LOCAL_IN)
-        case "output":
-                hook = nftables.ChainHookRef(unix.NF_INET_LOCAL_OUT)
-        case "forward":
-                hook = nftables.ChainHookRef(unix.NF_INET_FORWARD)
-        case "ingress":
-                hook = nftables.ChainHookRef(unix.NF_NETDEV_INGRESS)
-        }
+	var hook *nftables.ChainHook
+	switch h {
+	case "prerouting":
+		hook = nftables.ChainHookRef(unix.NF_INET_PRE_ROUTING)
+	case "postrouting":
+		hook = nftables.ChainHookRef(unix.NF_INET_POST_ROUTING)
+	case "input":
+		hook = nftables.ChainHookRef(unix.NF_INET_LOCAL_IN)
+	case "output":
+		hook = nftables.ChainHookRef(unix.NF_INET_LOCAL_OUT)
+	case "forward":
+		hook = nftables.ChainHookRef(unix.NF_INET_FORWARD)
+	case "ingress":
+		hook = nftables.ChainHookRef(unix.NF_NETDEV_INGRESS)
+	}
 
-        return hook
+	return hook
 }
-        
+
 func convertToUnixPolicy(p string) *nftables.ChainPolicy {
 	var policy nftables.ChainPolicy
 	switch p {

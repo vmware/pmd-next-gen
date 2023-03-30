@@ -17,17 +17,17 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/vmware/pmd/pkg/conf"
-	"github.com/vmware/pmd/pkg/parser"
-	"github.com/vmware/pmd/pkg/system"
-	"github.com/vmware/pmd/plugins/management"
-	"github.com/vmware/pmd/plugins/network"
-	"github.com/vmware/pmd/plugins/proc"
-	"github.com/vmware/pmd/plugins/systemd"
-	"github.com/vmware/pmd/plugins/tdnf"
+	"github.com/vmware/pmd-next-gen/pkg/conf"
+	"github.com/vmware/pmd-next-gen/pkg/parser"
+	"github.com/vmware/pmd-next-gen/pkg/system"
+	"github.com/vmware/pmd-next-gen/plugins/management"
+	"github.com/vmware/pmd-next-gen/plugins/network"
+	"github.com/vmware/pmd-next-gen/plugins/proc"
+	"github.com/vmware/pmd-next-gen/plugins/systemd"
+	"github.com/vmware/pmd-next-gen/plugins/tdnf"
 
 	"github.com/linuxkit/virtsock/pkg/vsock"
-	"github.com/vmware/pmd/pkg/jobs"
+	"github.com/vmware/pmd-next-gen/pkg/jobs"
 )
 
 var httpSrv *http.Server

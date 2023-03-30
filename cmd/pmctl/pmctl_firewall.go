@@ -10,9 +10,9 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/google/nftables"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/network/firewall"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/network/firewall"
 	"github.com/urfave/cli/v2"
 )
 

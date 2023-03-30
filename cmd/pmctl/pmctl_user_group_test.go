@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/management/group"
-	usr "github.com/vmware/pmd/plugins/management/user"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/management/group"
+	usr "github.com/vmware/pmd-next-gen/plugins/management/user"
 )
 
 func TestUserAdd(t *testing.T) {

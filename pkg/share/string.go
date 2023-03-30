@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
 )
 
 func StringContains(list []string, s string) bool {

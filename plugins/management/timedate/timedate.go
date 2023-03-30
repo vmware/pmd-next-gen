@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd-next-gen/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
 

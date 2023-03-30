@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/vishvananda/netlink"
-	"github.com/vmware/pmd/pkg/system"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/network/networkd"
+	"github.com/vmware/pmd-next-gen/pkg/system"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/network/networkd"
 )
 
 func configureNetDev(t *testing.T, n networkd.NetDev) error {

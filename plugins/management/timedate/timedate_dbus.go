@@ -9,7 +9,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 
-	"github.com/vmware/pmd/pkg/bus"
+	"github.com/vmware/pmd-next-gen/pkg/bus"
 )
 
 const (

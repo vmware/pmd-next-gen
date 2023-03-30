@@ -10,17 +10,17 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/management/group"
-	"github.com/vmware/pmd/plugins/management/hostname"
-	"github.com/vmware/pmd/plugins/management/login"
-	"github.com/vmware/pmd/plugins/management/sysctl"
-	"github.com/vmware/pmd/plugins/management/timedate"
-	"github.com/vmware/pmd/plugins/management/user"
-	"github.com/vmware/pmd/plugins/network/netlink/address"
-	"github.com/vmware/pmd/plugins/network/netlink/route"
-	"github.com/vmware/pmd/plugins/network/networkd"
-	"github.com/vmware/pmd/plugins/systemd"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/management/group"
+	"github.com/vmware/pmd-next-gen/plugins/management/hostname"
+	"github.com/vmware/pmd-next-gen/plugins/management/login"
+	"github.com/vmware/pmd-next-gen/plugins/management/sysctl"
+	"github.com/vmware/pmd-next-gen/plugins/management/timedate"
+	"github.com/vmware/pmd-next-gen/plugins/management/user"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/address"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/route"
+	"github.com/vmware/pmd-next-gen/plugins/network/networkd"
+	"github.com/vmware/pmd-next-gen/plugins/systemd"
 )
 
 type Describe struct {

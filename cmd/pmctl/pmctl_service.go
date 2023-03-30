@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/systemd"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/systemd"
 )
 
 type UnitStatus struct {

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/vmware/pmd/pkg/conf"
+	"github.com/vmware/pmd-next-gen/pkg/conf"
 )
 
 func PathExists(path string) bool {

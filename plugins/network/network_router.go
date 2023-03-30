@@ -10,15 +10,15 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/network/ethtool"
-	"github.com/vmware/pmd/plugins/network/firewall"
-	"github.com/vmware/pmd/plugins/network/netlink/address"
-	"github.com/vmware/pmd/plugins/network/netlink/link"
-	"github.com/vmware/pmd/plugins/network/netlink/route"
-	"github.com/vmware/pmd/plugins/network/networkd"
-	"github.com/vmware/pmd/plugins/network/resolved"
-	"github.com/vmware/pmd/plugins/network/timesyncd"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/network/ethtool"
+	"github.com/vmware/pmd-next-gen/plugins/network/firewall"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/address"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/link"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/route"
+	"github.com/vmware/pmd-next-gen/plugins/network/networkd"
+	"github.com/vmware/pmd-next-gen/plugins/network/resolved"
+	"github.com/vmware/pmd-next-gen/plugins/network/timesyncd"
 )
 
 type Describe struct {

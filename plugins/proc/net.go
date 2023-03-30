@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/vmware/pmd/pkg/system"
-	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd-next-gen/pkg/system"
+	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
 const (

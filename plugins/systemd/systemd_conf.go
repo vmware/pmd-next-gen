@@ -12,8 +12,9 @@ import (
 	"os"
 
 	"github.com/go-ini/ini"
-	"github.com/vmware/pmd/pkg/web"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
 const (

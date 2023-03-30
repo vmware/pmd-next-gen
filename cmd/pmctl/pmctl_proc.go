@@ -12,9 +12,9 @@ import (
 	"github.com/shirou/gopsutil/v3/net"
 	"github.com/urfave/cli/v2"
 
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/proc"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/proc"
 )
 
 type ProcArpStats struct {

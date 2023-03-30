@@ -14,11 +14,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/vmware/pmd/pkg/configfile"
-	"github.com/vmware/pmd/pkg/share"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/systemd"
+	"github.com/vmware/pmd-next-gen/pkg/configfile"
+	"github.com/vmware/pmd-next-gen/pkg/share"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/systemd"
 )
 
 type Dns struct {

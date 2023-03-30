@@ -10,10 +10,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vmware/pmd/pkg/configfile"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/vmware/pmd-next-gen/pkg/configfile"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
 type Link struct {

@@ -15,16 +15,16 @@ import (
 	"github.com/shirou/gopsutil/v3/net"
 	"github.com/urfave/cli/v2"
 
-	"github.com/vmware/pmd/pkg/share"
-	"github.com/vmware/pmd/pkg/validator"
-	"github.com/vmware/pmd/pkg/web"
-	"github.com/vmware/pmd/plugins/network"
-	"github.com/vmware/pmd/plugins/network/netlink/address"
-	"github.com/vmware/pmd/plugins/network/netlink/link"
-	"github.com/vmware/pmd/plugins/network/netlink/route"
-	"github.com/vmware/pmd/plugins/network/networkd"
-	"github.com/vmware/pmd/plugins/network/resolved"
-	"github.com/vmware/pmd/plugins/network/timesyncd"
+	"github.com/vmware/pmd-next-gen/pkg/share"
+	"github.com/vmware/pmd-next-gen/pkg/validator"
+	"github.com/vmware/pmd-next-gen/pkg/web"
+	"github.com/vmware/pmd-next-gen/plugins/network"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/address"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/link"
+	"github.com/vmware/pmd-next-gen/plugins/network/netlink/route"
+	"github.com/vmware/pmd-next-gen/plugins/network/networkd"
+	"github.com/vmware/pmd-next-gen/plugins/network/resolved"
+	"github.com/vmware/pmd-next-gen/plugins/network/timesyncd"
 )
 
 type NetDevIOCounters struct {

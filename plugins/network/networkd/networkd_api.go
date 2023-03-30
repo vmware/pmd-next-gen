@@ -13,8 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/vmware/pmd/pkg/configfile"
-	"github.com/vmware/pmd/pkg/system"
+	"github.com/vmware/pmd-next-gen/pkg/configfile"
+	"github.com/vmware/pmd-next-gen/pkg/system"
 )
 
 func ParseLinkString(ifindex int, key string) (string, error) {
