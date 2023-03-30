@@ -1,9 +1,9 @@
-module github.com/vmware/pmd
+module github.com/vmware/pmd-next-gen
 
 go 1.20
 
 require (
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/fatih/color v1.15.0
 	github.com/go-ini/ini v1.67.0
