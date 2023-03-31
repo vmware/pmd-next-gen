@@ -10,12 +10,13 @@ import (
 	"strings"
 	"sync"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/vmware/pmd-next-gen/pkg/configfile"
 	"github.com/vmware/pmd-next-gen/pkg/share"
 	"github.com/vmware/pmd-next-gen/pkg/validator"
 	"github.com/vmware/pmd-next-gen/pkg/web"
 	"github.com/vmware/pmd-next-gen/plugins/systemd"
-	log "github.com/sirupsen/logrus"
 )
 
 type Describe struct {
@@ -102,8 +103,8 @@ func DescribeNTPServers(ctx context.Context) (*Describe, error) {
 
 func restartTimesyncd(ctx context.Context) error {
 	u := systemd.UnitAction{
-		Unit:   "systemd-timesyncd.service",
-		Action: "restart",
+		Unit: "systemd-timesyncd.service",
+		Verb: "restart",
 	}
 
 	if err := u.UnitCommands(ctx); err != nil {

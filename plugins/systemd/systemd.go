@@ -19,7 +19,7 @@ import (
 )
 
 type UnitAction struct {
-	Action   string `json:"Action"`
+	Verb     string `json:"Verb"`
 	Unit     string `json:"Unit"`
 	UnitType string `json:"UnitType"`
 	Property string `json:"Property"`
@@ -208,7 +208,7 @@ func (u *UnitAction) UnitCommands(ctx context.Context) error {
 	defer conn.Close()
 
 	c := make(chan string)
-	switch u.Action {
+	switch u.Verb {
 	case "start":
 		jid, err := conn.StartUnitContext(ctx, u.Unit, "replace", c)
 		if err != nil {
@@ -309,7 +309,7 @@ func (u *UnitAction) UnitCommands(ctx context.Context) error {
 		conn.KillUnitContext(ctx, u.Unit, int32(signal))
 
 	default:
-		log.Errorf("Unknown unit command='%s' for systemd unit='%s'", u.Action, u.Unit)
+		log.Errorf("Unknown unit Verb='%s' for systemd unit='%s'", u.Verb, u.Unit)
 		return errors.New("unknown unit command")
 	}
 

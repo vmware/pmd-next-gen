@@ -205,8 +205,8 @@ func DescribeDns(ctx context.Context) (*Describe, error) {
 
 func restartResolved(ctx context.Context) error {
 	u := systemd.UnitAction{
-		Unit:   "systemd-resolved.service",
-		Action: "restart",
+		Unit: "systemd-resolved.service",
+		Verb: "restart",
 	}
 
 	if err := u.UnitCommands(ctx); err != nil {

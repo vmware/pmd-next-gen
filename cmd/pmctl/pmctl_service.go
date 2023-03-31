@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+
 	"github.com/vmware/pmd-next-gen/pkg/web"
 	"github.com/vmware/pmd-next-gen/plugins/systemd"
 )
@@ -20,10 +21,10 @@ type UnitStatus struct {
 	Errors  string             `json:"errors"`
 }
 
-func executeSystemdUnitCommand(command string, unit string, host string, token map[string]string) {
+func executeSystemdUnitCommand(verb string, unit string, host string, token map[string]string) {
 	c := systemd.UnitAction{
-		Action: command,
-		Unit:   unit,
+		Verb: verb,
+		Unit: unit,
 	}
 
 	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/service/systemd", token, c)

@@ -15,7 +15,7 @@ import (
 
 func TestExecuteSystemdUnitCommand(t *testing.T) {
 	c := systemd.UnitAction{
-		Action: "start",
+		Verb: "start",
 		Unit:   "sshd.service",
 	}
 
