@@ -1,7 +1,5 @@
 # Contributing to pmd-next-gen
 
-_NOTE: This is a template document that requires editing before it is ready to use!_
-
 We welcome contributions from the community and first want to thank you for taking the time to contribute!
 
 Please familiarize yourself with the [Code of Conduct](https://github.com/vmware/.github/blob/main/CODE_OF_CONDUCT.md) before contributing.
@@ -22,13 +20,30 @@ We welcome many different types of contributions and not all of them need a Pull
 
 ## Getting started
 
-_TO BE EDITED: This section explains how to build the project from source, including Development Environment Setup, Build, Run and Test._
+* Building and installation from source
 
-_Provide information about how someone can find your project, get set up, build the code, test it, and submit a pull request successfully without having to ask any questions. Also include common errors people run into, or useful scripts they should run._
+``` shell
+❯ git clone git@github.com:vmware/pmd-next-gen.git
+❯ make build
+❯ sudo make install
+```
 
-_List any tests that the contributor should run / or testing processes to follow before submitting. Describe any automated and manual checks performed by reviewers._
+Due to security photon-mgmtd runs in non root user photon-mgmt. It drops all privileges except CAP_NET_ADMIN and CAP_SYS_ADMIN.
 
+```shell
+❯ useradd -M -s /usr/bin/nologin photon-mgmt
+```
 
+Then start photon-mgmtd.service
+
+```shell
+❯ sudo systemctl start photon-mgmtd
+``````
+
+Run pmctl tests
+```shell
+❯ sudo go test -v ./cmd/pmctl
+```
 ## Contribution Flow
 
 This is a rough outline of what a contributor's workflow looks like:
@@ -55,21 +70,8 @@ Before submitting your pull request, we advise you to use the following:
 
 For specifics on what to include in your report, please follow the guidelines in the issue and pull request templates when available.
 
-_TO BE EDITED: Add additional information if needed._
-
-
 ## Ask for Help
-
-_TO BE EDITED: Provide information about the channels you use to communicate (i.e. Slack, IRC, Discord, etc)_
 
 The best way to reach us with a question when contributing is to ask on:
 
 * The original GitHub issue
-* The developer mailing list
-* Our Slack channel
-
-
-## Additional Resources
-
-_Optional_
-
