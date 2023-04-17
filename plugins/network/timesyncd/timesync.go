@@ -101,7 +101,7 @@ func DescribeNTPServers(ctx context.Context) (*Describe, error) {
 	return &s, nil
 }
 
-func restartTimesyncd(ctx context.Context) error {
+func restartTimeSyncd(ctx context.Context) error {
 	u := systemd.UnitRequest{
 		Unit: "systemd-timesyncd.service",
 		Verb: "restart",
@@ -131,7 +131,7 @@ func (n *NTP) AddNTP(ctx context.Context, w http.ResponseWriter) error {
 		return err
 	}
 
-	if err := restartTimesyncd(ctx); err != nil {
+	if err := restartTimeSyncd(ctx); err != nil {
 		log.Errorf("Failed to restart systemd-timesyncd: %v", err)
 		return err
 	}
@@ -159,7 +159,7 @@ func (n *NTP) RemoveNTP(ctx context.Context, w http.ResponseWriter) error {
 		return err
 	}
 
-	if err := restartTimesyncd(ctx); err != nil {
+	if err := restartTimeSyncd(ctx); err != nil {
 		log.Errorf("Failed to restart systemd-timesyncd: %v", err)
 		return err
 	}
