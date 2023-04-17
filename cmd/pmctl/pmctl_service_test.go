@@ -14,9 +14,9 @@ import (
 )
 
 func TestExecuteSystemdUnitCommand(t *testing.T) {
-	c := systemd.UnitAction{
+	c := systemd.UnitRequest{
 		Verb: "start",
-		Unit:   "sshd.service",
+		Unit: "sshd.service",
 	}
 
 	resp, err := web.DispatchSocket(http.MethodPost, "", "/api/v1/service/systemd", nil, c)

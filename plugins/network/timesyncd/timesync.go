@@ -102,7 +102,7 @@ func DescribeNTPServers(ctx context.Context) (*Describe, error) {
 }
 
 func restartTimesyncd(ctx context.Context) error {
-	u := systemd.UnitAction{
+	u := systemd.UnitRequest{
 		Unit: "systemd-timesyncd.service",
 		Verb: "restart",
 	}

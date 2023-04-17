@@ -22,7 +22,7 @@ type UnitStatus struct {
 }
 
 func executeSystemdUnitCommand(verb string, unit string, host string, token map[string]string) {
-	c := systemd.UnitAction{
+	c := systemd.UnitRequest{
 		Verb: verb,
 		Unit: unit,
 	}

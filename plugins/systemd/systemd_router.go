@@ -13,7 +13,7 @@ import (
 	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
-func (u *UnitAction) appendSuffixIfMissing() {
+func (u *UnitRequest) appendSuffixIfMissing() {
 	ok := strings.HasSuffix(u.Unit, ".service")
 	if !ok {
 		u.Unit += ".service"
@@ -50,7 +50,7 @@ func routerConfigureSystemdConf(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerConfigureUnit(w http.ResponseWriter, r *http.Request) {
-	u := UnitAction{}
+	u := UnitRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Error decoding request", http.StatusBadRequest)
 		return
@@ -72,7 +72,7 @@ func routerAcquireAllSystemdUnits(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
-	u := UnitAction{
+	u := UnitRequest{
 		Unit: mux.Vars(r)["unit"],
 	}
 
@@ -83,7 +83,7 @@ func routerAcquireUnitStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
-	u := UnitAction{
+	u := UnitRequest{
 		Unit:     mux.Vars(r)["unit"],
 		Property: mux.Vars(r)["property"],
 	}
@@ -95,7 +95,7 @@ func routerAcquireUnitProperty(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
-	u := UnitAction{
+	u := UnitRequest{
 		Unit: mux.Vars(r)["unit"],
 	}
 
@@ -106,7 +106,7 @@ func routerAcquireUnitPropertyAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireUnitTypeProperty(w http.ResponseWriter, r *http.Request) {
-	u := UnitAction{
+	u := UnitRequest{
 		Unit:     mux.Vars(r)["unit"],
 		UnitType: mux.Vars(r)["unittype"],
 		Property: mux.Vars(r)["property"],

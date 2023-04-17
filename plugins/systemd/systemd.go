@@ -18,7 +18,7 @@ import (
 	"github.com/vmware/pmd-next-gen/pkg/web"
 )
 
-type UnitAction struct {
+type UnitRequest struct {
 	Verb     string `json:"Verb"`
 	Unit     string `json:"Unit"`
 	UnitType string `json:"UnitType"`
@@ -199,7 +199,7 @@ func ListUnits(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(units, w)
 }
 
-func (u *UnitAction) UnitCommands(ctx context.Context) error {
+func (u *UnitRequest) UnitCommands(ctx context.Context) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection with system bus: %v", err)
@@ -316,7 +316,7 @@ func (u *UnitAction) UnitCommands(ctx context.Context) error {
 	return nil
 }
 
-func (u *UnitAction) AcquireUnitStatus(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitRequest) AcquireUnitStatus(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection with system bus:: %v", err)
@@ -426,7 +426,7 @@ func (u *UnitAction) AcquireUnitStatus(ctx context.Context, w http.ResponseWrite
 	return web.JSONResponse(unit, w)
 }
 
-func (u *UnitAction) AcquireUnitProperty(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitRequest) AcquireUnitProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection with system bus: %v", err)
@@ -443,7 +443,7 @@ func (u *UnitAction) AcquireUnitProperty(ctx context.Context, w http.ResponseWri
 	return web.JSONResponse(p, w)
 }
 
-func (u *UnitAction) AcquireAllUnitProperty(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitRequest) AcquireAllUnitProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection with system bus: %v", err)
@@ -460,7 +460,7 @@ func (u *UnitAction) AcquireAllUnitProperty(ctx context.Context, w http.Response
 	return web.JSONResponse(p, w)
 }
 
-func (u *UnitAction) AcquireUnitTypeProperty(ctx context.Context, w http.ResponseWriter) error {
+func (u *UnitRequest) AcquireUnitTypeProperty(ctx context.Context, w http.ResponseWriter) error {
 	conn, err := sd.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		log.Errorf("Failed to establish connection with system bus:: %v", err)
