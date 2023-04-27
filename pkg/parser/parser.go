@@ -23,7 +23,7 @@ func ParseBool(str string) (bool, error) {
 		return false, nil
 	}
 
-	return false, errors.New("failed to parse")
+	return false, errors.New("failed to parse bool")
 }
 
 func ParseIp(addr string) (net.IP, error) {
