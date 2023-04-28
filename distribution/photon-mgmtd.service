@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [Unit]
-Description=A REST API based configuration management microservice gateway
+Description=Photon OS Management Daemon
 After=network.target
 
 [Service]
