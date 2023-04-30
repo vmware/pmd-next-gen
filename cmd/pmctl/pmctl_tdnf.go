@@ -150,23 +150,23 @@ func tdnfParseQueryFlags(c *cli.Context) tdnf.QueryOptions {
 
 func tdnfParseListFlags(c *cli.Context) tdnf.ListOptions {
 	return tdnf.ListOptions{
-		tdnfParseFlags(c),
-		tdnfParseScopeFlags(c),
+		Options: tdnfParseFlags(c),
+		ScopeOptions:  tdnfParseScopeFlags(c),
 	}
 }
 
 func tdnfParseRepoQueryFlags(c *cli.Context) tdnf.RepoQueryOptions {
 	return tdnf.RepoQueryOptions{
-		tdnfParseFlags(c),
-		tdnfParseQueryFlags(c),
+		Options: tdnfParseFlags(c),
+		QueryOptions: tdnfParseQueryFlags(c),
 	}
 }
 
 func tdnfParseUpdateInfoFlags(c *cli.Context) tdnf.UpdateInfoOptions {
 	return tdnf.UpdateInfoOptions{
-		tdnfParseFlags(c),
-		tdnfParseScopeFlags(c),
-		tdnfParseModeFlags(c),
+		Options: tdnfParseFlags(c),
+		ScopeOptions: tdnfParseScopeFlags(c),
+		ModeOptions: tdnfParseModeFlags(c),
 	}
 }
 
@@ -178,8 +178,8 @@ func tdnfParseHistoryFlags(c *cli.Context) tdnf.HistoryOptions {
 
 func tdnfParseHistoryCmdFlags(c *cli.Context) tdnf.HistoryCmdOptions {
 	return tdnf.HistoryCmdOptions{
-		tdnfParseFlags(c),
-		tdnfParseHistoryFlags(c),
+		Options: tdnfParseFlags(c),
+		HistoryOptions: tdnfParseHistoryFlags(c),
 	}
 }
 
