@@ -657,11 +657,9 @@ func acquireTdnfCheckUpdate(options *tdnf.Options, pkg string, host string, toke
 }
 
 func acquireTdnfSearch(options *tdnf.Options, q string, host string, token map[string]string) (*ItemSearchDesc, error) {
-	var path string
-
 	v := tdnfOptionsMap(options)
 	v.Add("q", q)
-	path = "/api/v1/tdnf/search?" + v.Encode()
+	path := "/api/v1/tdnf/search?" + v.Encode()
 
 	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
@@ -682,8 +680,6 @@ func acquireTdnfSearch(options *tdnf.Options, q string, host string, token map[s
 }
 
 func acquireTdnfSimpleCommand(options *tdnf.Options, cmd string, host string, token map[string]string) (*NilDesc, error) {
-	var msg []byte
-
 	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd+tdnfOptionsQuery(options), token, nil)
 	if err != nil {
 		return nil, err
@@ -722,7 +718,6 @@ func acquireTdnfVersion(options *tdnf.Options, host string, token map[string]str
 }
 
 func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkgs string, host string, token map[string]string) (*AlterResultDesc, error) {
-	var msg []byte
 	var req string
 
 	if pkgs != "" {
@@ -731,7 +726,6 @@ func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkgs string, host st
 		req = "/api/v1/tdnf/" + cmd + tdnfOptionsQuery(options)
 	}
 
-	fmt.Printf("req: %s\n", req)
 	msg, err := web.DispatchAndWait(http.MethodGet, host, req, token, nil)
 	if err != nil {
 		return nil, err
@@ -751,8 +745,7 @@ func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkgs string, host st
 }
 
 func acquireTdnfHistoryList(options *tdnf.HistoryCmdOptions, host string, token map[string]string) (*HistoryListDesc, error) {
-	var path string
-	path = "/api/v1/tdnf/history/list" + tdnfOptionsQuery(options)
+	path := "/api/v1/tdnf/history/list" + tdnfOptionsQuery(options)
 
 	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
@@ -772,8 +765,6 @@ func acquireTdnfHistoryList(options *tdnf.HistoryCmdOptions, host string, token 
 }
 
 func acquireTdnfHistoryAlterCmd(options *tdnf.HistoryCmdOptions, cmd string, host string, token map[string]string) (*AlterResultDesc, error) {
-	var msg []byte
-
 	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/history/"+cmd+tdnfOptionsQuery(options), token, nil)
 	if err != nil {
 		return nil, err
