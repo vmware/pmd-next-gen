@@ -1,4 +1,4 @@
-FROM photon:4.0
+FROM photon:5.0
 
 RUN tdnf -y install git go build-essential shadow
 
