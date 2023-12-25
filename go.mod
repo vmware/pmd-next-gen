@@ -17,7 +17,7 @@ require (
 	github.com/safchain/ethtool v0.3.0
 	github.com/shirou/gopsutil/v3 v3.23.11
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.26.0
 	github.com/vishvananda/netlink v1.1.0
