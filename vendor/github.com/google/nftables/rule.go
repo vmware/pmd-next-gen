@@ -25,7 +25,10 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-var ruleHeaderType = netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_NEWRULE)
+var (
+	newRuleHeaderType = netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_NEWRULE)
+	delRuleHeaderType = netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_DELRULE)
+)
 
 type ruleOperation uint32
 
@@ -97,9 +100,6 @@ func (cc *Conn) GetRules(t *Table, c *Chain) ([]*Rule, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Carry over all Table attributes (including Family), as the Table
-		// object which ruleFromMsg creates only contains the name.
-		r.Table = t
 		rules = append(rules, r)
 	}
 
@@ -133,6 +133,17 @@ func (cc *Conn) newRule(r *Rule, op ruleOperation) *Rule {
 		{Type: unix.NLA_F_NESTED | unix.NFTA_RULE_EXPRESSIONS, Data: cc.marshalAttr(exprAttrs)},
 	})...)
 
+	if compatPolicy, err := getCompatPolicy(r.Exprs); err != nil {
+		cc.setErr(err)
+	} else if compatPolicy != nil {
+		data = append(data, cc.marshalAttr([]netlink.Attribute{
+			{Type: unix.NLA_F_NESTED | unix.NFTA_RULE_COMPAT, Data: cc.marshalAttr([]netlink.Attribute{
+				{Type: unix.NFTA_RULE_COMPAT_PROTO, Data: binaryutil.BigEndian.PutUint32(compatPolicy.Proto)},
+				{Type: unix.NFTA_RULE_COMPAT_FLAGS, Data: binaryutil.BigEndian.PutUint32(compatPolicy.Flag & nft_RULE_COMPAT_F_MASK)},
+			})},
+		})...)
+	}
+
 	msgData := []byte{}
 
 	msgData = append(msgData, data...)
@@ -160,7 +171,7 @@ func (cc *Conn) newRule(r *Rule, op ruleOperation) *Rule {
 
 	cc.messages = append(cc.messages, netlink.Message{
 		Header: netlink.Header{
-			Type:  ruleHeaderType,
+			Type:  newRuleHeaderType,
 			Flags: flags,
 		},
 		Data: append(extraHeader(uint8(r.Table.Family), 0), msgData...),
@@ -207,7 +218,7 @@ func (cc *Conn) DelRule(r *Rule) error {
 
 	cc.messages = append(cc.messages, netlink.Message{
 		Header: netlink.Header{
-			Type:  netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_DELRULE),
+			Type:  delRuleHeaderType,
 			Flags: flags,
 		},
 		Data: append(extraHeader(uint8(r.Table.Family), 0), data...),
@@ -217,8 +228,8 @@ func (cc *Conn) DelRule(r *Rule) error {
 }
 
 func ruleFromMsg(fam TableFamily, msg netlink.Message) (*Rule, error) {
-	if got, want := msg.Header.Type, ruleHeaderType; got != want {
-		return nil, fmt.Errorf("unexpected header type: got %v, want %v", got, want)
+	if got, want1, want2 := msg.Header.Type, newRuleHeaderType, delRuleHeaderType; got != want1 && got != want2 {
+		return nil, fmt.Errorf("unexpected header type: got %v, want %v or %v", msg.Header.Type, want1, want2)
 	}
 	ad, err := netlink.NewAttributeDecoder(msg.Data[4:])
 	if err != nil {
