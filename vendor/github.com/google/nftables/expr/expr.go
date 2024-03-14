@@ -132,6 +132,10 @@ func exprsFromBytes(fam byte, ad *netlink.AttributeDecoder, b []byte) ([]Any, er
 					e = &FlowOffload{}
 				case "reject":
 					e = &Reject{}
+				case "masq":
+					e = &Masq{}
+				case "hash":
+					e = &Hash{}
 				}
 				if e == nil {
 					// TODO: introduce an opaque expression type so that users know
@@ -283,6 +287,8 @@ const (
 	NF_NAT_RANGE_PROTO_RANDOM_FULLY = 0x10
 	// NF_NAT_RANGE_PERSISTENT defines flag for a persistent masquerade
 	NF_NAT_RANGE_PERSISTENT = 0x8
+	// NF_NAT_RANGE_PREFIX defines flag for a prefix masquerade
+	NF_NAT_RANGE_PREFIX = 0x40
 )
 
 func (e *Masq) marshal(fam byte) ([]byte, error) {
@@ -337,6 +343,7 @@ func (e *Masq) unmarshal(fam byte, data []byte) error {
 	for ad.Next() {
 		switch ad.Type() {
 		case unix.NFTA_MASQ_REG_PROTO_MIN:
+			e.ToPorts = true
 			e.RegProtoMin = ad.Uint32()
 		case unix.NFTA_MASQ_REG_PROTO_MAX:
 			e.RegProtoMax = ad.Uint32()

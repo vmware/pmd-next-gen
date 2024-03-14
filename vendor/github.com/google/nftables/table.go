@@ -21,7 +21,10 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-var tableHeaderType = netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_NEWTABLE)
+var (
+	newTableHeaderType = netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_NEWTABLE)
+	delTableHeaderType = netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_DELTABLE)
+)
 
 // TableFamily specifies the address family for this table.
 type TableFamily byte
@@ -63,9 +66,7 @@ func (cc *Conn) DelTable(t *Table) {
 	})
 }
 
-// AddTable adds the specified Table. See also
-// https://wiki.nftables.org/wiki-nftables/index.php/Configuring_tables
-func (cc *Conn) AddTable(t *Table) *Table {
+func (cc *Conn) addTable(t *Table, flag netlink.HeaderFlags) *Table {
 	cc.mu.Lock()
 	defer cc.mu.Unlock()
 	data := cc.marshalAttr([]netlink.Attribute{
@@ -75,11 +76,23 @@ func (cc *Conn) AddTable(t *Table) *Table {
 	cc.messages = append(cc.messages, netlink.Message{
 		Header: netlink.Header{
 			Type:  netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_NEWTABLE),
-			Flags: netlink.Request | netlink.Acknowledge | netlink.Create,
+			Flags: netlink.Request | netlink.Acknowledge | flag,
 		},
 		Data: append(extraHeader(uint8(t.Family), 0), data...),
 	})
 	return t
+}
+
+// AddTable adds the specified Table, just like `nft add table ...`.
+// See also https://wiki.nftables.org/wiki-nftables/index.php/Configuring_tables
+func (cc *Conn) AddTable(t *Table) *Table {
+	return cc.addTable(t, netlink.Create)
+}
+
+// CreateTable create the specified Table if it do not existed.
+// just like `nft create table ...`.
+func (cc *Conn) CreateTable(t *Table) *Table {
+	return cc.addTable(t, netlink.Excl)
 }
 
 // FlushTable removes all rules in all chains within the specified Table. See also
@@ -140,8 +153,8 @@ func (cc *Conn) ListTablesOfFamily(family TableFamily) ([]*Table, error) {
 }
 
 func tableFromMsg(msg netlink.Message) (*Table, error) {
-	if got, want := msg.Header.Type, tableHeaderType; got != want {
-		return nil, fmt.Errorf("unexpected header type: got %v, want %v", got, want)
+	if got, want1, want2 := msg.Header.Type, newTableHeaderType, delTableHeaderType; got != want1 && got != want2 {
+		return nil, fmt.Errorf("unexpected header type: got %v, want %v or %v", got, want1, want2)
 	}
 
 	var t Table
