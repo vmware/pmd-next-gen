@@ -685,13 +685,13 @@ pmctl network show-nft-chain name <CHAIN> table <TABLE> family <FAMILY>
 >pmctl network nft-save
 
 # Run nft commands.
-pmctl network nft-run <COMMAND>
->pmctl network nft-run nft add table inet test99
->pmctl network nft-run nft add chain inet test99 my_chain '{ type filter hook input priority 0; }'
->pmctl network nft-run nft add rule inet test99 my_chain tcp dport {telnet, http, https} accept
->pmctl network nft-run nft delete rule inet test99 my_chain handle 3
->pmctl network nft-run nft delete chain inet test99 my_chain
->pmctl network nft-run nft delete table inet test99
+pmctl network nft-run <ARGUMENTS>
+>pmctl network nft-run add table inet test99
+>pmctl network nft-run add chain inet test99 my_chain '{ type filter hook input priority 0; }'
+>pmctl network nft-run add rule inet test99 my_chain tcp dport {telnet, http, https} accept
+>pmctl network nft-run delete rule inet test99 my_chain handle 3
+>pmctl network nft-run delete chain inet test99 my_chain
+>pmctl network nft-run delete table inet test99
 
 ```
 
