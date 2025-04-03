@@ -414,16 +414,12 @@ func (n *Nft) SaveNFT(w http.ResponseWriter) error {
 }
 
 func (n *Nft) RunNFT(w http.ResponseWriter) error {
-	cmd := n.Command[0]
-	n.Command = n.Command[1:]
 	args := strings.Join(n.Command, " ")
 
-	stdout, err := system.ExecAndCapture(cmd, args)
+	stdout, err := system.ExecAndCapture("nft", args)
 	if err != nil {
-		log.Errorf("Failed to run command='%s %s', command output=%v", cmd, args, err)
+		log.Errorf("Failed to run command='nft %s', command output=%v", args, err)
 		return fmt.Errorf("Failed to acquire command output=%v", err)
-		//return fmt.Errorf("Failed to run command='%s %s', command output=%v", cmd, args, err)
 	}
-
 	return web.JSONResponse(stdout, w)
 }
