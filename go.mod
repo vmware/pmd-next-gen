@@ -1,6 +1,7 @@
 module github.com/vmware/pmd-next-gen
 
 go 1.21.5
+toolchain go1.24.1
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
@@ -21,7 +22,7 @@ require (
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.27.2
 	github.com/vishvananda/netlink v1.3.0
-	golang.org/x/sys v0.22.0
+	golang.org/x/sys v0.30.0
 )
 
 require (
@@ -61,9 +62,9 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
