@@ -36,13 +36,14 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/nftables v0.2.0
+# github.com/google/nftables v0.3.0
 ## explicit; go 1.21
 github.com/google/nftables
 github.com/google/nftables/alignedbuff
 github.com/google/nftables/binaryutil
 github.com/google/nftables/expr
 github.com/google/nftables/internal/parseexprfunc
+github.com/google/nftables/userdata
 github.com/google/nftables/xt
 # github.com/gorilla/mux v1.8.1
 ## explicit; go 1.20
@@ -85,9 +86,6 @@ github.com/jaypipes/ghw/pkg/util
 # github.com/jaypipes/pcidb v1.0.1
 ## explicit; go 1.21
 github.com/jaypipes/pcidb
-# github.com/josharian/native v1.1.0
-## explicit; go 1.13
-github.com/josharian/native
 # github.com/linuxkit/virtsock v0.0.0-20220523201153-1a23e78aa7a2
 ## explicit; go 1.17
 github.com/linuxkit/virtsock/pkg/vsock
@@ -103,8 +101,8 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
-# github.com/mdlayher/netlink v1.7.2
-## explicit; go 1.18
+# github.com/mdlayher/netlink v1.7.3-0.20250113171957-fbb4dce95f42
+## explicit; go 1.21
 github.com/mdlayher/netlink
 github.com/mdlayher/netlink/nlenc
 github.com/mdlayher/netlink/nltest
