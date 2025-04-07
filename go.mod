@@ -15,7 +15,7 @@ require (
 	github.com/jaypipes/ghw v0.13.0
 	github.com/linuxkit/virtsock v0.0.0-20220523201153-1a23e78aa7a2
 	github.com/pkg/errors v0.9.1
-	github.com/safchain/ethtool v0.4.1
+	github.com/safchain/ethtool v0.5.10
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
