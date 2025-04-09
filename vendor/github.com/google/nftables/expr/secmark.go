@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC. All Rights Reserved.
+// Copyright 2024 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,45 +15,50 @@
 package expr
 
 import (
-	"fmt"
+	"encoding/binary"
 
-	"github.com/google/nftables/binaryutil"
 	"github.com/mdlayher/netlink"
 	"golang.org/x/sys/unix"
 )
 
-type RtKey uint32
-
+// From https://git.netfilter.org/libnftnl/tree/include/linux/netfilter/nf_tables.h?id=be0bae0ad31b0adb506f96de083f52a2bd0d4fbf#n1338
 const (
-	RtClassid  RtKey = unix.NFT_RT_CLASSID
-	RtNexthop4 RtKey = unix.NFT_RT_NEXTHOP4
-	RtNexthop6 RtKey = unix.NFT_RT_NEXTHOP6
-	RtTCPMSS   RtKey = unix.NFT_RT_TCPMSS
+	NFTA_SECMARK_CTX = 0x01
 )
 
-type Rt struct {
-	Register uint32
-	Key      RtKey
+type SecMark struct {
+	Ctx string
 }
 
-func (e *Rt) marshal(fam byte) ([]byte, error) {
+func (e *SecMark) marshal(fam byte) ([]byte, error) {
 	data, err := e.marshalData(fam)
 	if err != nil {
 		return nil, err
 	}
 	return netlink.MarshalAttributes([]netlink.Attribute{
-		{Type: unix.NFTA_EXPR_NAME, Data: []byte("rt\x00")},
+		{Type: unix.NFTA_EXPR_NAME, Data: []byte("secmark\x00")},
 		{Type: unix.NLA_F_NESTED | unix.NFTA_EXPR_DATA, Data: data},
 	})
 }
 
-func (e *Rt) marshalData(fam byte) ([]byte, error) {
-	return netlink.MarshalAttributes([]netlink.Attribute{
-		{Type: unix.NFTA_RT_KEY, Data: binaryutil.BigEndian.PutUint32(uint32(e.Key))},
-		{Type: unix.NFTA_RT_DREG, Data: binaryutil.BigEndian.PutUint32(e.Register)},
-	})
+func (e *SecMark) marshalData(fam byte) ([]byte, error) {
+	attrs := []netlink.Attribute{
+		{Type: NFTA_SECMARK_CTX, Data: []byte(e.Ctx)},
+	}
+	return netlink.MarshalAttributes(attrs)
 }
 
-func (e *Rt) unmarshal(fam byte, data []byte) error {
-	return fmt.Errorf("not yet implemented")
+func (e *SecMark) unmarshal(fam byte, data []byte) error {
+	ad, err := netlink.NewAttributeDecoder(data)
+	if err != nil {
+		return err
+	}
+	ad.ByteOrder = binary.BigEndian
+	for ad.Next() {
+		switch ad.Type() {
+		case NFTA_SECMARK_CTX:
+			e.Ctx = ad.String()
+		}
+	}
+	return ad.Err()
 }
