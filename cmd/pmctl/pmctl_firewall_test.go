@@ -207,13 +207,13 @@ func TestDeleteNFTChain(t *testing.T) {
 }
 
 func TestRunNFT(t *testing.T) {
-	at := []string{"nft", "add", "table", "inet", "test99"}
-	ac := []string{"nft", "add", "chain", "inet", "test99", "test99chain", "{ type filter hook input priority 0; }"}
-	ar := []string{"nft", "add", "rule", "inet", "test99", "test99chain", "tcp", "dport", "{telnet, http, https}", "accept"}
-	vr := []string{"nft", "list", "ruleset"}
-	dr := []string{"nft", "delete", "rule", "inet", "test99", "test99chain", "handle", "3"}
-	dc := []string{"nft", "delete", "chain", "inet", "test99", "test99chain"}
-	dt := []string{"nft", "delete", "table", "inet", "test99"}
+	at := []string{"add", "table", "inet", "test99"}
+	ac := []string{"add", "chain", "inet", "test99", "test99chain", "{ type filter hook input priority 0; }"}
+	ar := []string{"add", "rule", "inet", "test99", "test99chain", "tcp", "dport", "{telnet, http, https}", "accept"}
+	vr := []string{"list", "ruleset"}
+	dr := []string{"delete", "rule", "inet", "test99", "test99chain", "handle", "3"}
+	dc := []string{"delete", "chain", "inet", "test99", "test99chain"}
+	dt := []string{"delete", "table", "inet", "test99"}
 
 	// Add Table
 	n := firewall.Nft{
