@@ -1,7 +1,6 @@
 module github.com/vmware/pmd-next-gen
 
-go 1.21.5
-toolchain go1.24.1
+go 1.24.2
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
@@ -15,14 +14,14 @@ require (
 	github.com/jaypipes/ghw v0.13.0
 	github.com/linuxkit/virtsock v0.0.0-20220523201153-1a23e78aa7a2
 	github.com/pkg/errors v0.9.1
-	github.com/safchain/ethtool v0.4.1
+	github.com/safchain/ethtool v0.6.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.27.2
 	github.com/vishvananda/netlink v1.3.0
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.33.0
 )
 
 require (
