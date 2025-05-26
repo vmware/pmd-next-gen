@@ -59,9 +59,10 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/jaypipes/ghw v0.13.0
+# github.com/jaypipes/ghw v0.17.0
 ## explicit; go 1.21
 github.com/jaypipes/ghw
+github.com/jaypipes/ghw/pkg/accelerator
 github.com/jaypipes/ghw/pkg/baseboard
 github.com/jaypipes/ghw/pkg/bios
 github.com/jaypipes/ghw/pkg/block
