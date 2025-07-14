@@ -1,6 +1,7 @@
 module github.com/vmware/pmd-next-gen
 
-go 1.21.5
+go 1.23.0
+
 toolchain go1.24.1
 
 require (
@@ -22,7 +23,7 @@ require (
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
 	github.com/urfave/cli/v2 v2.27.2
 	github.com/vishvananda/netlink v1.3.0
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.34.0
 )
 
 require (
