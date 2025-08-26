@@ -39,11 +39,13 @@ func (i *Info) load() error {
 	if i.ctx.SnapshotPath != "" {
 		chroot = option.DefaultChroot
 	}
-	db, err := pcidb.New(pcidb.WithChroot(chroot))
-	if err != nil {
-		return err
+	if i.db == nil {
+		db, err := pcidb.New(pcidb.WithChroot(chroot))
+		if err != nil {
+			return err
+		}
+		i.db = db
 	}
-	i.db = db
 	i.Devices = i.getDevices()
 	return nil
 }
@@ -325,7 +327,7 @@ func (info *Info) GetDevice(address string) *Device {
 
 	device := info.getDeviceFromModaliasInfo(address, modaliasInfo)
 	device.Revision = getDeviceRevision(info.ctx, pciAddr)
-	if info.arch == topology.ARCHITECTURE_NUMA {
+	if info.arch == topology.ArchitectureNUMA {
 		device.Node = getDeviceNUMANode(info.ctx, pciAddr)
 	}
 	device.Driver = getDeviceDriver(info.ctx, pciAddr)
