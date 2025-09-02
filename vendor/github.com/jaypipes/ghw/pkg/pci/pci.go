@@ -135,7 +135,7 @@ func New(opts ...*option.Option) (*Info, error) {
 	// by default we don't report NUMA information;
 	// we will only if are sure we are running on NUMA architecture
 	info := &Info{
-		arch: topology.ARCHITECTURE_SMP,
+		arch: topology.ArchitectureSMP,
 		ctx:  ctx,
 	}
 
@@ -148,6 +148,9 @@ func New(opts ...*option.Option) (*Info, error) {
 			info.arch = topo.Architecture
 		} else {
 			ctx.Warn("error detecting system topology: %v", err)
+		}
+		if merged.PCIDB != nil {
+			info.db = merged.PCIDB
 		}
 		return info.load()
 	}
